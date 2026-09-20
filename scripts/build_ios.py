@@ -2,11 +2,13 @@ import argparse
 import hashlib
 import os
 import platform
+import plistlib
 import re
 import shlex
 import shutil
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 from app_build import BuildVariant, add_variant_argument
@@ -16,6 +18,26 @@ root = Path(__file__).resolve().parents[1]
 
 def run(arguments, **kwargs):
     subprocess.run(arguments, cwd=kwargs.pop('cwd', root), check=True, **kwargs)
+
+
+def package_unsigned_ipa(application, destination):
+    info = plistlib.loads((application / 'Info.plist').read_bytes())
+    executable = info.get('CFBundleExecutable', '')
+    if not executable or Path(executable).name != executable or not (application / executable).is_file():
+        raise ValueError('iOS 应用缺少有效主程序')
+    with zipfile.ZipFile(destination, 'w', zipfile.ZIP_DEFLATED) as archive:
+        for source in sorted(application.rglob('*')):
+            name = 'Payload/' + application.name + '/' + source.relative_to(application).as_posix()
+            if source.is_symlink():
+                entry = zipfile.ZipInfo(name)
+                entry.create_system = 3
+                entry.external_attr = source.lstat().st_mode << 16
+                archive.writestr(entry, os.readlink(source))
+            else:
+                archive.write(source, name)
+    with zipfile.ZipFile(destination) as archive:
+        if archive.testzip() is not None:
+            raise ValueError('iOS IPA 完整性校验失败')
 
 
 def build_core(simulator=False, variant=BuildVariant()):
@@ -103,8 +125,8 @@ def main():
         for symbol in ['_DuanjuRequest', '_DuanjuFree']:
             if symbol not in symbols:
                 raise SystemExit('iOS 包缺少 FFI 入口：' + symbol)
-        destination = output / f'{variant.slug}-{version}-ios-unsigned-app.zip'
-        run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(application), str(destination)])
+        destination = output / f'{variant.slug}-{version}-ios-unsigned.ipa'
+        package_unsigned_ipa(application, destination)
         artifacts.append(destination)
     if not artifacts:
         raise SystemExit('未生成 iOS 安装包。')

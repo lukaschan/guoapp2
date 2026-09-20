@@ -143,7 +143,7 @@ exports/
 | Android 8.0+ 手机 | ARM64、ARMv7、x86_64 APK；普通手机选 `arm64-v8a`，Intel Android 才选 `x86_64` |
 | Windows 10/11 x64 | 完整 ZIP 解压后运行 `hongguojian.exe`，全站源版为 `zhenguojian.exe`，保留所有 DLL 和 `data`；完整包运行需 Windows / Actions |
 | Android TV | 与手机共用 APK，电视界面与遥控已覆盖自动化；待电视实机验收 |
-| iOS 15.1+ | 已加入工程、Go 核心链接、媒体依赖、文件管理和构建脚本；待 Xcode 构建与真机验收，没有已签名 IPA |
+| iOS 15.1+ | 两版已通过 Actions 的 Xcode 未签名构建；默认输出未签名 IPA，需自行签名，待真机验收 |
 
 `INSTALL_FAILED_NO_MATCHING_ABIS` 表示 APK 与设备架构不匹配，请更换对应架构安装包。
 
@@ -157,9 +157,11 @@ exports/
 | --- | --- | --- |
 | `hongguojian-android` | `zhenguojian-android` | 三种架构 APK 和 SHA256 |
 | `hongguojian-windows` | `zhenguojian-windows` | 完整 ZIP 和 SHA256；从解压包检查原生核心、FFprobe、换封装及播放器启动 |
-| `hongguojian-ios-unsigned` | `zhenguojian-ios-unsigned` | 未签名 `.app` ZIP 和 SHA256，不能直接当已签名 IPA 安装 |
+| `hongguojian-ios-unsigned` | `zhenguojian-ios-unsigned` | 未签名 `.ipa` 和 SHA256，内部为 `Payload/Runner.app`；需签名后安装 |
 
 Actions 分别传入默认参数与 `--all-sources` 构建两版，Flutter 和 Go 回归也覆盖两种编译配置。产物保留 14 天，不自动创建 GitHub Release。首次平台构建结果以实际 Actions 输出为准。
+
+GitHub 下载 Artifact 时会再套一层 ZIP，解压后才能看到 APK、Windows ZIP 或 IPA。iOS 默认 IPA 没有 Apple 签名或描述文件，可交给自行选择的签名工具处理，不能直接在普通 iPhone 上安装；要直接分发可安装 IPA，需要有效的 Apple 签名身份和匹配的描述文件。之前的工作流只输出 `.app` ZIP，新工作流改为标准 IPA 目录结构，并非仅修改扩展名。
 
 Android 正式发布持续使用同一签名并递增构建号，在仓库 Secrets 配置：
 
@@ -365,6 +367,6 @@ git switch -c restore-v0.2.3 v0.2.3
 
 两版均已生成 ARM64、ARMv7、x86_64 release APK，并核对应用名称、版本、架构、原生库、两版核心与 Dart 产物差异、SHA256 和与 0.2.2 的签名一致性。包位于 `dist/android/hongguojian-0.2.3+9-{arm64-v8a,armeabi-v7a,x86_64}.apk` 及对应的 `zhenguojian-0.2.3+9-*.apk`，普通手机选择 `arm64-v8a`。检查日志在 `build/editions-023`。
 
-按用户要求，由用户自行安装体验，未执行手机 / 电视实机测试或启动模拟器。Windows 完整包需 Windows / Actions；本机缺少 iPhoneOS SDK，iOS 尚未完成 Xcode 构建，也没有已签名 IPA。本轮不运行远程 Actions，不请求或处理站源图片。
+按用户要求，由用户自行安装体验，未执行手机 / 电视实机测试或启动模拟器。源码已迁移到自己的 GitHub 仓库，首次 Actions 检查和两版 iOS 未签名构建通过；Android 因 `sdkmanager` 不在 PATH、Windows 因旧 MinGW Action 删除不存在的库文件而失败。工作流已补充 Android SDK 初始化、改用 MSYS2 UCRT64 编译器，并将 iOS 产物改为未签名 IPA；修复后的云端构建结果待确认。所有应用编译在 Actions 执行，本机不编译，也不请求或处理站源图片。未提供 Apple 签名，尚无已签名 IPA 和 iOS 真机验收。
 
 此前的合成 CENC 换封装、少数分集合并转码和 Emby 成品独立解码检查已通过。平台状态单独记录，不将待验收项目混入上面的功能移植顺序。
