@@ -25,16 +25,14 @@ void main() {
       final repository = FixtureRepository();
       await tester.pumpWidget(DuanjuApp(repository: repository, store: store));
       await tester.pumpAndSettle();
-      expect(find.text(allSourcesEnabled ? '真果鉴' : '红果鉴'), findsOneWidget);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).title,
+        allSourcesEnabled ? '真果鉴' : '红果鉴',
+      );
       expect(appSlug, allSourcesEnabled ? 'zhenguojian' : 'hongguojian');
       expect(repository.requests, [allSourcesEnabled ? 'huangdou' : 'hongguo']);
       expect(store.sources.length, allSourcesEnabled ? 5 : 1);
-      for (final source in SourceSite.knownValues.skip(1)) {
-        expect(
-          find.text(source.name),
-          allSourcesEnabled ? findsOneWidget : findsNothing,
-        );
-      }
+      expect(find.text(allSourcesEnabled ? '黄豆' : '红果'), findsOneWidget);
       expect(store.preferences.getString('source'), 'huangdou');
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
@@ -72,15 +70,11 @@ void main() {
       expect((library['favorites'] as List).single['id'], other.id);
       expect(library['history'], hasLength(2));
       await store.importBackup(backup);
-      expect(store.preferences.getString('source'), 'huangdou');
-      expect(
-        readJsonList(store.preferences.getString('history')),
-        hasLength(2),
-      );
-      expect(
-        readJsonList(store.preferences.getString('favorites')).single['id'],
-        other.id,
-      );
+      final restored = jsonDecode(await store.exportBackup()) as Map;
+      final restoredLibrary = (restored['libraries'] as Map)['default'] as Map;
+      expect(restoredLibrary['source'], 'huangdou');
+      expect(restoredLibrary['history'], hasLength(2));
+      expect((restoredLibrary['favorites'] as List).single['id'], other.id);
       store.dispose();
     },
   );

@@ -121,7 +121,7 @@ void main() {
     await tester.tap(find.text('加载更多'));
     await tester.pumpAndSettle();
     expect(repository.pages, [4]);
-    await tester.tap(find.byTooltip('更新当前站源'));
+    await tester.tap(find.byTooltip('更新剧库'));
     await tester.pumpAndSettle();
     expect(repository.pages, [4, 1]);
     expect(repository.forced, [false, true]);
