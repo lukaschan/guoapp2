@@ -113,11 +113,11 @@ func (manager *nativeDownloads) load() error {
 		}
 	}
 	for _, record := range records {
-		record.Drama = migrateNativeDrama(record.Drama)
 		if !nativeDownloadAvailable(record.nativeDownloadJob) {
 			manager.jobs[record.ID] = record
 			continue
 		}
+		record.Drama = migrateNativeDrama(record.Drama)
 		switch record.State {
 		case "removing":
 			if err := os.RemoveAll(filepath.Join(manager.root, record.ID)); err != nil {
@@ -303,6 +303,24 @@ func (manager *nativeDownloads) control(id, action string) error {
 		case "resume":
 			if job.State == "paused" || job.State == "failed" {
 				job.State, job.Error = "queued", ""
+				if len(manager.active) >= 2 {
+					var victim *nativeDownloadRecord
+					for activeID := range manager.active {
+						candidate := manager.jobs[activeID]
+						if activeID == id || candidate == nil || candidate.State != "downloading" || !downloadJobAfter(candidate.nativeDownloadJob, job.nativeDownloadJob) {
+							continue
+						}
+						if victim == nil || downloadJobAfter(candidate.nativeDownloadJob, victim.nativeDownloadJob) {
+							victim = candidate
+						}
+					}
+					if victim != nil {
+						victim.State = "paused"
+						if cancel := manager.active[victim.ID]; cancel != nil {
+							cancel()
+						}
+					}
+				}
 			}
 		case "remove":
 			if cancel := manager.active[id]; cancel != nil {
@@ -323,6 +341,13 @@ func (manager *nativeDownloads) control(id, action string) error {
 		manager.scheduleLocked()
 	}
 	return err
+}
+
+func downloadJobAfter(first, second nativeDownloadJob) bool {
+	if first.Created != second.Created {
+		return first.Created > second.Created
+	}
+	return first.Index > second.Index
 }
 
 func (manager *nativeDownloads) scheduleLocked() {
