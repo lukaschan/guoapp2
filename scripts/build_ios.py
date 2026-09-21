@@ -2,11 +2,13 @@ import argparse
 import hashlib
 import os
 import platform
+import plistlib
 import re
 import shlex
 import shutil
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 from app_build import BuildVariant, add_variant_argument
@@ -15,8 +17,41 @@ root = Path(__file__).resolve().parents[1]
 
 
 def ios_artifact_name(variant, version, signed):
-    suffix = 'ios.ipa' if signed else 'ios-unsigned-app.zip'
+    suffix = 'ios.ipa' if signed else 'ios-unsigned.ipa'
     return f'{variant.slug}-{version}-{suffix}'
+
+
+def package_unsigned_ipa(application, destination):
+    if not application.is_dir():
+        raise ValueError('iOS 应用目录不存在')
+    try:
+        info = plistlib.loads((application / 'Info.plist').read_bytes())
+    except (OSError, plistlib.InvalidFileException, ValueError) as error:
+        raise ValueError('iOS 应用缺少有效 Info.plist') from error
+    executable = info.get('CFBundleExecutable', '')
+    if (not isinstance(executable, str) or not executable or Path(executable).name != executable
+            or not (application / executable).is_file()):
+        raise ValueError('iOS 应用缺少有效主程序')
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_name(destination.name + '.tmp')
+    temporary.unlink(missing_ok=True)
+    try:
+        with zipfile.ZipFile(temporary, 'w', zipfile.ZIP_DEFLATED) as archive:
+            for source in sorted(application.rglob('*')):
+                name = 'Payload/' + application.name + '/' + source.relative_to(application).as_posix()
+                if source.is_symlink():
+                    entry = zipfile.ZipInfo(name)
+                    entry.create_system = 3
+                    entry.external_attr = source.lstat().st_mode << 16
+                    archive.writestr(entry, os.readlink(source))
+                else:
+                    archive.write(source, name)
+        with zipfile.ZipFile(temporary) as archive:
+            if archive.testzip() is not None:
+                raise ValueError('iOS IPA 完整性校验失败')
+        temporary.replace(destination)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def run(arguments, **kwargs):
@@ -109,7 +144,7 @@ def main():
             if symbol not in symbols:
                 raise SystemExit('iOS 包缺少 FFI 入口：' + symbol)
         destination = output / ios_artifact_name(variant, version, signed=False)
-        run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(application), str(destination)])
+        package_unsigned_ipa(application, destination)
         artifacts.append(destination)
     if not artifacts:
         raise SystemExit('未生成 iOS 安装包。')
