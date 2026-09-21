@@ -37,11 +37,24 @@ func nativeDownloadAvailable(job nativeDownloadJob) bool {
 
 func nativeAuthorizeInput(input nativeInput) error {
 	switch input.Action {
-	case "catalog", "cached":
+	case "recommendations", "cachedRecommendations", "suggestions", "danmaku":
+		if !nativeSourceAvailable(sourceHongguo) {
+			return errNativeBuildSource
+		}
+	case "rankings":
+		board, found := findRankingBoard(input.Board)
+		if !found || !nativeSourceAvailable(board.Source) {
+			return errNativeBuildSource
+		}
+	case "catalog", "cached", "categories", "sourceStatus", "sourceJob", "cancelSourceJob":
 		if !nativeSourceAvailable(input.Source) {
 			return errNativeBuildSource
 		}
-	case "cover", "detail", "resolve", "enqueueDownloads", "localPlayback":
+		if input.Action == "sourceJob" && input.Drama.ID != "" &&
+			(!nativeDramaAvailable(input.Drama) || sourceFromDramaID(input.Drama.ID) != canonicalProviderSource(input.Source)) {
+			return errNativeBuildSource
+		}
+	case "cover", "prepareCover", "detail", "metadata", "resolve", "enqueueDownloads", "localPlayback":
 		if !nativeDramaAvailable(input.Drama) {
 			return errNativeBuildSource
 		}

@@ -2,13 +2,11 @@ import argparse
 import hashlib
 import os
 import platform
-import plistlib
 import re
 import shlex
 import shutil
 import subprocess
 import sys
-import zipfile
 from pathlib import Path
 
 from app_build import BuildVariant, add_variant_argument
@@ -16,28 +14,13 @@ from app_build import BuildVariant, add_variant_argument
 root = Path(__file__).resolve().parents[1]
 
 
+def ios_artifact_name(variant, version, signed):
+    suffix = 'ios.ipa' if signed else 'ios-unsigned-app.zip'
+    return f'{variant.slug}-{version}-{suffix}'
+
+
 def run(arguments, **kwargs):
     subprocess.run(arguments, cwd=kwargs.pop('cwd', root), check=True, **kwargs)
-
-
-def package_unsigned_ipa(application, destination):
-    info = plistlib.loads((application / 'Info.plist').read_bytes())
-    executable = info.get('CFBundleExecutable', '')
-    if not executable or Path(executable).name != executable or not (application / executable).is_file():
-        raise ValueError('iOS 应用缺少有效主程序')
-    with zipfile.ZipFile(destination, 'w', zipfile.ZIP_DEFLATED) as archive:
-        for source in sorted(application.rglob('*')):
-            name = 'Payload/' + application.name + '/' + source.relative_to(application).as_posix()
-            if source.is_symlink():
-                entry = zipfile.ZipInfo(name)
-                entry.create_system = 3
-                entry.external_attr = source.lstat().st_mode << 16
-                archive.writestr(entry, os.readlink(source))
-            else:
-                archive.write(source, name)
-    with zipfile.ZipFile(destination) as archive:
-        if archive.testzip() is not None:
-            raise ValueError('iOS IPA 完整性校验失败')
 
 
 def build_core(simulator=False, variant=BuildVariant()):
@@ -115,7 +98,7 @@ def main():
             raise SystemExit('ExportOptions.plist 不存在。')
         run([flutter, 'build', 'ipa', '--release', '--no-pub', '--export-options-plist', str(config), *variant.flutter_arguments])
         for package in (root / 'build' / 'ios' / 'ipa').glob('*.ipa'):
-            destination = output / f'{variant.slug}-{version}-ios.ipa'
+            destination = output / ios_artifact_name(variant, version, signed=True)
             shutil.copy2(package, destination)
             artifacts.append(destination)
     else:
@@ -125,8 +108,8 @@ def main():
         for symbol in ['_DuanjuRequest', '_DuanjuFree']:
             if symbol not in symbols:
                 raise SystemExit('iOS 包缺少 FFI 入口：' + symbol)
-        destination = output / f'{variant.slug}-{version}-ios-unsigned.ipa'
-        package_unsigned_ipa(application, destination)
+        destination = output / ios_artifact_name(variant, version, signed=False)
+        run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(application), str(destination)])
         artifacts.append(destination)
     if not artifacts:
         raise SystemExit('未生成 iOS 安装包。')

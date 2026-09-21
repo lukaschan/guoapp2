@@ -12,6 +12,8 @@ import 'background_downloads.dart';
 import 'local_store.dart';
 import 'profiles_screen.dart';
 import 'app_build.dart';
+import 'sources_screen.dart';
+import 'widgets.dart';
 
 String storageSize(int bytes) {
   if (bytes < 0) return '暂不可用';
@@ -64,7 +66,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
-    if (selected != null) await widget.store.setThemeMode(selected);
+    if (selected != null && mounted) {
+      await saveUserChange(context, () => widget.store.setThemeMode(selected));
+    }
   }
 
   Future<void> _backup(bool restore) async {
@@ -136,6 +140,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              if (widget.repository.supportsSourceManagement)
+                ListTile(
+                  leading: const Icon(Icons.dns_outlined),
+                  title: const Text('站源管理'),
+                  subtitle: const Text('独立更新、连接与播放检测'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => SourcesScreen(
+                        repository: widget.repository,
+                        store: widget.store,
+                      ),
+                    ),
+                  ),
+                ),
               ListTile(
                 key: const ValueKey('theme-setting'),
                 leading: const Icon(Icons.palette_outlined),
@@ -196,7 +216,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: widget.store.exportPosters,
                   title: const Text('同时导出海报文件'),
                   subtitle: const Text('默认只写海报 URL。源站海报需要解密或外部读取失败时可开启。'),
-                  onChanged: _busy ? null : widget.store.setExportPosters,
+                  onChanged: _busy
+                      ? null
+                      : (value) => saveUserChange(
+                          context,
+                          () => widget.store.setExportPosters(value),
+                        ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.backup_outlined),
