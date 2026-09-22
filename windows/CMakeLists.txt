@@ -91,7 +91,6 @@ endif()
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")
 install(DIRECTORY "${NATIVE_ASSETS_DIR}"
    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
-   OPTIONAL
    COMPONENT Runtime)
 
 # Fully re-copy the assets directory on each build to avoid having stale files
@@ -111,6 +110,6 @@ install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/runner/duanju_core.dll"
   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
 
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "${INSTALL_BUNDLE_LIB_DIR}")
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_COMPONENT Runtime)
 include(InstallRequiredSystemLibraries)
