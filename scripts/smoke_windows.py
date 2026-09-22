@@ -29,9 +29,19 @@ def main():
                         '-i', 'testsrc2=size=160x90:rate=12', '-t', '3',
                         '-c:v', 'libx264', '-threads', '1', str(media)], check=True)
         report = directory / 'result.json'
-        subprocess.run([str(directory / (variant.slug + '.exe')), '--package-smoke', str(report), str(media)],
-                       cwd=directory, check=True, timeout=90)
+        result = subprocess.run(
+            [str(directory / (variant.slug + '.exe')), '--package-smoke', str(report), str(media)],
+            cwd=directory, check=False, timeout=90,
+        )
+        if not report.is_file():
+            raise SystemExit(
+                f'Windows 包启动验收未生成报告，退出码 {result.returncode}。'
+            )
         evidence = json.loads(report.read_text())
+        if result.returncode != 0:
+            raise SystemExit(
+                'Windows 包启动验收进程失败：' + json.dumps(evidence, ensure_ascii=False)
+            )
         if evidence.get('ok') is not True:
             raise SystemExit('Windows 包启动验收未通过。')
         output = root / 'build' / 'windows-package-smoke.json'
