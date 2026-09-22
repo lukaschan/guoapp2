@@ -200,6 +200,8 @@ exports/
 
 Actions 分别传入默认参数与 `--all-sources` 构建两版，Flutter 和 Go 回归也覆盖两种编译配置。产物保留 14 天，不自动创建 GitHub Release。首次平台构建结果以实际 Actions 输出为准。
 
+2026-09-22 云端构建修复：Android SDK 初始化显式安装 `platform-tools`，避免请求已废弃的 `tools` 包。Windows 安装允许不存在可选的 `native_assets/windows` 目录，并开启 Flutter 详细构建日志，以保留底层 CMake 安装错误；现有 `MSB3073` 日志仅确认安装阶段失败，具体原因和修复效果仍需 Actions 验证。本轮按用户要求不执行本地构建或测试，使用 `unverified` 开发快照。
+
 Android 正式发布持续使用同一签名并递增构建号，在仓库 Secrets 配置：
 
 | Secret | 内容 |
