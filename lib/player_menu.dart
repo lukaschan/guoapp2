@@ -3,7 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'models.dart';
+import 'episode_browser.dart';
 import 'playback_preferences.dart';
+import 'video_enhancement.dart';
+import 'video_enhancement_settings.dart';
 
 enum PlayerMenuSection { episodes, speed, quality, settings }
 
@@ -25,6 +28,9 @@ class PlayerMenu extends StatefulWidget {
     this.showDanmaku = false,
     this.danmakuStatus = '',
     this.onRetryDanmaku,
+    this.preloadStatus = '',
+    this.enhancement,
+    this.onCompareEnhancement,
   });
 
   final PlayerMenuSection section;
@@ -39,6 +45,9 @@ class PlayerMenu extends StatefulWidget {
   final bool showDanmaku;
   final String danmakuStatus;
   final VoidCallback? onRetryDanmaku;
+  final String preloadStatus;
+  final VideoEnhancementController? enhancement;
+  final VoidCallback? onCompareEnhancement;
   final ValueChanged<int> onEpisode;
   final Future<void> Function(PlaybackPreferences) onPreferences;
   final Future<void> Function() onFavorite;
@@ -70,6 +79,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final landscape = size.width > size.height;
+    final colors = Theme.of(context).colorScheme;
     final title = switch (widget.section) {
       PlayerMenuSection.episodes => '选集 · 共 ${widget.episodes.length} 集',
       PlayerMenuSection.speed => '播放倍速',
@@ -80,7 +90,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
       key: const ValueKey('player-menu'),
       alignment: landscape ? Alignment.centerRight : Alignment.bottomCenter,
       insetPadding: const EdgeInsets.all(12),
-      backgroundColor: const Color(0xFF191A20),
+      backgroundColor: colors.surface,
       child: SizedBox(
         width: landscape ? math.min(440, size.width * .6) : 600,
         height: landscape ? size.height : size.height * .72,
@@ -138,6 +148,12 @@ class _PlayerMenuState extends State<PlayerMenu> {
   Widget _settings() {
     final preferences = widget.preferences;
     final all = widget.section == PlayerMenuSection.settings;
+    final colors = Theme.of(context).colorScheme;
+    final helperStyle = TextStyle(
+      fontSize: 13,
+      color: colors.onSurfaceVariant,
+      height: 1.5,
+    );
     final qualities = {
       0,
       ...widget.qualities.where((quality) => quality > 0),
@@ -178,7 +194,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
                 : widget.actualQuality > 0
                 ? '当前播放 ${widget.actualQuality}P'
                 : '使用源站可用画质',
-            style: const TextStyle(fontSize: 13, color: Colors.white70),
+            style: helperStyle,
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -205,11 +221,23 @@ class _PlayerMenuState extends State<PlayerMenu> {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 '已保存 ${preferences.quality}P 偏好，本集暂无此画质。',
-                style: const TextStyle(fontSize: 13, color: Colors.white70),
+                style: helperStyle,
               ),
             ),
           const SizedBox(height: 20),
         ],
+        if ((all || widget.section == PlayerMenuSection.quality) &&
+            widget.enhancement != null)
+          VideoEnhancementSettings(
+            controller: widget.enhancement!,
+            busy: _busy,
+            onChanged: (enhancement) => _run(
+              () => widget.onPreferences(
+                preferences.copyWith(enhancement: enhancement),
+              ),
+            ),
+            onCompare: widget.onCompareEnhancement ?? () {},
+          ),
         if (all && widget.showDanmaku) ...[
           SwitchListTile.adaptive(
             key: const ValueKey('player-danmaku-enabled'),
@@ -235,6 +263,21 @@ class _PlayerMenuState extends State<PlayerMenu> {
           const SizedBox(height: 8),
         ],
         if (all) ...[
+          SwitchListTile.adaptive(
+            key: const ValueKey('player-preload-enabled'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('下一集预加载'),
+            subtitle: Text(widget.local ? '本地播放不预取网络视频' : widget.preloadStatus),
+            value: preferences.preload,
+            onChanged: _busy
+                ? null
+                : (value) => _run(
+                    () => widget.onPreferences(
+                      preferences.copyWith(preload: value),
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 8),
           SwitchListTile.adaptive(
             key: const ValueKey('player-auto-advance'),
             contentPadding: EdgeInsets.zero,
@@ -265,11 +308,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
             widget.mobile
                 ? '上下滑切集；长按画面临时 3 倍速，松开恢复。竖屏轻点暂停，横屏轻点显示控制；双击播放或暂停。'
                 : '空格：播放 / 暂停\n左右键：后退 / 快进 5 秒\n长按右键或画面：临时 3 倍速\n上下键：音量 ±5%，M：静音\nF、F11、Ctrl+F：全屏\nEsc：先关闭菜单，再退出全屏',
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.white70,
-              height: 1.6,
-            ),
+            style: helperStyle.copyWith(height: 1.6),
           ),
         ],
       ],
@@ -277,105 +316,31 @@ class _PlayerMenuState extends State<PlayerMenu> {
   }
 }
 
-class PlayerEpisodeGrid extends StatefulWidget {
+class PlayerEpisodeGrid extends StatelessWidget {
   const PlayerEpisodeGrid({
     super.key,
     required this.episodes,
     required this.currentIndex,
     required this.onSelected,
     this.keyPrefix = 'play-episode',
+    this.compact = false,
+    this.title = '选集',
   });
   final List<Episode> episodes;
   final int currentIndex;
   final ValueChanged<int> onSelected;
   final String keyPrefix;
-
+  final bool compact;
+  final String title;
   @override
-  State<PlayerEpisodeGrid> createState() => _PlayerEpisodeGridState();
-}
-
-class _PlayerEpisodeGridState extends State<PlayerEpisodeGrid> {
-  final _scroll = ScrollController();
-  String? _layout;
-
-  @override
-  void dispose() {
-    _scroll.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final scale = MediaQuery.textScalerOf(context);
-      final columns =
-          ((constraints.maxWidth - 20) / math.max(76, scale.scale(42) + 24))
-              .floor()
-              .clamp(2, 12);
-      final extent = math.max(46.0, scale.scale(18) + 26);
-      final layout =
-          '$columns:$extent:${constraints.maxHeight}:${widget.currentIndex}';
-      if (_layout != layout) {
-        _layout = layout;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || !_scroll.hasClients) return;
-          final offset =
-              (widget.currentIndex ~/ columns) * (extent + 8) -
-              constraints.maxHeight / 2 +
-              extent / 2;
-          _scroll.jumpTo(offset.clamp(0.0, _scroll.position.maxScrollExtent));
-        });
-      }
-      return GridView.builder(
-        controller: _scroll,
-        padding: const EdgeInsets.fromLTRB(14, 4, 14, 18),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          mainAxisExtent: extent,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
-        itemCount: widget.episodes.length,
-        itemBuilder: (context, index) {
-          final episode = widget.episodes[index];
-          return Semantics(
-            selected: index == widget.currentIndex,
-            label: '第 ${episode.number} 集${episode.vip ? '，VIP' : ''}',
-            child: TextButton(
-              key: ValueKey('${widget.keyPrefix}-${episode.number}'),
-              onPressed: () => widget.onSelected(index),
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor: index == widget.currentIndex
-                    ? const Color(0xFF763D32)
-                    : const Color(0xFF24252C),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text(
-                      '${episode.number}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (episode.vip)
-                    const Icon(
-                      Icons.workspace_premium_rounded,
-                      color: Color(0xFFF6C86B),
-                      size: 13,
-                    ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
+  Widget build(BuildContext context) => EpisodeBrowser(
+    episodes: episodes,
+    currentNumber: episodes.isEmpty
+        ? null
+        : episodes[currentIndex.clamp(0, episodes.length - 1)].number,
+    onSelected: onSelected,
+    keyPrefix: keyPrefix,
+    compact: compact,
+    title: title,
   );
 }

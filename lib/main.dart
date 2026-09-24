@@ -10,12 +10,16 @@ import 'package:window_manager/window_manager.dart';
 
 import 'core_bridge.dart';
 import 'app_layout.dart';
+import 'app_orientation.dart';
 import 'app_theme.dart';
 import 'home_screen.dart';
 import 'local_store.dart';
 import 'profiles_screen.dart';
 import 'media_library.dart';
 import 'package_smoke.dart';
+import 'lan_controller.dart';
+import 'player_screen.dart';
+import 'video_enhancement_assets.dart';
 
 Future<void> main(List<String> arguments) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,15 +31,18 @@ Future<void> main(List<String> arguments) async {
     await windowManager.ensureInitialized();
   }
   MediaKit.ensureInitialized();
+  VideoEnhancementAssets.registerLicenses();
   if (Platform.isWindows && arguments.firstOrNull == '--package-smoke') {
     await runPackageSmoke(arguments);
     return;
   }
-  runApp(const AppBootstrap());
+  final device = await AppDevice.detect();
+  runApp(AppBootstrap(device: device));
 }
 
 class AppBootstrap extends StatefulWidget {
-  const AppBootstrap({super.key});
+  const AppBootstrap({super.key, this.device = const AppDevice()});
+  final AppDevice device;
   @override
   State<AppBootstrap> createState() => _AppBootstrapState();
 }
@@ -43,13 +50,16 @@ class AppBootstrap extends StatefulWidget {
 class _AppBootstrapState extends State<AppBootstrap>
     with WidgetsBindingObserver {
   final repository = NativeRepository();
+  final navigator = GlobalKey<NavigatorState>();
   LocalStore? store;
   Object? error;
-  AppDevice device = const AppDevice();
+  late AppDevice device = widget.device;
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    LanController.current?.dispose();
+    LanController.current = null;
     MediaLibrary.current?.dispose();
     MediaLibrary.current = null;
     store?.dispose();
@@ -65,6 +75,9 @@ class _AppBootstrapState extends State<AppBootstrap>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && Platform.isAndroid) {
+      unawaited(_refreshDevice());
+    }
     if (!Platform.isIOS) return;
     final library = MediaLibrary.current;
     if (state == AppLifecycleState.paused ||
@@ -83,19 +96,76 @@ class _AppBootstrapState extends State<AppBootstrap>
     }
   }
 
+  Future<void> _refreshDevice() async {
+    final detected = await AppDevice.detect(fallback: device);
+    if (!mounted ||
+        (device.television == detected.television &&
+            device.version == detected.version)) {
+      return;
+    }
+    setState(() => device = detected);
+  }
+
   Future<void> _initialize() async {
     setState(() {
       error = null;
     });
     try {
       final preferences = await SharedPreferences.getInstance();
-      device = await AppDevice.detect();
+      await _refreshDevice();
       await repository.initialize();
       if (mounted) {
         setState(() {
           store = LocalStore(preferences);
           repository.access = store;
           MediaLibrary.attach(repository, store!);
+          LanController.current?.dispose();
+          final link = LanController(
+            repository,
+            store!,
+            kind: device.television
+                ? 'tv'
+                : Platform.isWindows
+                ? 'computer'
+                : 'phone',
+          );
+          LanController.current = link;
+          link.openPlayback = (request) async {
+            final epoch = request.profileEpoch;
+            if (request.cancelled ||
+                !mounted ||
+                store!.locked ||
+                !link.receiving ||
+                store!.profileEpoch != epoch ||
+                !store!.allowsSource(request.detail.drama.source)) {
+              throw StateError('当前用户不能接收播放');
+            }
+            await link.playbackHost?.stop();
+            if (request.cancelled ||
+                !mounted ||
+                store!.locked ||
+                store!.profileEpoch != epoch ||
+                !link.receiving) {
+              throw StateError('播放接收已取消');
+            }
+            final navigation = navigator.currentState;
+            if (navigation == null) throw StateError('接收设备界面尚未就绪');
+            unawaited(
+              navigation.pushAndRemoveUntil<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => PlayerScreen(
+                    detail: request.detail,
+                    initialIndex: request.index,
+                    initialPosition: request.position,
+                    repository: repository,
+                    store: store!,
+                    handoff: request,
+                  ),
+                ),
+                (route) => route.isFirst,
+              ),
+            );
+          };
         });
       }
     } catch (failure) {
@@ -115,6 +185,7 @@ class _AppBootstrapState extends State<AppBootstrap>
     onRetry: _initialize,
     television: device.television,
     version: device.version,
+    navigatorKey: navigator,
   );
 }
 
@@ -127,6 +198,7 @@ class DuanjuApp extends StatelessWidget {
     this.onRetry,
     this.television = false,
     this.version = appVersion,
+    this.navigatorKey,
   });
   final AppRepository repository;
   final LocalStore? store;
@@ -134,13 +206,16 @@ class DuanjuApp extends StatelessWidget {
   final VoidCallback? onRetry;
   final bool television;
   final String version;
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
-  Widget build(BuildContext context) => store == null
-      ? _application()
-      : AnimatedBuilder(animation: store!, builder: (_, _) => _application());
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: Listenable.merge([store]),
+    builder: (_, _) => _application(),
+  );
 
   Widget _application() => MaterialApp(
+    navigatorKey: navigatorKey,
     title: appName,
     debugShowCheckedModeBanner: false,
     locale: const Locale('zh', 'CN'),
@@ -157,24 +232,27 @@ class DuanjuApp extends StatelessWidget {
         value: AppTheme.systemBars(theme.brightness),
         child: ColoredBox(
           color: theme.scaffoldBackgroundColor,
-          child: AppLayout(
+          child: AppOrientationScope(
             television: tv,
-            version: version,
-            child: Theme(
-              data: tv ? televisionTheme(theme) : theme,
-              child: Shortcuts(
-                shortcuts: const {
-                  SingleActivator(
-                    LogicalKeyboardKey.select,
-                    includeRepeats: false,
-                  ): ActivateIntent(),
-                  SingleActivator(
-                    LogicalKeyboardKey.gameButtonA,
-                    includeRepeats: false,
-                  ): ActivateIntent(),
-                  SingleActivator(LogicalKeyboardKey.goBack): DismissIntent(),
-                },
-                child: FocusTraversalGroup(child: child!),
+            child: AppLayout(
+              television: tv,
+              version: version,
+              child: Theme(
+                data: tv ? televisionTheme(theme) : theme,
+                child: Shortcuts(
+                  shortcuts: const {
+                    SingleActivator(
+                      LogicalKeyboardKey.select,
+                      includeRepeats: false,
+                    ): ActivateIntent(),
+                    SingleActivator(
+                      LogicalKeyboardKey.gameButtonA,
+                      includeRepeats: false,
+                    ): ActivateIntent(),
+                    SingleActivator(LogicalKeyboardKey.goBack): DismissIntent(),
+                  },
+                  child: FocusTraversalGroup(child: child!),
+                ),
               ),
             ),
           ),

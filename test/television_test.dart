@@ -120,10 +120,15 @@ void main() {
         await tester.pumpAndSettle();
         if (SourceSite.values.length > 1) {
           final switcher = find.byKey(const ValueKey('source-switch'));
-          await tester.tap(switcher);
+          final title = find
+              .descendant(of: switcher, matching: find.byType(Text))
+              .first;
+          Focus.of(tester.element(title)).requestFocus();
           await tester.pumpAndSettle();
-          await tester.tap(find.text('黄豆').last);
-          await tester.pumpAndSettle();
+          await press(tester, LogicalKeyboardKey.select);
+          await press(tester, LogicalKeyboardKey.arrowDown);
+          await press(tester, LogicalKeyboardKey.arrowDown);
+          await press(tester, LogicalKeyboardKey.select);
         }
         expect(
           repository.requests.last,

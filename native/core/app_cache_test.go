@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -184,14 +183,9 @@ func TestNativeCatalogCacheFreshnessPagingAndRefresh(t *testing.T) {
 	var calls atomic.Int32
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls.Add(1)
-		if !strings.HasPrefix(r.URL.Path, "/api/videos/category/ai-") {
-			t.Error("test requested an unexpected catalog endpoint", r.URL.Path)
+		if r.URL.Path != "/api/videos/category/ai-duanju" {
+			t.Error("test must only request synthetic catalog metadata", r.URL.Path)
 			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		category := strings.TrimPrefix(r.URL.Path, "/api/videos/category/")
-		if category != "ai-duanju" {
-			json.NewEncoder(w).Encode(map[string]any{"data": []map[string]any{}})
 			return
 		}
 		page, _ := strconv.Atoi(r.URL.Query().Get("page"))
@@ -221,7 +215,7 @@ func TestNativeCatalogCacheFreshnessPagingAndRefresh(t *testing.T) {
 	if err != nil || len(first.Items) != 24 || !first.Fresh || !first.HasMore {
 		t.Fatal("first catalog request failed", err, first)
 	}
-	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 1}); err != nil || calls.Load() != 4 {
+	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 1}); err != nil || calls.Load() != 1 {
 		t.Fatal("fresh catalog caused another request", err, calls.Load())
 	}
 	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 2}); err != nil {
@@ -232,10 +226,10 @@ func TestNativeCatalogCacheFreshnessPagingAndRefresh(t *testing.T) {
 	if len(cached.Items) != 25 || cached.Page != 2 || cached.HasMore || !cached.Fresh {
 		t.Fatal("cached pagination state did not survive a restart", cached)
 	}
-	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 1}); err != nil || calls.Load() != 8 {
+	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 1}); err != nil || calls.Load() != 2 {
 		t.Fatal("restart bypassed fresh disk cache", err, calls.Load())
 	}
-	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 1, Force: true}); err != nil || calls.Load() != 12 {
+	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 1, Force: true}); err != nil || calls.Load() != 3 {
 		t.Fatal("manual refresh reused old data", err, calls.Load())
 	}
 	state := engine.catalogStates[sourceHuangguoAI]
@@ -244,7 +238,7 @@ func TestNativeCatalogCacheFreshnessPagingAndRefresh(t *testing.T) {
 	if engine.nativeCached(sourceHuangguoAI).Fresh {
 		t.Fatal("expired catalog is marked fresh")
 	}
-	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 1}); err != nil || calls.Load() != 16 {
+	if _, err := engine.nativeCatalog(context.Background(), nativeInput{Source: sourceHuangguoAI, Page: 1}); err != nil || calls.Load() != 4 {
 		t.Fatal("expired catalog was not updated", err, calls.Load())
 	}
 }
