@@ -166,7 +166,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           child: !widget.store.allowsSource('hongguo')
               ? const StatusPanel(title: '当前用户未开放红果', message: '可在用户管理中调整站源权限。')
               : _loading && _items.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator.adaptive())
               : _items.isEmpty
               ? StatusPanel(
                   title: _error == null ? '暂无推荐' : '推荐暂时无法加载',
@@ -174,7 +174,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                   onRetry: () => _load(force: true),
                 )
               : LayoutBuilder(
-                  builder: (context, constraints) => RefreshIndicator(
+                  builder: (context, constraints) => RefreshIndicator.adaptive(
                     onRefresh: () => _load(force: true),
                     child: CustomScrollView(
                       controller: _scroll,
@@ -210,10 +210,15 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                         ),
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                            padding: EdgeInsets.fromLTRB(
+                              16,
+                              0,
+                              16,
+                              24 + MediaQuery.paddingOf(context).bottom,
+                            ),
                             child: Center(
                               child: _more
-                                  ? const CircularProgressIndicator()
+                                  ? const CircularProgressIndicator.adaptive()
                                   : _hasMore
                                   ? OutlinedButton.icon(
                                       onPressed: () => _load(more: true),

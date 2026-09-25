@@ -181,7 +181,7 @@ class _ProfilesScreenState extends State<ProfilesScreen> {
                 const Text('各用户的追剧和观看记录独立保存，下载文件由本机共享。'),
                 if (!widget.store.locked && widget.store.profile.admin) ...[
                   const SizedBox(height: 12),
-                  SwitchListTile(
+                  SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('启动时需要登录'),
                     subtitle: Text(
@@ -434,7 +434,7 @@ class _ProfileEditorState extends State<ProfileEditor> {
                     });
                   },
                 ),
-              SwitchListTile(
+              SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('允许下载和本地媒体'),
                 subtitle: Text(_download ? '可下载、合并和导出' : '仅在线观看，隐藏下载入口'),

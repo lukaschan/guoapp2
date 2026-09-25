@@ -4,9 +4,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'app_layout.dart';
 import 'core_bridge.dart';
 import 'download_collections.dart';
+import 'ios_dialogs.dart';
 import 'local_store.dart';
 import 'local_media_screen.dart';
 import 'models.dart';
@@ -130,27 +130,16 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     }
     if (command == 'remove') {
       final completed = jobs.where((job) => job.completed).length;
-      final accepted = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(completed > 0 ? '删除所选视频？' : '取消所选下载？'),
-          content: Text(
+      final accepted = await confirmAction(
+        context,
+        title: completed > 0 ? '删除所选视频？' : '取消所选下载？',
+        message:
             '共 ${jobs.length} 项${completed > 0 ? '，包含 $completed 个已下载视频' : ''}，文件也会删除。\n需要保留视频时，请选择“清理任务，保留视频”。',
-          ),
-          actions: [
-            TextButton(
-              autofocus: AppLayout.isTelevision(context),
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('保留'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('确认删除'),
-            ),
-          ],
-        ),
+        confirm: '确认删除',
+        cancel: '保留',
+        destructive: true,
       );
-      if (accepted != true || !mounted || !_allowed) return;
+      if (!accepted || !mounted || !_allowed) return;
     }
     setState(() {
       _busy = true;
@@ -696,7 +685,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
           Padding(padding: const EdgeInsets.all(12), child: Text(_error!)),
         Expanded(
           child: _loading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator.adaptive())
               : _error != null && _jobs.isEmpty
               ? StatusPanel(
                   title: '无法读取下载记录',
@@ -710,7 +699,12 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                   icon: Icons.download_outlined,
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+                  padding: EdgeInsets.fromLTRB(
+                    12,
+                    4,
+                    12,
+                    20 + MediaQuery.paddingOf(context).bottom,
+                  ),
                   itemCount: rows.length,
                   itemBuilder: (_, index) => switch (rows[index]) {
                     DownloadCollection collection => _collection(collection),

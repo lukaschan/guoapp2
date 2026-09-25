@@ -271,7 +271,7 @@ class _RankingsScreenState extends State<RankingsScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const CircularProgressIndicator(),
+                          const CircularProgressIndicator.adaptive(),
                           if (_board?.source == 'hongguo') ...[
                             const SizedBox(height: 16),
                             const Text('正在获取榜单，数据未完整返回时会自动重试'),
@@ -287,7 +287,7 @@ class _RankingsScreenState extends State<RankingsScreen> {
                           ? _initialize
                           : () => _load(force: true),
                     )
-                  : RefreshIndicator(
+                  : RefreshIndicator.adaptive(
                       onRefresh: () => _load(force: true),
                       child: ListView.builder(
                         key: ValueKey('ranking-${_board!.id}'),
@@ -301,7 +301,7 @@ class _RankingsScreenState extends State<RankingsScreen> {
                               child: _more
                                   ? const Padding(
                                       padding: EdgeInsets.all(16),
-                                      child: CircularProgressIndicator(),
+                                      child: CircularProgressIndicator.adaptive(),
                                     )
                                   : _hasMore
                                   ? OutlinedButton(

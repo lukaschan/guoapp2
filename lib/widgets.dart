@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+
 import 'core_bridge.dart';
 import 'app_layout.dart';
+import 'liquid_glass.dart';
 import 'models.dart';
 import 'remote_widgets.dart';
 
@@ -81,7 +84,9 @@ class _RefreshActionState extends State<RefreshAction>
           : null,
       icon: RotationTransition(
         turns: _rotation,
-        child: const Icon(Icons.refresh_rounded),
+        child: Icon(
+          iosDesign(context) ? LucideIcons.rotateCw : Icons.refresh_rounded,
+        ),
       ),
     ),
   );
@@ -102,6 +107,7 @@ class DramaCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final ios = iosDesign(context);
     final placeholder = Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -112,73 +118,74 @@ class DramaCover extends StatelessWidget {
       ),
       child: Center(
         child: Icon(
-          Icons.movie_creation_outlined,
+          ios ? LucideIcons.clapperboard : Icons.movie_creation_outlined,
           size: 40,
           color: colors.onSurfaceVariant,
         ),
       ),
     );
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          placeholder,
-          if (!imagesDisabled && drama.id.isNotEmpty)
-            CachedCoverImage(
-              key: ValueKey('${drama.id}\u0000${drama.cover}'),
-              drama: drama,
-              repository: repository,
-              placeholder: placeholder,
-            ),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.center,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: .78),
-                    ],
-                  ),
+    final cover = Stack(
+      fit: StackFit.expand,
+      children: [
+        placeholder,
+        if (!imagesDisabled && drama.id.isNotEmpty)
+          CachedCoverImage(
+            key: ValueKey('${drama.id}\u0000${drama.cover}'),
+            drama: drama,
+            repository: repository,
+            placeholder: placeholder,
+          ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.center,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: .78),
+                  ],
                 ),
               ),
             ),
           ),
-          if (drama.episodes > 0)
-            Positioned(
-              left: 9,
-              bottom: 9,
-              child: Text(
-                '共 ${drama.episodes} 集',
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+        ),
+        if (drama.episodes > 0)
+          Positioned(
+            left: 9,
+            bottom: 9,
+            child: Text(
+              '共 ${drama.episodes} 集',
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ),
+        if (drama.vip)
+          Positioned(
+            left: 8,
+            top: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6C86B),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'VIP',
+                style: TextStyle(
+                  color: Color(0xFF40300D),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
-          if (drama.vip)
-            Positioned(
-              left: 8,
-              top: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF6C86B),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  'VIP',
-                  style: TextStyle(
-                    color: Color(0xFF40300D),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+          ),
+      ],
     );
+    final corners = BorderRadius.circular(radius);
+    return ios
+        ? ClipRSuperellipse(borderRadius: corners, child: cover)
+        : ClipRRect(borderRadius: corners, child: cover);
   }
 }
 
@@ -413,7 +420,13 @@ class DramaTile extends StatelessWidget {
                         ? Theme.of(context).colorScheme.primary
                         : Colors.black.withValues(alpha: .64),
                     child: Icon(
-                      selected! ? Icons.check_rounded : Icons.circle_outlined,
+                      iosDesign(context)
+                          ? selected!
+                                ? LucideIcons.check
+                                : LucideIcons.circle
+                          : selected!
+                          ? Icons.check_rounded
+                          : Icons.circle_outlined,
                       size: 22,
                       color: selected!
                           ? Theme.of(context).colorScheme.onPrimary
@@ -473,6 +486,29 @@ class DramaTile extends StatelessWidget {
           label:
               '${drama.title}，${drama.episodes}集${badge == null ? '' : '，$badge'}',
           child: content,
+        ),
+      );
+    }
+    if (iosDesign(context)) {
+      final longPress = onLongPress ?? onMore;
+      return Semantics(
+        button: true,
+        selected: selected,
+        label: '${drama.title}，${drama.episodes}集',
+        child: PressableScale(
+          pressedScale: .965,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onTap,
+            onLongPress: longPress == null
+                ? null
+                : () {
+                    HapticFeedback.mediumImpact();
+                    longPress();
+                  },
+            onSecondaryTap: onMore,
+            child: content,
+          ),
         ),
       );
     }

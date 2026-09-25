@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'app_layout.dart';
+import 'ios_dialogs.dart';
+import 'liquid_glass.dart';
 import 'core_bridge.dart';
 import 'download_picker.dart';
 import 'downloads_screen.dart';
@@ -240,25 +244,13 @@ class _DetailScreenState extends State<DetailScreen> {
     }
     if (detail.episodes[index].vip &&
         detail.drama.source != SourceSite.dsd.id) {
-      final accepted = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('这是一集 VIP 内容'),
-          content: const Text('站源可能只提供试看或限制播放。'),
-          actions: [
-            TextButton(
-              autofocus: AppLayout.isTelevision(context),
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('尝试播放'),
-            ),
-          ],
-        ),
+      final accepted = await confirmAction(
+        context,
+        title: '这是一集 VIP 内容',
+        message: '站源可能只提供试看或限制播放。',
+        confirm: '尝试播放',
       );
-      if (accepted != true || !mounted) {
+      if (!accepted || !mounted) {
         return;
       }
     }
@@ -400,9 +392,12 @@ class _DetailScreenState extends State<DetailScreen> {
                     controller: _detailScroll,
                     slivers: [
                       SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                          child: _overview(drama),
+                        child: _ambient(
+                          drama,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                            child: _overview(drama),
+                          ),
                         ),
                       ),
                       if (_loading || _error != null || episodes.isEmpty)
@@ -466,6 +461,12 @@ class _DetailScreenState extends State<DetailScreen> {
                           ),
                         ],
                       ],
+                      if (iosDesign(context))
+                        SliverToBoxAdapter(
+                          child: SizedBox(
+                            height: 88 + MediaQuery.paddingOf(context).bottom,
+                          ),
+                        ),
                     ],
                   );
                 },
@@ -473,58 +474,127 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: Material(
-          color: Theme.of(context).colorScheme.surface,
-          child: SafeArea(
-            top: false,
-            child: Center(
-              heightFactor: 1,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1000),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-                  child: Row(
-                    children: [
-                      if (widget.repository.supportsDownloads &&
-                          widget.store.canDownload) ...[
-                        IconButton.filledTonal(
-                          tooltip: '下载选集',
-                          onPressed: allowed && !_loading && episodes.isNotEmpty
-                              ? _download
-                              : null,
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size(52, 52),
-                          ),
-                          icon: const Icon(Icons.download_rounded),
-                        ),
-                        const SizedBox(width: 12),
-                      ],
-                      Expanded(
-                        child: FilledButton.icon(
-                          key: const ValueKey('start-play'),
-                          autofocus: television,
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 52),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+        extendBody: iosDesign(context),
+        bottomNavigationBar: iosDesign(context)
+            ? _iosPlayBar(allowed, episodes, resumeIndex, watched)
+            : Material(
+                color: Theme.of(context).colorScheme.surface,
+                child: SafeArea(
+                  top: false,
+                  child: Center(
+                    heightFactor: 1,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                        child: Row(
+                          children: [
+                            if (widget.repository.supportsDownloads &&
+                                widget.store.canDownload) ...[
+                              IconButton.filledTonal(
+                                tooltip: '下载选集',
+                                onPressed: allowed && !_loading && episodes.isNotEmpty
+                                    ? _download
+                                    : null,
+                                style: IconButton.styleFrom(
+                                  minimumSize: const Size(52, 52),
+                                ),
+                                icon: const Icon(Icons.download_rounded),
+                              ),
+                              const SizedBox(width: 12),
+                            ],
+                            Expanded(
+                              child: FilledButton.icon(
+                                key: const ValueKey('start-play'),
+                                autofocus: television,
+                                style: FilledButton.styleFrom(
+                                  minimumSize: const Size(0, 52),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                onPressed: !allowed || _loading || episodes.isEmpty
+                                    ? null
+                                    : () => _play(resumeIndex, resume: true),
+                                icon: const Icon(Icons.play_arrow_rounded, size: 26),
+                                label: Text(
+                                  watched != null && episodes.isNotEmpty
+                                      ? '继续播放 · 第 ${episodes[resumeIndex].number} 集'
+                                      : '立即播放',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             ),
-                          ),
-                          onPressed: !allowed || _loading || episodes.isEmpty
-                              ? null
-                              : () => _play(resumeIndex, resume: true),
-                          icon: const Icon(Icons.play_arrow_rounded, size: 26),
-                          label: Text(
-                            watched != null && episodes.isNotEmpty
-                                ? '继续播放 · 第 ${episodes[resumeIndex].number} 集'
-                                : '立即播放',
-                            textAlign: TextAlign.center,
-                          ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
+              ),
+      ),
+    );
+  }
+
+  Widget _iosPlayBar(
+    bool allowed,
+    List<Episode> episodes,
+    int resumeIndex,
+    WatchEntry? watched,
+  ) {
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    final ready = allowed && !_loading && episodes.isNotEmpty;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottom < 18 ? 12 : bottom - 6),
+      child: Center(
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: LiquidGlass(
+            borderRadius: const BorderRadius.all(Radius.circular(34)),
+            child: Padding(
+              padding: const EdgeInsets.all(7),
+              child: Row(
+                children: [
+                  if (widget.repository.supportsDownloads &&
+                      widget.store.canDownload) ...[
+                    GlassIconButton(
+                      icon: LucideIcons.arrowDownToLine,
+                      tooltip: '下载选集',
+                      size: 52,
+                      onPressed: ready ? _download : null,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(
+                    child: PressableScale(
+                      enabled: ready,
+                      pressedScale: .97,
+                      child: FilledButton.icon(
+                        key: const ValueKey('start-play'),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 52),
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                        ),
+                        onPressed: ready
+                            ? () {
+                                HapticFeedback.lightImpact();
+                                _play(resumeIndex, resume: true);
+                              }
+                            : null,
+                        icon: const Icon(LucideIcons.play, size: 20),
+                        label: Text(
+                          watched != null && episodes.isNotEmpty
+                              ? '继续播放 · 第 ${episodes[resumeIndex].number} 集'
+                              : '立即播放',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -533,12 +603,62 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
+  Widget _ambient(Drama drama, Widget child) {
+    if (!iosDesign(context)) return child;
+    final background = Theme.of(context).scaffoldBackgroundColor;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: ClipRect(
+            child: IgnorePointer(
+              child: ExcludeSemantics(
+                child: Opacity(
+                  opacity: .55,
+                  child: ImageFiltered(
+                    imageFilter: ui.ImageFilter.blur(sigmaX: 48, sigmaY: 48),
+                    child: Transform.scale(
+                      scale: 1.4,
+                      child: DramaCover(
+                        drama: drama,
+                        repository: widget.repository,
+                        radius: 0,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    background.withValues(alpha: .2),
+                    background.withValues(alpha: .72),
+                    background,
+                  ],
+                  stops: const [0, .6, 1],
+                ),
+              ),
+            ),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+
   Widget _episodeStatus() {
     if (_loading) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator.adaptive(),
         ),
       );
     }

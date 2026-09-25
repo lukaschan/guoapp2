@@ -1,9 +1,20 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import 'liquid_glass.dart';
 
 abstract final class AppTheme {
   static final light = _theme(Brightness.light);
   static final dark = _theme(Brightness.dark);
+  static final iosLight = _ios(Brightness.light);
+  static final iosDark = _ios(Brightness.dark);
+
+  static bool get _iosPlatform => defaultTargetPlatform == TargetPlatform.iOS;
+  static ThemeData get platformLight => _iosPlatform ? iosLight : light;
+  static ThemeData get platformDark => _iosPlatform ? iosDark : dark;
 
   static ThemeMode mode(String preference) => switch (preference) {
     'light' => ThemeMode.light,
@@ -101,6 +112,234 @@ abstract final class AppTheme {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  static ThemeData _ios(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    final background = dark ? Colors.black : const Color(0xFFF7F6F4);
+    final primary = dark ? const Color(0xFFFF6D57) : const Color(0xFFD53A25);
+    final label = dark ? Colors.white : const Color(0xFF111113);
+    final secondary = dark ? const Color(0xFF9D9DA6) : const Color(0xFF6C6C72);
+    final scheme = ColorScheme.fromSeed(
+      seedColor: primary,
+      brightness: brightness,
+      primary: primary,
+      onPrimary: Colors.white,
+      primaryContainer: dark
+          ? const Color(0xFF4A1C15)
+          : const Color(0xFFFFE3DC),
+      onPrimaryContainer: dark
+          ? const Color(0xFFFFDAD2)
+          : const Color(0xFF5A150B),
+      secondaryContainer: dark
+          ? const Color(0xFF2C2C2E)
+          : const Color(0xFFEDEBE8),
+      onSecondaryContainer: label,
+      tertiary: dark ? const Color(0xFFFFD166) : const Color(0xFF9A6A00),
+      surface: dark ? const Color(0xFF1C1C1E) : Colors.white,
+      onSurface: label,
+      onSurfaceVariant: secondary,
+      outline: dark ? const Color(0xFF545458) : const Color(0xFFC6C6C8),
+      outlineVariant: dark ? const Color(0xFF2C2C2E) : const Color(0xFFE3E2E0),
+      surfaceContainerLowest: dark ? const Color(0xFF0B0B0C) : Colors.white,
+      surfaceContainerLow: dark
+          ? const Color(0xFF151517)
+          : const Color(0xFFF2F1EF),
+      surfaceContainer: dark
+          ? const Color(0xFF1C1C1E)
+          : const Color(0xFFEDECEA),
+      surfaceContainerHigh: dark
+          ? const Color(0xFF2C2C2E)
+          : const Color(0xFFE5E4E2),
+      surfaceContainerHighest: dark
+          ? const Color(0xFF3A3A3C)
+          : const Color(0xFFDAD9D6),
+      surfaceTint: Colors.transparent,
+    );
+    const continuous = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(18)),
+    );
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+      platform: TargetPlatform.iOS,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: background,
+      canvasColor: background,
+      splashFactory: NoSplash.splashFactory,
+      splashColor: Colors.transparent,
+      highlightColor: label.withValues(alpha: .06),
+      hoverColor: label.withValues(alpha: .04),
+      cupertinoOverrideTheme: NoDefaultCupertinoThemeData(
+        brightness: brightness,
+        primaryColor: primary,
+        scaffoldBackgroundColor: background,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: background,
+        foregroundColor: label,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -.4,
+          color: label,
+        ),
+        systemOverlayStyle: systemBars(brightness),
+      ),
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (_) =>
+            const GlassBackIcon(icon: LucideIcons.chevronLeft),
+        closeButtonIconBuilder: (_) => const GlassBackIcon(icon: LucideIcons.x),
+      ),
+      iconTheme: IconThemeData(color: label),
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant,
+        thickness: .5,
+        space: .5,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: dark
+            ? const Color(0xFF1C1C1E)
+            : const Color(0xFFEAE8E5),
+        selectedColor: label,
+        disabledColor: scheme.surfaceContainer,
+        showCheckmark: false,
+        side: BorderSide.none,
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        labelStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -.2,
+          color: WidgetStateColor.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? background
+                : label,
+          ),
+        ),
+        secondaryLabelStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: background,
+        ),
+        iconTheme: IconThemeData(color: secondary, size: 16),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: dark ? const Color(0xFF1C1C1E) : const Color(0xFFEAE8E5),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 11,
+        ),
+        hintStyle: TextStyle(color: secondary),
+        prefixIconColor: secondary,
+        suffixIconColor: secondary,
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          shape: const StadiumBorder(),
+          minimumSize: const Size(64, 50),
+          textStyle: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -.4,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          shape: const StadiumBorder(),
+          side: BorderSide(color: scheme.outline),
+          minimumSize: const Size(64, 44),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(vertical: 5),
+        color: dark ? const Color(0xFF1C1C1E) : Colors.white,
+        shape: continuous,
+        clipBehavior: Clip.antiAlias,
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: secondary,
+        shape: continuous,
+        titleTextStyle: TextStyle(
+          fontSize: 17,
+          letterSpacing: -.4,
+          color: label,
+        ),
+        subtitleTextStyle: TextStyle(fontSize: 13, color: secondary),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: dark ? const Color(0xFF232325) : Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(30)),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: dark ? const Color(0xFF252527) : Colors.white,
+        elevation: 12,
+        shadowColor: Colors.black.withValues(alpha: .3),
+        shape: continuous,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: dark ? const Color(0xFF1C1C1E) : Colors.white,
+        showDragHandle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(34)),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: dark
+            ? const Color(0xFF2C2C2E)
+            : const Color(0xFF1C1C1E),
+        contentTextStyle: const TextStyle(color: Colors.white, fontSize: 15),
+        actionTextColor: primary,
+        shape: continuous,
+        elevation: 0,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: primary,
+        linearTrackColor: Colors.transparent,
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: background,
+        useIndicator: false,
+        selectedIconTheme: IconThemeData(color: primary),
+        unselectedIconTheme: IconThemeData(color: secondary),
+      ),
+    );
+    return base.copyWith(
+      textTheme: base.textTheme.copyWith(
+        titleLarge: base.textTheme.titleLarge?.copyWith(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -.6,
+        ),
+        titleMedium: base.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          letterSpacing: -.3,
         ),
       ),
     );

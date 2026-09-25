@@ -5,6 +5,7 @@ import 'catalog_sort.dart';
 import 'core_bridge.dart';
 import 'drama_actions.dart';
 import 'follow_state.dart';
+import 'ios_dialogs.dart';
 import 'local_store.dart';
 import 'models.dart';
 import 'remote_widgets.dart';
@@ -44,24 +45,14 @@ class _SavedLibraryState extends State<SavedLibrary> {
 
   Future<void> _clearHistory() async {
     final epoch = widget.store.profileEpoch;
-    final accepted = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('清空观看记录？'),
-        content: const Text('这会删除当前用户的观看进度，追剧状态和手动已看标记会保留。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('清空'),
-          ),
-        ],
-      ),
+    final accepted = await confirmAction(
+      context,
+      title: '清空观看记录？',
+      message: '这会删除当前用户的观看进度，追剧状态和手动已看标记会保留。',
+      confirm: '清空',
+      destructive: true,
     );
-    if (accepted == true && mounted && epoch == widget.store.profileEpoch) {
+    if (accepted && mounted && epoch == widget.store.profileEpoch) {
       await saveUserChange(context, widget.store.clearHistory);
     }
   }
@@ -276,7 +267,12 @@ class _SavedLibraryState extends State<SavedLibrary> {
                 SliverFillRemaining(hasScrollBody: false, child: empty)
               else
                 SliverPadding(
-                  padding: EdgeInsets.fromLTRB(padding, 0, padding, 20),
+                  padding: EdgeInsets.fromLTRB(
+                    padding,
+                    0,
+                    padding,
+                    20 + MediaQuery.paddingOf(context).bottom,
+                  ),
                   sliver: SliverGrid(
                     gridDelegate: dramaGridDelegate(
                       context,
