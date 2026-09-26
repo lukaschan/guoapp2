@@ -301,7 +301,8 @@ class _RankingsScreenState extends State<RankingsScreen> {
                               child: _more
                                   ? const Padding(
                                       padding: EdgeInsets.all(16),
-                                      child: CircularProgressIndicator.adaptive(),
+                                      child:
+                                          CircularProgressIndicator.adaptive(),
                                     )
                                   : _hasMore
                                   ? OutlinedButton(
