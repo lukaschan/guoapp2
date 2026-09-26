@@ -23,10 +23,10 @@ abstract final class AppTheme {
     }
     if (platform == TargetPlatform.android ||
         platform == TargetPlatform.windows) {
-      return _glassThemes.putIfAbsent(
-        (platform, brightness),
-        () => _glass(brightness, platform),
-      );
+      return _glassThemes.putIfAbsent((
+        platform,
+        brightness,
+      ), () => _glass(brightness, platform));
     }
     return brightness == Brightness.dark ? dark : light;
   }
@@ -242,9 +242,8 @@ abstract final class AppTheme {
           fontWeight: FontWeight.w600,
           letterSpacing: 0,
           color: WidgetStateColor.resolveWith(
-            (states) => states.contains(WidgetState.selected)
-                ? background
-                : label,
+            (states) =>
+                states.contains(WidgetState.selected) ? background : label,
           ),
         ),
         secondaryLabelStyle: TextStyle(
@@ -291,10 +290,7 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           shape: const StadiumBorder(),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
       cardTheme: CardThemeData(
@@ -311,11 +307,7 @@ abstract final class AppTheme {
       listTileTheme: ListTileThemeData(
         iconColor: secondary,
         shape: continuous,
-        titleTextStyle: TextStyle(
-          fontSize: 17,
-          letterSpacing: 0,
-          color: label,
-        ),
+        titleTextStyle: TextStyle(fontSize: 17, letterSpacing: 0, color: label),
         subtitleTextStyle: TextStyle(fontSize: 13, color: secondary),
       ),
       dialogTheme: DialogThemeData(

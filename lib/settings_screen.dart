@@ -298,10 +298,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ),
   );
 
-  Future<void> _push(Widget page) => Navigator.push(
-    context,
-    MaterialPageRoute<void>(builder: (_) => page),
-  );
+  Future<void> _push(Widget page) =>
+      Navigator.push(context, MaterialPageRoute<void>(builder: (_) => page));
 
   Future<void> _chooseGlassTheme() async {
     final selected = await showChoiceSheet<String>(
@@ -353,7 +351,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ? CupertinoSwitch(value: value, onChanged: onChanged)
       : Switch.adaptive(value: value, onChanged: onChanged);
 
-  Widget _glassSection(String? header, List<Widget> children, {String? footer}) {
+  Widget _glassSection(
+    String? header,
+    List<Widget> children, {
+    String? footer,
+  }) {
     final colors = Theme.of(context).colorScheme;
     final caption = TextStyle(
       fontSize: 13,
@@ -596,24 +598,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ], footer: '导出写入下载目录的 exports，可加入 Emby 媒体库；默认只写海报 URL。'),
-          _glassSection(
-            '备份',
-            [
-              _glassRow(
-                icon: LucideIcons.databaseBackup,
-                color: const Color(0xFF0A84FF),
-                title: '导出配置备份',
-                onTap: _busy ? null : () => _backup(false),
-              ),
-              _glassRow(
-                icon: LucideIcons.archiveRestore,
-                color: const Color(0xFFFF9F0A),
-                title: '恢复配置备份',
-                onTap: _busy ? null : () => _backup(true),
-              ),
-            ],
-            footer: '包含本地用户、追剧、历史和设置，不含视频文件。',
-          ),
+          _glassSection('备份', [
+            _glassRow(
+              icon: LucideIcons.databaseBackup,
+              color: const Color(0xFF0A84FF),
+              title: '导出配置备份',
+              onTap: _busy ? null : () => _backup(false),
+            ),
+            _glassRow(
+              icon: LucideIcons.archiveRestore,
+              color: const Color(0xFFFF9F0A),
+              title: '恢复配置备份',
+              onTap: _busy ? null : () => _backup(true),
+            ),
+          ], footer: '包含本地用户、追剧、历史和设置，不含视频文件。'),
         ],
         if (_busy)
           const Padding(

@@ -657,9 +657,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (!_selectedDramas.containsKey(drama.id) &&
         _selectedDramas.length >= BatchDownloads.maxDramas) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('一次最多选择 50 部短剧，请分批下载')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('一次最多选择 50 部短剧，请分批下载')));
       return;
     }
     setState(() {
@@ -805,9 +804,7 @@ class _HomeScreenState extends State<HomeScreen> {
           size: 48,
           color: const Color(0xFFFF765F),
         ),
-        children: [
-          const Text('独立运行，打开即可浏览和播放。观看记录与追剧收藏保存在当前设备。'),
-        ],
+        children: [const Text('独立运行，打开即可浏览和播放。观看记录与追剧收藏保存在当前设备。')],
       );
     }
   }
@@ -924,16 +921,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: null,
                     child: SizedBox.square(
                       dimension: 18,
-                      child: CircularProgressIndicator.adaptive(
-                        strokeWidth: 2,
-                      ),
+                      child: CircularProgressIndicator.adaptive(strokeWidth: 2),
                     ),
                   ),
                 if (!_showRecommendations)
                   GlassGroupItem(
                     icon: LucideIcons.arrowUpDown,
-                    tooltip:
-                        '排序与筛选 · ${widget.store.catalogView.sort.label}',
+                    tooltip: '排序与筛选 · ${widget.store.catalogView.sort.label}',
                     highlighted: customView,
                     onPressed: _chooseCatalogView,
                   ),
@@ -1104,10 +1098,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       if (_tab == 0) ...[
                         if (!_showRecommendations)
                           IconButton(
-                            tooltip: '排序与筛选 · ${widget.store.catalogView.sort.label}',
+                            tooltip:
+                                '排序与筛选 · ${widget.store.catalogView.sort.label}',
                             onPressed: _chooseCatalogView,
                             color:
-                                widget.store.catalogView.sort != CatalogSort.source ||
+                                widget.store.catalogView.sort !=
+                                        CatalogSort.source ||
                                     widget.store.catalogView.release.isNotEmpty
                                 ? Theme.of(context).colorScheme.primary
                                 : null,
@@ -1127,7 +1123,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           IconButton(
                             key: const ValueKey('select-catalog-dramas'),
                             tooltip: '多选下载',
-                            onPressed: () => setState(() => _selectionMode = true),
+                            onPressed: () =>
+                                setState(() => _selectionMode = true),
                             icon: const Icon(Icons.checklist_rounded),
                           ),
                         IconButton(
@@ -1173,12 +1170,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               value: 'sources',
                               child: Text('站源管理'),
                             ),
-                          const PopupMenuItem(value: 'users', child: Text('用户管理')),
+                          const PopupMenuItem(
+                            value: 'users',
+                            child: Text('用户管理'),
+                          ),
                           const PopupMenuItem(
                             value: 'settings',
                             child: Text('设置与备份'),
                           ),
-                          const PopupMenuItem(value: 'display', child: Text('界面模式')),
+                          const PopupMenuItem(
+                            value: 'display',
+                            child: Text('界面模式'),
+                          ),
                           const PopupMenuItem(
                             value: 'about',
                             child: Text('关于$appName'),
@@ -1319,10 +1322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   selectedIndex: _tab,
                   onSelected: _changeTab,
                   items: [
-                    const LiquidTabItem(
-                      icon: LucideIcons.compass,
-                      label: '发现',
-                    ),
+                    const LiquidTabItem(icon: LucideIcons.compass, label: '发现'),
                     const LiquidTabItem(
                       icon: LucideIcons.bookmark,
                       selectedIcon: LucideIcons.bookmarkCheck,
@@ -1586,7 +1586,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Padding(
                                   padding: EdgeInsets.only(
                                     bottom:
-                                        24 + MediaQuery.paddingOf(context).bottom,
+                                        24 +
+                                        MediaQuery.paddingOf(context).bottom,
                                   ),
                                   child: Center(
                                     child: _loadingMore
@@ -1602,9 +1603,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         : Text(
                                             '已经看到这里的全部剧集',
                                             style: TextStyle(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
                                               fontSize: 12,
                                             ),
                                           ),

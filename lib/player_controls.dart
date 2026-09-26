@@ -98,9 +98,7 @@ class _PlayerControlsState extends State<PlayerControls> {
       widget.player.stream.buffer,
       widget.player.stream.volume,
     ]) {
-      _subscriptions.add(
-        stream.listen((_) => _scheduleProgressRefresh()),
-      );
+      _subscriptions.add(stream.listen((_) => _scheduleProgressRefresh()));
     }
     _subscriptions.add(
       widget.player.stream.buffering.distinct().listen((_) {

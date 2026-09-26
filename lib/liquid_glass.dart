@@ -12,8 +12,9 @@ bool iosDesign(BuildContext context) =>
 bool glassDesign(BuildContext context) =>
     !AppLayout.isTelevision(context) &&
     switch (Theme.of(context).platform) {
-      TargetPlatform.iOS || TargetPlatform.android || TargetPlatform.windows =>
-        true,
+      TargetPlatform.iOS ||
+      TargetPlatform.android ||
+      TargetPlatform.windows => true,
       _ => false,
     };
 
