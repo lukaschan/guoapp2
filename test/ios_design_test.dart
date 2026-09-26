@@ -6,6 +6,7 @@ import 'package:duanju_app/local_store.dart';
 import 'package:duanju_app/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -68,7 +69,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('iOS builds the glass shell while Android keeps its navigation', (
+  testWidgets('iOS, Android and Windows share the glass app shell', (
     tester,
   ) async {
     phone(tester);
@@ -91,13 +92,34 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     debugDefaultTargetPlatformOverride = null;
 
-    await tester.pumpWidget(
-      DuanjuApp(repository: FixtureRepository(), store: store),
-    );
-    await tester.pumpAndSettle();
-    expect(find.byType(LiquidTabBar), findsNothing);
-    expect(find.byType(AppBottomNavigation), findsOneWidget);
-    await tester.pumpWidget(const SizedBox.shrink());
+    for (final platform in [TargetPlatform.android, TargetPlatform.windows]) {
+      debugDefaultTargetPlatformOverride = platform;
+      if (platform == TargetPlatform.windows) {
+        tester.view.physicalSize = const Size(1200, 850);
+      }
+      await tester.pumpWidget(
+        DuanjuApp(repository: FixtureRepository(), store: store),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byType(LiquidTabBar),
+        platform == TargetPlatform.android ? findsOneWidget : findsNothing,
+      );
+      expect(find.byType(AppBottomNavigation), findsNothing);
+      expect(
+        find.byType(NavigationRail),
+        platform == TargetPlatform.windows ? findsOneWidget : findsNothing,
+      );
+      expect(find.byType(GlassButtonGroup), findsOneWidget);
+      await tester.tap(find.byTooltip('更多'));
+      await tester.pumpAndSettle();
+      expect(find.text('设置与备份'), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
+    debugDefaultTargetPlatformOverride = null;
     store.dispose();
   });
 }

@@ -233,6 +233,30 @@ void main() {
   );
 
   test(
+    'position updates refresh moving overlays at most four times per second',
+    () async {
+      var now = DateTime(2026);
+      final repository = DanmakuFixtureRepository();
+      final controller = DanmakuController(repository, now: () => now)
+        ..setPlan(danmakuPlan);
+      addTearDown(controller.dispose);
+      var notifications = 0;
+      controller.addListener(() => notifications++);
+      updateDanmaku(controller);
+      await flushDanmaku();
+      final baseline = notifications;
+      for (final milliseconds in [50, 100, 150, 200]) {
+        now = DateTime(2026).add(Duration(milliseconds: milliseconds));
+        updateDanmaku(controller, position: milliseconds);
+      }
+      expect(notifications, baseline);
+      now = DateTime(2026).add(const Duration(milliseconds: 300));
+      updateDanmaku(controller, position: 300);
+      expect(notifications, baseline + 1);
+    },
+  );
+
+  test(
     'failed optional windows back off and retry without resolving media',
     () async {
       var now = DateTime(2026);

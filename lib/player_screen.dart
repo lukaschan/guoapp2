@@ -180,9 +180,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     _player =
         widget.playerFactory?.call() ??
         Player(
-          configuration: const PlayerConfiguration(
+          configuration: PlayerConfiguration(
             bufferSize: 32 * 1024 * 1024,
-            logLevel: MPVLogLevel.v,
+            logLevel: Platform.isWindows ? MPVLogLevel.v : MPVLogLevel.error,
           ),
         );
     _video = widget.videoBuilder == null

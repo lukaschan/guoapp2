@@ -77,10 +77,14 @@ class PlayerControls extends StatefulWidget {
 class _PlayerControlsState extends State<PlayerControls> {
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   Timer? _hideTimer;
+  Timer? _progressTimer;
   bool _visible = true;
   bool _suppressAutoPlaybackStart = false;
   bool _lastPlaying = false;
   double? _seekValue;
+
+  bool get _controlsVisible =>
+      _visible || widget.player.state.buffering || widget.panelOpen;
 
   @override
   void initState() {
@@ -92,21 +96,25 @@ class _PlayerControlsState extends State<PlayerControls> {
       widget.player.stream.position,
       widget.player.stream.duration,
       widget.player.stream.buffer,
-      widget.player.stream.playing,
-      widget.player.stream.buffering,
       widget.player.stream.volume,
     ]) {
       _subscriptions.add(
-        stream.listen((_) {
-          if (mounted) setState(() {});
-        }),
+        stream.listen((_) => _scheduleProgressRefresh()),
       );
     }
     _subscriptions.add(
-      widget.player.stream.playing.listen((playing) {
+      widget.player.stream.buffering.distinct().listen((_) {
+        if (!mounted) return;
+        setState(() {});
+        _scheduleHide();
+      }),
+    );
+    _subscriptions.add(
+      widget.player.stream.playing.distinct().listen((playing) {
         final wasPlaying = _lastPlaying;
         _lastPlaying = playing;
         if (!mounted || !widget.enabled) return;
+        setState(() {});
         if (!playing) {
           _show();
         } else if (!wasPlaying) {
@@ -157,9 +165,18 @@ class _PlayerControlsState extends State<PlayerControls> {
     if (mounted && widget.interactions.feedback.isNotEmpty) _show();
   }
 
+  void _scheduleProgressRefresh() {
+    if (!mounted || !_controlsVisible || _progressTimer != null) return;
+    _progressTimer = Timer(const Duration(milliseconds: 250), () {
+      _progressTimer = null;
+      if (mounted && _controlsVisible) setState(() {});
+    });
+  }
+
   void _scheduleHide() {
     _hideTimer?.cancel();
-    if (!widget.enabled ||
+    if (!_visible ||
+        !widget.enabled ||
         widget.panelOpen ||
         !widget.player.state.playing ||
         _seekValue != null) {
@@ -187,15 +204,8 @@ class _PlayerControlsState extends State<PlayerControls> {
   void _tap() {
     if (widget.interactions.suppressTap) return;
     widget.onFocusSurface();
-    if (widget.swipeEnabled &&
-        MediaQuery.orientationOf(context) == Orientation.portrait &&
-        widget.enabled) {
-      widget.onTogglePlayback();
-      _show();
-    } else {
-      setState(() => _visible = !_visible);
-      _scheduleHide();
-    }
+    setState(() => _visible = !_visible);
+    _scheduleHide();
   }
 
   Future<void> _panel(Future<void> Function() open) async {
@@ -208,6 +218,7 @@ class _PlayerControlsState extends State<PlayerControls> {
   @override
   void dispose() {
     _hideTimer?.cancel();
+    _progressTimer?.cancel();
     widget.interactions.removeListener(_interactionChanged);
     for (final subscription in _subscriptions) {
       subscription.cancel();
@@ -221,8 +232,7 @@ class _PlayerControlsState extends State<PlayerControls> {
     final duration = state.duration.inMilliseconds / 1000;
     final position = state.position.inMilliseconds / 1000;
     final buffered = state.buffer.inMilliseconds / 1000;
-    final visible =
-        _visible || !state.playing || state.buffering || widget.panelOpen;
+    final visible = _controlsVisible;
     return MouseRegion(
       onHover: (_) => _show(),
       cursor: visible ? SystemMouseCursors.basic : SystemMouseCursors.none,
@@ -247,13 +257,6 @@ class _PlayerControlsState extends State<PlayerControls> {
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: _tap,
-                onDoubleTap: () {
-                  if (!widget.enabled || widget.interactions.suppressTap) {
-                    return;
-                  }
-                  widget.onTogglePlayback();
-                  _show();
-                },
               ),
             ),
             if (state.buffering && widget.enabled)

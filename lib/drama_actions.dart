@@ -19,7 +19,7 @@ Future<void> showDramaActions(
 }) async {
   final epoch = store.profileEpoch;
   final following = store.following(drama.id);
-  final ios = iosDesign(context);
+  final glass = glassDesign(context);
   final choice = await showChoiceSheet<String>(
     context,
     title: drama.title,
@@ -29,12 +29,12 @@ Future<void> showDramaActions(
         SheetChoice(
           'continue',
           '继续观看',
-          icon: ios ? LucideIcons.play : Icons.play_arrow_rounded,
+          icon: glass ? LucideIcons.play : Icons.play_arrow_rounded,
         ),
       SheetChoice(
         'favorite',
         following == null ? '加入追剧' : '取消追剧',
-        icon: ios
+        icon: glass
             ? following == null
                   ? LucideIcons.bookmarkPlus
                   : LucideIcons.bookmarkX
@@ -47,37 +47,37 @@ Future<void> showDramaActions(
           selected: following?.status == status,
           icon: switch (status) {
             FollowStatus.planned =>
-              ios ? LucideIcons.bookmarkPlus : Icons.bookmark_add_outlined,
+              glass ? LucideIcons.bookmarkPlus : Icons.bookmark_add_outlined,
             FollowStatus.watching =>
-              ios ? LucideIcons.circlePlay : Icons.play_circle_outline,
+              glass ? LucideIcons.circlePlay : Icons.play_circle_outline,
             FollowStatus.watched =>
-              ios ? LucideIcons.circleCheckBig : Icons.check_circle_outline,
+              glass ? LucideIcons.circleCheckBig : Icons.check_circle_outline,
           },
         ),
       if (following != null && following.hasUpdates)
         SheetChoice(
           'read',
           '标记 ${following.updateLabel}已读',
-          icon: ios ? LucideIcons.mailCheck : Icons.mark_email_read_outlined,
+          icon: glass ? LucideIcons.mailCheck : Icons.mark_email_read_outlined,
         ),
       if (onDownload != null && store.canDownload)
         SheetChoice(
           'download',
           '下载选集',
-          icon: ios ? LucideIcons.arrowDownToLine : Icons.download_outlined,
+          icon: glass ? LucideIcons.arrowDownToLine : Icons.download_outlined,
         ),
       if (onSelect != null && store.canDownload)
         SheetChoice(
           'select',
           '多选下载',
-          icon: ios ? LucideIcons.listChecks : Icons.checklist_rounded,
+          icon: glass ? LucideIcons.listChecks : Icons.checklist_rounded,
         ),
       if (history && store.watched(drama.id) != null)
         SheetChoice(
           'removeHistory',
           '删除这条观看记录',
           destructive: true,
-          icon: ios ? LucideIcons.trash2 : Icons.history_toggle_off,
+          icon: glass ? LucideIcons.trash2 : Icons.history_toggle_off,
         ),
     ],
   );
@@ -121,7 +121,7 @@ class DramaActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (iosDesign(context)) {
+    if (glassDesign(context)) {
       return Padding(
         key: ValueKey('drama-actions-${drama.id}'),
         padding: const EdgeInsets.all(4),
@@ -129,6 +129,7 @@ class DramaActionButton extends StatelessWidget {
           icon: LucideIcons.ellipsis,
           tooltip: '${drama.title} · 更多操作',
           size: 30,
+          blur: 0,
           color: Colors.white,
           tint: Colors.black.withValues(alpha: .28),
           onPressed: onPressed,

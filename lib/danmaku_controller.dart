@@ -24,6 +24,7 @@ class DanmakuController extends ChangeNotifier {
   bool _playing = false;
   bool _buffering = false;
   bool _seeking = false;
+  DateTime _lastPositionNotification = DateTime.fromMillisecondsSinceEpoch(0);
   int positionMs = 0;
   int durationMs = 0;
   double rate = 1;
@@ -138,15 +139,24 @@ class DanmakuController extends ChangeNotifier {
     _foreground = foreground;
     _available = available;
     if (wasVisible && !visible) _cancel();
-    if (drift ||
+    final motionChanged =
+        drift ||
         jumped ||
         durationChanged ||
         wasVisible != visible ||
         wasMoving != moving ||
-        previousRate != rate) {
+        previousRate != rate;
+    if (motionChanged) {
       _resetMotion();
     }
-    notifyListeners();
+    final now = _now();
+    if (motionChanged ||
+        moving &&
+            items.isNotEmpty &&
+            now.difference(_lastPositionNotification).inMilliseconds >= 250) {
+      _lastPositionNotification = now;
+      notifyListeners();
+    }
     _ensureWindow();
   }
 

@@ -140,7 +140,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     animation: widget.store,
     builder: (_, _) => Scaffold(
       appBar: AppBar(title: const Text('设置与备份')),
-      body: iosDesign(context) ? _iosBody() : _materialBody(),
+      body: glassDesign(context) ? _glassBody() : _materialBody(),
     ),
   );
 
@@ -303,7 +303,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     MaterialPageRoute<void>(builder: (_) => page),
   );
 
-  Future<void> _chooseIosTheme() async {
+  Future<void> _chooseGlassTheme() async {
     final selected = await showChoiceSheet<String>(
       context,
       title: '外观主题',
@@ -335,7 +335,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Widget _iosIcon(IconData icon, Color color) => DecoratedBox(
+  Widget _glassIcon(IconData icon, Color color) => DecoratedBox(
     decoration: BoxDecoration(
       color: color,
       borderRadius: BorderRadius.circular(8),
@@ -346,27 +346,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ),
   );
 
-  Widget _iosSection(String? header, List<Widget> children, {String? footer}) {
+  Widget _glassSwitch({
+    required bool value,
+    required ValueChanged<bool>? onChanged,
+  }) => iosDesign(context)
+      ? CupertinoSwitch(value: value, onChanged: onChanged)
+      : Switch.adaptive(value: value, onChanged: onChanged);
+
+  Widget _glassSection(String? header, List<Widget> children, {String? footer}) {
     final colors = Theme.of(context).colorScheme;
     final caption = TextStyle(
       fontSize: 13,
-      letterSpacing: -.1,
+      letterSpacing: 0,
       color: colors.onSurfaceVariant,
     );
-    return CupertinoListSection.insetGrouped(
-      backgroundColor: Colors.transparent,
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(18),
+    if (iosDesign(context)) {
+      return CupertinoListSection.insetGrouped(
+        backgroundColor: Colors.transparent,
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        separatorColor: colors.outlineVariant,
+        header: header == null ? null : Text(header, style: caption),
+        footer: footer == null ? null : Text(footer, style: caption),
+        children: children,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (header != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+              child: Text(header, style: caption),
+            ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: ColoredBox(
+              color: colors.surface,
+              child: Column(children: children),
+            ),
+          ),
+          if (footer != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+              child: Text(footer, style: caption),
+            ),
+        ],
       ),
-      separatorColor: colors.outlineVariant,
-      header: header == null ? null : Text(header, style: caption),
-      footer: footer == null ? null : Text(footer, style: caption),
-      children: children,
     );
   }
 
-  Widget _iosRow({
+  Widget _glassRow({
     Key? key,
     required IconData icon,
     required Color color,
@@ -376,14 +410,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
     VoidCallback? onTap,
   }) {
     final colors = Theme.of(context).colorScheme;
+    if (!iosDesign(context)) {
+      return GlassTapTarget(
+        key: key,
+        onTap: onTap,
+        borderRadius: BorderRadius.zero,
+        child: SizedBox(
+          height: 62,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Row(
+              children: [
+                _glassIcon(icon, color),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: onTap == null && trailing == null
+                              ? colors.onSurface.withValues(alpha: .4)
+                              : colors.onSurface,
+                        ),
+                      ),
+                      if (detail != null)
+                        Text(
+                          detail,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: colors.onSurfaceVariant),
+                        ),
+                    ],
+                  ),
+                ),
+                if (trailing != null) trailing,
+                if (trailing == null && onTap != null)
+                  Icon(
+                    LucideIcons.chevronRight,
+                    size: 18,
+                    color: colors.onSurfaceVariant,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return CupertinoListTile.notched(
       key: key,
-      leading: _iosIcon(icon, color),
+      leading: _glassIcon(icon, color),
       title: Text(
         title,
         style: TextStyle(
           fontSize: 17,
-          letterSpacing: -.4,
+          letterSpacing: 0,
           color: onTap == null && trailing == null
               ? colors.onSurface.withValues(alpha: .4)
               : colors.onSurface,
@@ -407,7 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _iosBody() {
+  Widget _glassBody() {
     final store = widget.store;
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -417,8 +500,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         32 + MediaQuery.paddingOf(context).bottom,
       ),
       children: [
-        _iosSection('通用', [
-          _iosRow(
+        _glassSection('通用', [
+          _glassRow(
             key: const ValueKey('lan-settings'),
             icon: LucideIcons.monitorSmartphone,
             color: const Color(0xFF0A84FF),
@@ -427,7 +510,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () => openLanSync(context),
           ),
           if (widget.repository.supportsSourceManagement)
-            _iosRow(
+            _glassRow(
               icon: LucideIcons.server,
               color: const Color(0xFF30B0C7),
               title: '站源管理',
@@ -435,15 +518,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SourcesScreen(repository: widget.repository, store: store),
               ),
             ),
-          _iosRow(
+          _glassRow(
             key: const ValueKey('theme-setting'),
             icon: LucideIcons.palette,
             color: const Color(0xFFAF52DE),
             title: '外观主题',
             detail: AppTheme.label(store.themeMode),
-            onTap: _chooseIosTheme,
+            onTap: _chooseGlassTheme,
           ),
-          _iosRow(
+          _glassRow(
             icon: LucideIcons.users,
             color: const Color(0xFF34C759),
             title: '用户管理',
@@ -452,17 +535,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ]),
         if (store.canDownload)
-          _iosSection(
+          _glassSection(
             '下载',
             [
-              _iosRow(
+              _glassRow(
                 icon: LucideIcons.arrowDownToLine,
                 color: const Color(0xFFFF9F0A),
                 title: '下载偏好',
                 detail: store.downloadPreferences.qualityLabel,
                 onTap: () => _push(DownloadPreferencesScreen(store: store)),
               ),
-              _iosRow(
+              _glassRow(
                 icon: LucideIcons.hardDrive,
                 color: const Color(0xFF8E8E93),
                 title: '下载目录与空间',
@@ -476,8 +559,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 : null,
           ),
         if (store.profile.admin) ...[
-          _iosSection('管理', [
-            _iosRow(
+          _glassSection('管理', [
+            _glassRow(
               icon: LucideIcons.network,
               color: const Color(0xFF5E5CE6),
               title: '网络与资源',
@@ -489,20 +572,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            _iosRow(
+            _glassRow(
               icon: LucideIcons.film,
               color: const Color(0xFF34C759),
               title: '完成后导出 Emby',
-              trailing: CupertinoSwitch(
+              trailing: _glassSwitch(
                 value: store.autoExport,
                 onChanged: _busy ? null : _setAutoExport,
               ),
             ),
-            _iosRow(
+            _glassRow(
               icon: LucideIcons.image,
               color: const Color(0xFFFF6482),
               title: '同时导出海报文件',
-              trailing: CupertinoSwitch(
+              trailing: _glassSwitch(
                 value: store.exportPosters,
                 onChanged: _busy
                     ? null
@@ -513,16 +596,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ], footer: '导出写入下载目录的 exports，可加入 Emby 媒体库；默认只写海报 URL。'),
-          _iosSection(
+          _glassSection(
             '备份',
             [
-              _iosRow(
+              _glassRow(
                 icon: LucideIcons.databaseBackup,
                 color: const Color(0xFF0A84FF),
                 title: '导出配置备份',
                 onTap: _busy ? null : () => _backup(false),
               ),
-              _iosRow(
+              _glassRow(
                 icon: LucideIcons.archiveRestore,
                 color: const Color(0xFFFF9F0A),
                 title: '恢复配置备份',

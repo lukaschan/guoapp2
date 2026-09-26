@@ -799,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> {
         applicationName: appName,
         applicationVersion: AppLayout.versionOf(context),
         applicationIcon: Icon(
-          iosDesign(context)
+          glassDesign(context)
               ? LucideIcons.circlePlay
               : Icons.play_circle_filled_rounded,
           size: 48,
@@ -814,13 +814,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const _tabTitles = ['发现', '追剧', '最近观看', '下载'];
 
-  PreferredSizeWidget _iosAppBar() {
+  PreferredSizeWidget _glassAppBar() {
     final colors = Theme.of(context).colorScheme;
+    final wide = MediaQuery.sizeOf(context).width >= 840;
     final largeTitle = TextStyle(
-      fontSize: 30,
+      fontSize: wide ? 24 : 30,
       height: 1.1,
       fontWeight: FontWeight.w800,
-      letterSpacing: -1.1,
+      letterSpacing: 0,
       color: colors.onSurface,
     );
     final catalog = _tab == 0 && !_selectionMode;
@@ -845,9 +846,8 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () => _changeGroup(group),
             ),
         ],
-        builder: (context, open) => GestureDetector(
+        builder: (context, open) => GlassTapTarget(
           key: const ValueKey('source-switch'),
-          behavior: HitTestBehavior.opaque,
           onTap: _sourceGroups.length > 1 ? open : null,
           child: Semantics(
             button: _sourceGroups.length > 1,
@@ -1022,12 +1022,14 @@ class _HomeScreenState extends State<HomeScreen> {
     builder: (context, _) => LayoutBuilder(
       builder: (context, constraints) {
         final television = AppLayout.isTelevision(context);
-        final ios = iosDesign(context);
-        final desktop = !ios && constraints.maxWidth >= 840;
+        final glass = glassDesign(context);
+        final desktop =
+            Theme.of(context).platform != TargetPlatform.iOS &&
+            constraints.maxWidth >= 840;
         final scaffold = Scaffold(
-          extendBody: ios,
-          appBar: ios
-              ? _iosAppBar()
+          extendBody: glass && !desktop,
+          appBar: glass
+              ? _glassAppBar()
               : AppBar(
                   toolbarHeight: television ? 64 : null,
                   titleSpacing: 12,
@@ -1189,7 +1191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
           body: SafeArea(
             top: false,
-            bottom: !ios,
+            bottom: !glass || desktop,
             child: Row(
               children: [
                 if (television) ...[
@@ -1231,23 +1233,45 @@ class _HomeScreenState extends State<HomeScreen> {
                     groupAlignment: -.8,
                     destinations: [
                       NavigationRailDestination(
-                        icon: Icon(Icons.explore_outlined),
-                        selectedIcon: Icon(Icons.explore),
+                        icon: Icon(
+                          glass ? LucideIcons.compass : Icons.explore_outlined,
+                        ),
+                        selectedIcon: Icon(
+                          glass ? LucideIcons.compass : Icons.explore,
+                        ),
                         label: Text('发现'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(Icons.bookmark_border_rounded),
-                        selectedIcon: Icon(Icons.bookmark_rounded),
+                        icon: Icon(
+                          glass
+                              ? LucideIcons.bookmark
+                              : Icons.bookmark_border_rounded,
+                        ),
+                        selectedIcon: Icon(
+                          glass
+                              ? LucideIcons.bookmarkCheck
+                              : Icons.bookmark_rounded,
+                        ),
                         label: Text('追剧'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(Icons.history_rounded),
+                        icon: Icon(
+                          glass ? LucideIcons.history : Icons.history_rounded,
+                        ),
                         label: Text('最近观看'),
                       ),
                       if (widget.store.canDownload)
                         NavigationRailDestination(
-                          icon: Icon(Icons.download_outlined),
-                          selectedIcon: Icon(Icons.download_rounded),
+                          icon: Icon(
+                            glass
+                                ? LucideIcons.arrowDownToLine
+                                : Icons.download_outlined,
+                          ),
+                          selectedIcon: Icon(
+                            glass
+                                ? LucideIcons.arrowDownToLine
+                                : Icons.download_rounded,
+                          ),
                           label: Text('下载'),
                         ),
                     ],
@@ -1290,7 +1314,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? null
               : _selectionMode
               ? _selectionBar()
-              : ios
+              : glass
               ? LiquidTabBar(
                   selectedIndex: _tab,
                   onSelected: _changeTab,
@@ -1601,7 +1625,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _iosSelectionBar() {
+  Widget _glassSelectionBar() {
     final colors = Theme.of(context).colorScheme;
     final count = _selectedDramas.length;
     final bottom = MediaQuery.paddingOf(context).bottom;
@@ -1627,7 +1651,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: -.3,
+                          letterSpacing: 0,
                         ),
                       ),
                       Text(
@@ -1664,7 +1688,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _selectionBar({bool safeBottom = true}) {
-    if (safeBottom && iosDesign(context)) return _iosSelectionBar();
+    if (safeBottom && glassDesign(context)) return _glassSelectionBar();
     final theme = Theme.of(context);
     final count = _selectedDramas.length;
     return Material(

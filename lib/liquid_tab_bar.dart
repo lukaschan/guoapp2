@@ -276,8 +276,7 @@ class _TabButton extends StatelessWidget {
       selected: selected,
       label: item.label,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: GlassTapTarget(
         onTap: onTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -298,7 +297,7 @@ class _TabButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10.5,
                 height: 1.1,
-                letterSpacing: .1,
+                letterSpacing: 0,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: tint,
               ),

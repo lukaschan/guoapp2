@@ -9,12 +9,27 @@ import 'liquid_glass.dart';
 abstract final class AppTheme {
   static final light = _theme(Brightness.light);
   static final dark = _theme(Brightness.dark);
-  static final iosLight = _ios(Brightness.light);
-  static final iosDark = _ios(Brightness.dark);
+  static final iosLight = _glass(Brightness.light, TargetPlatform.iOS);
+  static final iosDark = _glass(Brightness.dark, TargetPlatform.iOS);
+  static final _glassThemes = <(TargetPlatform, Brightness), ThemeData>{};
 
-  static bool get _iosPlatform => defaultTargetPlatform == TargetPlatform.iOS;
-  static ThemeData get platformLight => _iosPlatform ? iosLight : light;
-  static ThemeData get platformDark => _iosPlatform ? iosDark : dark;
+  static ThemeData get platformLight => _platformTheme(Brightness.light);
+  static ThemeData get platformDark => _platformTheme(Brightness.dark);
+
+  static ThemeData _platformTheme(Brightness brightness) {
+    final platform = defaultTargetPlatform;
+    if (platform == TargetPlatform.iOS) {
+      return brightness == Brightness.dark ? iosDark : iosLight;
+    }
+    if (platform == TargetPlatform.android ||
+        platform == TargetPlatform.windows) {
+      return _glassThemes.putIfAbsent(
+        (platform, brightness),
+        () => _glass(brightness, platform),
+      );
+    }
+    return brightness == Brightness.dark ? dark : light;
+  }
 
   static ThemeMode mode(String preference) => switch (preference) {
     'light' => ThemeMode.light,
@@ -117,9 +132,14 @@ abstract final class AppTheme {
     );
   }
 
-  static ThemeData _ios(Brightness brightness) {
+  static ThemeData _glass(Brightness brightness, TargetPlatform platform) {
     final dark = brightness == Brightness.dark;
-    final background = dark ? Colors.black : const Color(0xFFF7F6F4);
+    final ios = platform == TargetPlatform.iOS;
+    final background = dark
+        ? ios
+              ? Colors.black
+              : const Color(0xFF101114)
+        : const Color(0xFFF7F6F4);
     final primary = dark ? const Color(0xFFFF6D57) : const Color(0xFFD53A25);
     final label = dark ? Colors.white : const Color(0xFF111113);
     final secondary = dark ? const Color(0xFF9D9DA6) : const Color(0xFF6C6C72);
@@ -165,7 +185,7 @@ abstract final class AppTheme {
     final base = ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      platform: TargetPlatform.iOS,
+      platform: platform,
       colorScheme: scheme,
       scaffoldBackgroundColor: background,
       canvasColor: background,
@@ -187,7 +207,7 @@ abstract final class AppTheme {
         titleTextStyle: TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.w600,
-          letterSpacing: -.4,
+          letterSpacing: 0,
           color: label,
         ),
         systemOverlayStyle: systemBars(brightness),
@@ -211,12 +231,16 @@ abstract final class AppTheme {
         disabledColor: scheme.surfaceContainer,
         showCheckmark: false,
         side: BorderSide.none,
-        shape: const StadiumBorder(),
+        shape: ios
+            ? const StadiumBorder()
+            : const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(14)),
+              ),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         labelStyle: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          letterSpacing: -.2,
+          letterSpacing: 0,
           color: WidgetStateColor.resolveWith(
             (states) => states.contains(WidgetState.selected)
                 ? background
@@ -253,7 +277,7 @@ abstract final class AppTheme {
           textStyle: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            letterSpacing: -.4,
+            letterSpacing: 0,
           ),
         ),
       ),
@@ -277,7 +301,11 @@ abstract final class AppTheme {
         elevation: 0,
         margin: const EdgeInsets.symmetric(vertical: 5),
         color: dark ? const Color(0xFF1C1C1E) : Colors.white,
-        shape: continuous,
+        shape: ios
+            ? continuous
+            : const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
         clipBehavior: Clip.antiAlias,
       ),
       listTileTheme: ListTileThemeData(
@@ -285,7 +313,7 @@ abstract final class AppTheme {
         shape: continuous,
         titleTextStyle: TextStyle(
           fontSize: 17,
-          letterSpacing: -.4,
+          letterSpacing: 0,
           color: label,
         ),
         subtitleTextStyle: TextStyle(fontSize: 13, color: secondary),
@@ -335,11 +363,11 @@ abstract final class AppTheme {
         titleLarge: base.textTheme.titleLarge?.copyWith(
           fontSize: 22,
           fontWeight: FontWeight.w700,
-          letterSpacing: -.6,
+          letterSpacing: 0,
         ),
         titleMedium: base.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
-          letterSpacing: -.3,
+          letterSpacing: 0,
         ),
       ),
     );

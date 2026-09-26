@@ -85,7 +85,7 @@ class _RefreshActionState extends State<RefreshAction>
       icon: RotationTransition(
         turns: _rotation,
         child: Icon(
-          iosDesign(context) ? LucideIcons.rotateCw : Icons.refresh_rounded,
+          glassDesign(context) ? LucideIcons.rotateCw : Icons.refresh_rounded,
         ),
       ),
     ),
@@ -107,7 +107,7 @@ class DramaCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final ios = iosDesign(context);
+    final glass = glassDesign(context);
     final placeholder = Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -118,7 +118,7 @@ class DramaCover extends StatelessWidget {
       ),
       child: Center(
         child: Icon(
-          ios ? LucideIcons.clapperboard : Icons.movie_creation_outlined,
+          glass ? LucideIcons.clapperboard : Icons.movie_creation_outlined,
           size: 40,
           color: colors.onSurfaceVariant,
         ),
@@ -183,7 +183,7 @@ class DramaCover extends StatelessWidget {
       ],
     );
     final corners = BorderRadius.circular(radius);
-    return ios
+    return glass
         ? ClipRSuperellipse(borderRadius: corners, child: cover)
         : ClipRRect(borderRadius: corners, child: cover);
   }
@@ -420,7 +420,7 @@ class DramaTile extends StatelessWidget {
                         ? Theme.of(context).colorScheme.primary
                         : Colors.black.withValues(alpha: .64),
                     child: Icon(
-                      iosDesign(context)
+                      glassDesign(context)
                           ? selected!
                                 ? LucideIcons.check
                                 : LucideIcons.circle
@@ -489,7 +489,7 @@ class DramaTile extends StatelessWidget {
         ),
       );
     }
-    if (iosDesign(context)) {
+    if (glassDesign(context)) {
       final longPress = onLongPress ?? onMore;
       return Semantics(
         button: true,
@@ -497,8 +497,8 @@ class DramaTile extends StatelessWidget {
         label: '${drama.title}，${drama.episodes}集',
         child: PressableScale(
           pressedScale: .965,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          child: GlassTapTarget(
+            borderRadius: BorderRadius.circular(14),
             onTap: onTap,
             onLongPress: longPress == null
                 ? null

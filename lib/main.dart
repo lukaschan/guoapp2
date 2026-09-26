@@ -238,7 +238,13 @@ class DuanjuApp extends StatelessWidget {
               television: tv,
               version: version,
               child: Theme(
-                data: tv ? televisionTheme(theme) : theme,
+                data: tv
+                    ? televisionTheme(
+                        theme.brightness == Brightness.dark
+                            ? AppTheme.dark
+                            : AppTheme.light,
+                      )
+                    : theme,
                 child: Shortcuts(
                   shortcuts: const {
                     SingleActivator(

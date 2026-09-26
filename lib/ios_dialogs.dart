@@ -228,6 +228,55 @@ class PullDownButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    if (!iosDesign(context)) {
+      return MenuAnchor(
+        menuChildren: [
+          for (final entry in entries) ...[
+            if (entry.dividerBefore)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Divider(height: 1),
+              ),
+            MenuItemButton(
+              onPressed: entry.onPressed,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 24,
+                    child: entry.checked
+                        ? Icon(
+                            Icons.check_rounded,
+                            size: 18,
+                            color: colors.primary,
+                          )
+                        : null,
+                  ),
+                  Text(
+                    entry.label,
+                    style: entry.destructive
+                        ? TextStyle(color: colors.error)
+                        : null,
+                  ),
+                  if (entry.icon != null) ...[
+                    const SizedBox(width: 20),
+                    Icon(entry.icon, size: 20),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+        builder: (context, controller, _) => builder(context, () {
+          HapticFeedback.selectionClick();
+          if (controller.isOpen) {
+            controller.close();
+          } else {
+            controller.open();
+          }
+        }),
+      );
+    }
     return CupertinoTheme(
       data: CupertinoThemeData(
         brightness: Theme.of(context).brightness,

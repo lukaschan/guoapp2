@@ -9,6 +9,14 @@ bool iosDesign(BuildContext context) =>
     Theme.of(context).platform == TargetPlatform.iOS &&
     !AppLayout.isTelevision(context);
 
+bool glassDesign(BuildContext context) =>
+    !AppLayout.isTelevision(context) &&
+    switch (Theme.of(context).platform) {
+      TargetPlatform.iOS || TargetPlatform.android || TargetPlatform.windows =>
+        true,
+      _ => false,
+    };
+
 const _saturation = <double>[
   1.28, -0.24, -0.04, 0, 0, //
   -0.08, 1.16, -0.08, 0, 0, //
@@ -35,6 +43,9 @@ class LiquidGlass extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final blurSigma = Theme.of(context).platform == TargetPlatform.iOS
+        ? blur
+        : blur * .65;
     final base =
         tint ??
         (dark
@@ -62,8 +73,9 @@ class LiquidGlass extends StatelessWidget {
       child: ClipRSuperellipse(
         borderRadius: borderRadius,
         child: BackdropFilter(
+          enabled: blurSigma > 0 && !MediaQuery.highContrastOf(context),
           filter: ui.ImageFilter.compose(
-            outer: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+            outer: ui.ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
             inner: const ColorFilter.matrix(_saturation),
           ),
           child: CustomPaint(
@@ -163,6 +175,78 @@ class _PressableScaleState extends State<PressableScale> {
   );
 }
 
+class GlassTapTarget extends StatefulWidget {
+  const GlassTapTarget({
+    super.key,
+    required this.child,
+    required this.onTap,
+    this.onLongPress,
+    this.onSecondaryTap,
+    this.focusNode,
+    this.autofocus = false,
+    this.borderRadius = const BorderRadius.all(Radius.circular(999)),
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final VoidCallback? onSecondaryTap;
+  final FocusNode? focusNode;
+  final bool autofocus;
+  final BorderRadius borderRadius;
+
+  @override
+  State<GlassTapTarget> createState() => _GlassTapTargetState();
+}
+
+class _GlassTapTargetState extends State<GlassTapTarget> {
+  bool _focused = false;
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = widget.onTap != null;
+    final colors = Theme.of(context).colorScheme;
+    return FocusableActionDetector(
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
+      enabled: enabled,
+      mouseCursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
+      onShowFocusHighlight: (value) => setState(() => _focused = value),
+      onShowHoverHighlight: (value) => setState(() => _hovered = value),
+      actions: {
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) {
+            widget.onTap?.call();
+            return null;
+          },
+        ),
+      },
+      child: DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: BoxDecoration(
+          borderRadius: widget.borderRadius,
+          border: Border.all(
+            color: enabled && _focused
+                ? colors.primary
+                : enabled && _hovered
+                ? colors.onSurface.withValues(alpha: .25)
+                : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          onLongPress: widget.onLongPress,
+          onSecondaryTap: widget.onSecondaryTap,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
 class GlassIconButton extends StatelessWidget {
   const GlassIconButton({
     super.key,
@@ -173,6 +257,9 @@ class GlassIconButton extends StatelessWidget {
     this.color,
     this.tint,
     this.active = false,
+    this.blur = 22,
+    this.focusNode,
+    this.autofocus = false,
   });
   final IconData icon;
   final String tooltip;
@@ -181,6 +268,9 @@ class GlassIconButton extends StatelessWidget {
   final Color? color;
   final Color? tint;
   final bool active;
+  final double blur;
+  final FocusNode? focusNode;
+  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -197,8 +287,9 @@ class GlassIconButton extends StatelessWidget {
         child: PressableScale(
           enabled: enabled,
           pressedScale: .9,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          child: GlassTapTarget(
+            focusNode: focusNode,
+            autofocus: autofocus,
             onTap: enabled
                 ? () {
                     HapticFeedback.selectionClick();
@@ -208,6 +299,7 @@ class GlassIconButton extends StatelessWidget {
             child: SizedBox.square(
               dimension: size,
               child: LiquidGlass(
+                blur: blur,
                 tint: active ? colors.primary.withValues(alpha: .9) : tint,
                 child: Center(
                   child: Icon(
@@ -257,8 +349,9 @@ class GlassButtonGroup extends StatelessWidget {
                     child: PressableScale(
                       enabled: item.onPressed != null,
                       pressedScale: .86,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
+                      child: GlassTapTarget(
+                        focusNode: item.focusNode,
+                        autofocus: item.autofocus,
                         onTap: item.onPressed == null
                             ? null
                             : () {
@@ -302,6 +395,8 @@ class GlassGroupItem {
     required this.tooltip,
     required this.onPressed,
     this.highlighted = false,
+    this.focusNode,
+    this.autofocus = false,
   });
   final Key? key;
   final IconData? icon;
@@ -309,6 +404,8 @@ class GlassGroupItem {
   final String tooltip;
   final VoidCallback? onPressed;
   final bool highlighted;
+  final FocusNode? focusNode;
+  final bool autofocus;
 }
 
 class GlassBackIcon extends StatelessWidget {

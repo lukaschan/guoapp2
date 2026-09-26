@@ -461,7 +461,7 @@ class _DetailScreenState extends State<DetailScreen> {
                           ),
                         ],
                       ],
-                      if (iosDesign(context))
+                      if (glassDesign(context))
                         SliverToBoxAdapter(
                           child: SizedBox(
                             height: 88 + MediaQuery.paddingOf(context).bottom,
@@ -474,9 +474,9 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
           ),
         ),
-        extendBody: iosDesign(context),
-        bottomNavigationBar: iosDesign(context)
-            ? _iosPlayBar(allowed, episodes, resumeIndex, watched)
+        extendBody: glassDesign(context),
+        bottomNavigationBar: glassDesign(context)
+            ? _glassPlayBar(allowed, episodes, resumeIndex, watched)
             : Material(
                 color: Theme.of(context).colorScheme.surface,
                 child: SafeArea(
@@ -537,7 +537,7 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
-  Widget _iosPlayBar(
+  Widget _glassPlayBar(
     bool allowed,
     List<Episode> episodes,
     int resumeIndex,
@@ -604,7 +604,7 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   Widget _ambient(Drama drama, Widget child) {
-    if (!iosDesign(context)) return child;
+    if (!glassDesign(context)) return child;
     final background = Theme.of(context).scaffoldBackgroundColor;
     return Stack(
       children: [

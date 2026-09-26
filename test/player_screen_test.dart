@@ -194,7 +194,7 @@ void main() {
     }
   });
 
-  testWidgets('mobile player pane starts below the system status area', (
+  testWidgets('mobile taps toggle controls without changing playback', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -212,6 +212,17 @@ void main() {
         find.byKey(const ValueKey('player-gesture-surface')),
       );
       expect(surface.top, greaterThanOrEqualTo(32));
+      final tapPoint = Offset(surface.center.dx, surface.top + 12);
+      expect(find.byTooltip('暂停播放'), findsOneWidget);
+      await tester.tapAt(tapPoint);
+      await tester.pump();
+      expect(player.state.playing, isTrue);
+      await tester.tapAt(tapPoint);
+      await tester.pump();
+      expect(player.state.playing, isTrue);
+      await tester.tap(find.byTooltip('暂停播放'));
+      await tester.pump();
+      expect(player.state.playing, isFalse);
       await unmount(tester, player);
     } finally {
       debugDefaultTargetPlatformOverride = null;
