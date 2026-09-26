@@ -6,14 +6,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser(description='从统一图形生成红果鉴 / 真果鉴平台资源；需要 Pillow。')
+parser.add_argument('--icon', type=Path, default=root / 'assets/app_icon_master.png')
 parser.add_argument('--output', type=Path, default=root)
 parser.add_argument('--font', type=Path, default=Path('/System/Library/Fonts/PingFang.ttc'))
 options = parser.parse_args()
 output = options.output
-icon = Image.new('RGB', (1024, 1024), '#101114')
-draw = ImageDraw.Draw(icon)
-draw.rounded_rectangle((110, 110, 914, 914), radius=236, fill='#FF765F')
-draw.polygon([(418, 303), (418, 721), (734, 512)], fill='white')
+icon = Image.open(options.icon).convert('RGB')
 
 def save(image, name):
     destination = output / name
@@ -27,6 +25,10 @@ for entry in contents['images']:
         save(icon.resize((size, size), Image.Resampling.LANCZOS),
              'ios/Runner/Assets.xcassets/AppIcon.appiconset/' + entry['filename'])
 save(icon.resize((256, 256), Image.Resampling.LANCZOS), 'windows/runner/resources/app_icon.ico')
+save(icon.resize((1024, 1024), Image.Resampling.LANCZOS), 'android/app/src/main/res/drawable/app_icon.png')
+for density, size in [('mdpi', 48), ('hdpi', 72), ('xhdpi', 96), ('xxhdpi', 144), ('xxxhdpi', 192)]:
+    save(icon.resize((size, size), Image.Resampling.LANCZOS),
+         f'android/app/src/main/res/mipmap-{density}/ic_launcher.png')
 font = ImageFont.truetype(str(options.font), 76)
 for name, resource in [('红果鉴', 'tv_banner'), ('真果鉴', 'tv_banner_all_sources')]:
     banner = Image.new('RGB', (640, 360), '#101114')
