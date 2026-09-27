@@ -66,12 +66,10 @@ class PlayerInteractions extends ChangeNotifier {
     }
     if (!persistent && message.isNotEmpty) {
       _hintTimer = Timer(const Duration(milliseconds: 1200), () {
-      hint(
-        _boosting
-            ? (_sideFastForward ? '2 倍速快进 · 松开恢复' : '2 倍速 · 松开恢复')
-            : '',
-        persistent: true,
-      );
+        hint(
+          _boosting ? (_sideFastForward ? '2 倍速快进 · 松开恢复' : '2 倍速 · 松开恢复') : '',
+          persistent: true,
+        );
       });
     }
   }

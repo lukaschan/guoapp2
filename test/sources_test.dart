@@ -63,6 +63,51 @@ class SourceFixtureRepository extends FixtureRepository {
 }
 
 void main() {
+  test(
+    'twelve short-drama sources are registered and paged search is scoped',
+    () {
+      const expected = {
+        'yaguo',
+        'maoguo',
+        'fanguo',
+        'guanguo',
+        'heguo',
+        'xingguo',
+        'huaguo',
+        'niuguo',
+        'wangguo',
+        'faguo',
+        'piguo',
+        'wuguo',
+      };
+      final actual = SourceSite.duanjuValues.map((source) => source.id).toSet();
+      expect(actual, expected);
+      expect(
+        SourceSite.knownValues.map((source) => source.id).toSet(),
+        containsAll(expected),
+      );
+      for (final source in SourceSite.duanjuValues) {
+        expect(SourceSite.isKnown(source.id), isTrue);
+        expect(source.onlineSearch, isTrue);
+      }
+      expect(
+        SourceSite.duanjuValues
+            .where((source) => source.pagedSearch)
+            .map((source) => source.id),
+        containsAll({
+          'yaguo',
+          'guanguo',
+          'huaguo',
+          'niuguo',
+          'wangguo',
+          'faguo',
+          'piguo',
+          'wuguo',
+        }),
+      );
+    },
+  );
+
   testWidgets('source list keeps bottom content above system navigation', (
     tester,
   ) async {
@@ -298,9 +343,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(textScaler: const TextScaler.linear(1.5)),
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: const TextScaler.linear(1.5)),
             child: child!,
           ),
           home: SourcesScreen(repository: repository, store: store),

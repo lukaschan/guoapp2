@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'core_bridge.dart';
 import 'download_preferences.dart';
 import 'local_store.dart';
+import 'remote_widgets.dart';
 import 'resource_settings.dart';
 import 'widgets.dart';
 
@@ -104,6 +105,7 @@ class _ResourceSettingsScreenState extends State<ResourceSettingsScreen> {
   @override
   void initState() {
     super.initState();
+    ensureTelevisionFocus(context);
     _load();
   }
 
@@ -151,9 +153,8 @@ class _ResourceSettingsScreenState extends State<ResourceSettingsScreen> {
       );
       if (!mounted || !_allowed) return;
       setState(() => _settings = settings);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('设置已保存，将用于后续请求和下载任务')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('设置已保存，将用于后续请求和下载任务')));
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
     } finally {

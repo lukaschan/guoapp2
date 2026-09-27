@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'app_layout.dart';
 import 'catalog_filters.dart';
 import 'core_bridge.dart';
 import 'local_store.dart';
 import 'models.dart';
 import 'playback_launch_screen.dart';
+import 'remote_widgets.dart';
 import 'widgets.dart';
 
 class RecommendationsScreen extends StatefulWidget {
@@ -15,10 +17,14 @@ class RecommendationsScreen extends StatefulWidget {
     required this.repository,
     required this.store,
     this.embedded = false,
+    this.gridKey,
+    this.onExitLeft,
   });
   final AppRepository repository;
   final LocalStore store;
   final bool embedded;
+  final GlobalKey<RemoteGridState>? gridKey;
+  final VoidCallback? onExitLeft;
 
   @override
   State<RecommendationsScreen> createState() => _RecommendationsScreenState();
@@ -31,6 +37,8 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     CatalogCategory('ai_series', 'AI 剧'),
   ];
   final _scroll = ScrollController();
+  final _filtersKey = GlobalKey<RemoteRowState>();
+  final _gridKey = GlobalKey<RemoteGridState>();
   String _genre = 'short_play';
   List<Drama> _items = [];
   bool _loading = false;
@@ -114,6 +122,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final television = AppLayout.isTelevision(context);
     final refresh = RefreshAction(
       loading: _loading || _more,
       tooltip: '刷新推荐',
@@ -122,8 +131,12 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     final content = Column(
       children: [
         CatalogFilters(
+          remoteKey: _filtersKey,
           categories: _genres,
           category: _genre,
+          onExitDown: television
+              ? () => (widget.gridKey ?? _gridKey).currentState?.focusCurrent()
+              : null,
           onCategory: _select,
           onRetry: () => _load(force: true),
           trailing: widget.embedded ? refresh : null,
@@ -174,69 +187,127 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                   onRetry: () => _load(force: true),
                 )
               : LayoutBuilder(
-                  builder: (context, constraints) => RefreshIndicator.adaptive(
-                    onRefresh: () => _load(force: true),
-                    child: CustomScrollView(
-                      controller: _scroll,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      slivers: [
-                        SliverPadding(
-                          padding: const EdgeInsets.all(16),
-                          sliver: SliverGrid(
-                            gridDelegate: dramaGridDelegate(
-                              context,
-                              constraints.maxWidth - 32,
-                            ),
-                            delegate: SliverChildBuilderDelegate((
-                              context,
-                              index,
-                            ) {
-                              final drama = _items[index];
-                              return DramaTile(
-                                key: ValueKey(drama.id),
+                  builder: (context, constraints) {
+                    if (television) {
+                      final columns = ((constraints.maxWidth - 36) / 150)
+                          .floor()
+                          .clamp(1, 8);
+                      final tileWidth =
+                          (constraints.maxWidth - 36 - (columns - 1) * 14) /
+                          columns;
+                      return RemoteGrid(
+                        key: widget.gridKey ?? _gridKey,
+                        itemKeys: _items.map((item) => item.id).toList(),
+                        columns: columns,
+                        itemExtent:
+                            DramaTile.extentFor(context, tileWidth - 14) + 14,
+                        controller: _scroll,
+                        padding: const EdgeInsets.fromLTRB(18, 2, 18, 18),
+                        onExitUp: () =>
+                            _filtersKey.currentState?.focusCurrent(),
+                        onExitLeft: widget.onExitLeft,
+                        footer: Padding(
+                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+                          child: Center(
+                            child: _more
+                                ? const CircularProgressIndicator()
+                                : _hasMore
+                                ? RemoteButton(
+                                    label: '继续推荐',
+                                    icon: Icons.auto_awesome_rounded,
+                                    onPressed: () => _load(more: true),
+                                  )
+                                : RemoteButton(
+                                    label: '刷新获取新推荐',
+                                    icon: Icons.refresh_rounded,
+                                    onPressed: () => _load(force: true),
+                                  ),
+                          ),
+                        ),
+                        itemBuilder: (_, index, node, onFocus) {
+                          final drama = _items[index];
+                          return DramaTile(
+                            key: ValueKey(drama.id),
+                            drama: drama,
+                            repository: widget.repository,
+                            focusNode: node,
+                            onFocus: onFocus,
+                            onTap: () => unawaited(
+                              openPlaybackDirectly(
+                                context,
                                 drama: drama,
                                 repository: widget.repository,
-                                onTap: () => unawaited(
-                                  openPlaybackDirectly(
-                                    context,
-                                    drama: drama,
-                                    repository: widget.repository,
-                                    store: widget.store,
-                                  ),
-                                ),
-                              );
-                            }, childCount: _items.length),
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(
-                              16,
-                              0,
-                              16,
-                              24 + MediaQuery.paddingOf(context).bottom,
+                                store: widget.store,
+                              ),
                             ),
-                            child: Center(
-                              child: _more
-                                  ? const CircularProgressIndicator.adaptive()
-                                  : _hasMore
-                                  ? OutlinedButton.icon(
-                                      onPressed: () => _load(more: true),
-                                      icon: const Icon(
-                                        Icons.auto_awesome_rounded,
-                                      ),
-                                      label: const Text('继续推荐'),
-                                    )
-                                  : TextButton(
-                                      onPressed: () => _load(force: true),
-                                      child: const Text('本轮推荐已看完，刷新获取新推荐'),
+                          );
+                        },
+                      );
+                    }
+                    return RefreshIndicator.adaptive(
+                      onRefresh: () => _load(force: true),
+                      child: CustomScrollView(
+                        controller: _scroll,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          SliverPadding(
+                            padding: const EdgeInsets.all(16),
+                            sliver: SliverGrid(
+                              gridDelegate: dramaGridDelegate(
+                                context,
+                                constraints.maxWidth - 32,
+                              ),
+                              delegate: SliverChildBuilderDelegate((
+                                context,
+                                index,
+                              ) {
+                                final drama = _items[index];
+                                return DramaTile(
+                                  key: ValueKey(drama.id),
+                                  drama: drama,
+                                  repository: widget.repository,
+                                  onTap: () => unawaited(
+                                    openPlaybackDirectly(
+                                      context,
+                                      drama: drama,
+                                      repository: widget.repository,
+                                      store: widget.store,
                                     ),
+                                  ),
+                                );
+                              }, childCount: _items.length),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: EdgeInsets.fromLTRB(
+                                16,
+                                0,
+                                16,
+                                24 + MediaQuery.paddingOf(context).bottom,
+                              ),
+                              child: Center(
+                                child: _more
+                                    ? const CircularProgressIndicator.adaptive()
+                                    : _hasMore
+                                    ? OutlinedButton.icon(
+                                        onPressed: () => _load(more: true),
+                                        icon: const Icon(
+                                          Icons.auto_awesome_rounded,
+                                        ),
+                                        label: const Text('继续推荐'),
+                                      )
+                                    : TextButton(
+                                        onPressed: () => _load(force: true),
+                                        child: const Text('本轮推荐已看完，刷新获取新推荐'),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
         ),
       ],

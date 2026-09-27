@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'core_bridge.dart';
 import 'local_store.dart';
 import 'models.dart';
+import 'remote_widgets.dart';
 import 'source_status.dart';
 
 String sourceTimestamp(DateTime? value) {
@@ -46,6 +47,7 @@ class _SourcesScreenState extends State<SourcesScreen> {
   @override
   void initState() {
     super.initState();
+    ensureTelevisionFocus(context);
     unawaited(_refresh());
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       _ticks++;
@@ -152,9 +154,8 @@ class _SourcesScreenState extends State<SourcesScreen> {
     if (status.storageError.isNotEmpty) text.writeln(status.storageError);
     await Clipboard.setData(ClipboardData(text: text.toString()));
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('诊断信息已复制')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('诊断信息已复制')));
     }
   }
 
@@ -401,9 +402,9 @@ class _SourcesScreenState extends State<SourcesScreen> {
                                     Text(health.label),
                                     Text(
                                       sourceTimestamp(health.checkedAt),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall,
                                     ),
                                   ],
                                 ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'models.dart';
 import 'download_preferences.dart';
 import 'episode_browser.dart';
+import 'remote_widgets.dart';
 
 class DownloadSelection {
   const DownloadSelection(this.episodes, this.quality);
@@ -36,6 +37,12 @@ class _DownloadPickerState extends State<DownloadPicker> {
   late int _quality = widget.preferences.quality;
   bool _submitting = false;
 
+  @override
+  void initState() {
+    super.initState();
+    ensureTelevisionFocus(context);
+  }
+
   void _select(Iterable<Episode> episodes) {
     final choices = episodes.toList();
     setState(() {
@@ -51,9 +58,8 @@ class _DownloadPickerState extends State<DownloadPicker> {
 
   void _toggle(Episode episode) {
     if (!_selected.contains(episode.number) && _selected.length >= 500) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('一次最多加入 500 集，请分批下载')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('一次最多加入 500 集，请分批下载')));
       return;
     }
     setState(() {
@@ -79,9 +85,8 @@ class _DownloadPickerState extends State<DownloadPicker> {
       if (mounted) setState(() => _selected.clear());
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.toString())));
       }
     } finally {
       if (mounted) setState(() => _submitting = false);

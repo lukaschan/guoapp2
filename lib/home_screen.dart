@@ -47,6 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
   static const _recommendationCategory = 'app:recommendations';
   final _search = TextEditingController();
   final _scroll = ScrollController();
+  final _filtersKey = GlobalKey<RemoteRowState>();
+  final _gridKey = GlobalKey<RemoteGridState>();
   Timer? _debounce;
   late SourceSite _source;
   bool _allSources = false;
@@ -657,9 +659,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (!_selectedDramas.containsKey(drama.id) &&
         _selectedDramas.length >= BatchDownloads.maxDramas) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('一次最多选择 50 部短剧，请分批下载')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('一次最多选择 50 部短剧，请分批下载')));
       return;
     }
     setState(() {
@@ -1449,6 +1450,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         CatalogFilters(
           key: ValueKey('filters-${_group.id}'),
+          remoteKey: _filtersKey,
+          onExitDown: television
+              ? () => _gridKey.currentState?.focusCurrent()
+              : null,
           categories: _displayCategories,
           category: _displayCategory,
           error: _categoriesError,
@@ -1477,6 +1482,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 repository: widget.repository,
                 store: widget.store,
                 embedded: true,
+                gridKey: _gridKey,
               ),
             ),
           )
@@ -1537,8 +1543,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           return _televisionGrid(
                             items,
                             constraints.maxWidth,
-                            key:
-                                'catalog-${_group.id}-$_category-$_submittedQuery',
                             controller: _scroll,
                             footer: Padding(
                               padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
@@ -1604,9 +1608,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         : Text(
                                             '已经看到这里的全部剧集',
                                             style: TextStyle(
-                                              color: Theme.of(
-                                                context,
-                                              ).colorScheme.onSurfaceVariant,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
                                               fontSize: 12,
                                             ),
                                           ),
@@ -1769,20 +1773,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _televisionGrid(
     List<Drama> items,
     double width, {
-    required String key,
     ScrollController? controller,
     Widget? footer,
   }) {
     final columns = ((width - 36) / 150).floor().clamp(1, 8);
     final tileWidth = (width - 36 - (columns - 1) * 14) / columns;
     return RemoteGrid(
-      key: ValueKey('tv-grid-$key'),
+      key: _gridKey,
       itemKeys: items.map((item) => item.id).toList(),
       columns: columns,
       itemExtent: DramaTile.extentFor(context, tileWidth - 14) + 14,
       controller: controller,
       footer: footer,
       padding: const EdgeInsets.fromLTRB(18, 2, 18, 18),
+      onExitUp: () => _filtersKey.currentState?.focusCurrent(),
       itemBuilder: (_, index, node, onFocus) =>
           _catalogTile(items[index], focusNode: node, onFocus: onFocus),
     );

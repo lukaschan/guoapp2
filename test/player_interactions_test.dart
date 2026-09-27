@@ -24,6 +24,7 @@ void main() {
       PointerDownEvent(
         pointer: 1,
         position: const Offset(90, 50),
+        localPosition: const Offset(90, 50),
         buttons: kPrimaryButton,
         kind: PointerDeviceKind.touch,
         timeStamp: Duration.zero,
@@ -40,6 +41,7 @@ void main() {
       PointerUpEvent(
         pointer: 1,
         position: const Offset(90, 50),
+        localPosition: const Offset(90, 50),
         buttons: 0,
         kind: PointerDeviceKind.touch,
         timeStamp: const Duration(milliseconds: 400),
@@ -69,6 +71,7 @@ void main() {
       PointerDownEvent(
         pointer: 1,
         position: const Offset(50, 50),
+        localPosition: const Offset(50, 50),
         buttons: kPrimaryButton,
         kind: PointerDeviceKind.touch,
         timeStamp: Duration.zero,
@@ -85,6 +88,7 @@ void main() {
       PointerCancelEvent(
         pointer: 1,
         position: const Offset(50, 50),
+        localPosition: const Offset(50, 50),
         buttons: 0,
         kind: PointerDeviceKind.touch,
         timeStamp: const Duration(milliseconds: 400),

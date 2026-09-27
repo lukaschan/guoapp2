@@ -51,6 +51,7 @@ class _DetailScreenState extends State<DetailScreen> {
   bool _episodesExpanded = false;
   final _episodeAnchor = GlobalKey();
   final _detailScroll = ScrollController();
+  final _playFocus = FocusNode(debugLabel: 'tv-detail-play');
   bool _initialActionHandled = false;
   late final int _profileEpoch;
   Widget? get _sourceDiagnostics => widget.repository.supportsSourceManagement
@@ -81,6 +82,7 @@ class _DetailScreenState extends State<DetailScreen> {
   @override
   void dispose() {
     _detailScroll.dispose();
+    _playFocus.dispose();
     widget.store.removeListener(_onStoreChanged);
     _generation++;
     super.dispose();
@@ -226,9 +228,8 @@ class _DetailScreenState extends State<DetailScreen> {
       );
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.toString())));
       }
     }
   }
@@ -373,6 +374,8 @@ class _DetailScreenState extends State<DetailScreen> {
                                       child: EpisodeBrowser(
                                         episodes: episodes,
                                         currentNumber: watched?.episode,
+                                        onExitDown: () =>
+                                            _playFocus.requestFocus(),
                                         onSelected: (index) => _play(index),
                                       ),
                                     ),
@@ -436,9 +439,8 @@ class _DetailScreenState extends State<DetailScreen> {
                                     ),
                                     mainAxisExtent: math.max(
                                       54,
-                                      MediaQuery.textScalerOf(
-                                            context,
-                                          ).scale(20) +
+                                      MediaQuery.textScalerOf(context)
+                                              .scale(20) +
                                           30,
                                     ),
                                     crossAxisSpacing: 10,
@@ -508,6 +510,7 @@ class _DetailScreenState extends State<DetailScreen> {
                               child: FilledButton.icon(
                                 key: const ValueKey('start-play'),
                                 autofocus: television,
+                                focusNode: _playFocus,
                                 style: FilledButton.styleFrom(
                                   minimumSize: const Size(0, 52),
                                   padding: const EdgeInsets.symmetric(
@@ -578,6 +581,7 @@ class _DetailScreenState extends State<DetailScreen> {
                       pressedScale: .97,
                       child: FilledButton.icon(
                         key: const ValueKey('start-play'),
+                        focusNode: _playFocus,
                         style: FilledButton.styleFrom(
                           minimumSize: const Size(0, 52),
                           padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -701,9 +705,8 @@ class _DetailScreenState extends State<DetailScreen> {
                     '选集 · ${episodes.length} 集$current',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
                 Text(expanded ? '收起' : '展开'),
@@ -790,9 +793,8 @@ class _DetailScreenState extends State<DetailScreen> {
                 children: [
                   Text(
                     drama.title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 10),
                   Text(
