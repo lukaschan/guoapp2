@@ -33,6 +33,10 @@ class PlayerControls extends StatefulWidget {
     this.danmakuStatus = '',
     this.swipeEnabled = false,
     this.panelOpen = false,
+    this.pageFullscreen = false,
+    this.windowFullscreen = false,
+    this.onPageFullscreen,
+    this.onExitFullscreen,
     this.onSeek,
     this.onDanmaku,
     this.onRetryDanmaku,
@@ -45,8 +49,12 @@ class PlayerControls extends StatefulWidget {
   final PlayerInteractions interactions;
   final bool enabled;
   final bool fullscreen;
+  final bool pageFullscreen;
+  final bool windowFullscreen;
   final bool showOnPlaybackReady;
   final VoidCallback onFullscreen;
+  final VoidCallback? onPageFullscreen;
+  final VoidCallback? onExitFullscreen;
   final VoidCallback onBack;
   final VoidCallback? onPrevious;
   final VoidCallback? onNext;
@@ -135,6 +143,8 @@ class _PlayerControlsState extends State<PlayerControls> {
     if (widget.enabled != oldWidget.enabled ||
         widget.panelOpen != oldWidget.panelOpen ||
         widget.fullscreen != oldWidget.fullscreen ||
+        widget.pageFullscreen != oldWidget.pageFullscreen ||
+        widget.windowFullscreen != oldWidget.windowFullscreen ||
         widget.showOnPlaybackReady != oldWidget.showOnPlaybackReady) {
       _seekValue = null;
       if (widget.showOnPlaybackReady) {
@@ -152,7 +162,9 @@ class _PlayerControlsState extends State<PlayerControls> {
           _visible = false;
         }
       } else if (widget.panelOpen != oldWidget.panelOpen ||
-          widget.fullscreen != oldWidget.fullscreen) {
+          widget.fullscreen != oldWidget.fullscreen ||
+          widget.pageFullscreen != oldWidget.pageFullscreen ||
+          widget.windowFullscreen != oldWidget.windowFullscreen) {
         _visible = true;
       }
       _scheduleHide();
@@ -337,7 +349,7 @@ class _PlayerControlsState extends State<PlayerControls> {
             _overlayIconButton(
               tooltip: widget.fullscreen ? '退出全屏' : '返回',
               onPressed: widget.fullscreen
-                  ? widget.onFullscreen
+                  ? (widget.onExitFullscreen ?? widget.onFullscreen)
                   : widget.onBack,
               icon: widget.fullscreen
                   ? Icons.arrow_back_rounded
@@ -440,7 +452,7 @@ class _PlayerControlsState extends State<PlayerControls> {
     final width = constraints.maxWidth;
     final fullscreen = widget.fullscreen;
     final mobile = widget.swipeEnabled;
-    final showEpisodes = fullscreen;
+    final showEpisodes = !mobile;
     final showSpeedQuality =
         mobile || fullscreen && width >= 720 || !fullscreen && width >= 560;
     final showPush =
@@ -801,10 +813,19 @@ class _PlayerControlsState extends State<PlayerControls> {
               ? () => _panel(widget.onPictureInPicture!)
               : null,
         ),
+      if (widget.onPageFullscreen != null)
+        _toolIcon(
+          key: const ValueKey('player-page-fullscreen'),
+          tooltip: widget.pageFullscreen ? '退出页面全屏' : '页面全屏',
+          icon: widget.pageFullscreen
+              ? Icons.fit_screen_rounded
+              : Icons.fit_screen_outlined,
+          onPressed: widget.onPageFullscreen,
+        ),
       _toolIcon(
         key: const ValueKey('player-fullscreen'),
-        tooltip: fullscreen ? '退出全屏' : '旋转与全屏',
-        icon: fullscreen
+        tooltip: widget.windowFullscreen ? '退出窗口全屏' : '窗口全屏',
+        icon: widget.windowFullscreen
             ? Icons.fullscreen_exit_rounded
             : Icons.fullscreen_rounded,
         onPressed: widget.onFullscreen,

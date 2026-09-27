@@ -102,8 +102,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _forceOnline = false;
   bool _localFailure = false;
   bool _fullscreen = false;
+  bool _pageFullscreen = false;
+  bool _windowFullscreen = false;
   bool _automaticFullscreenSuppressed = false;
   bool _panelOpen = false;
+  bool _episodePanelVisible = true;
   int _mobileTab = 0;
   bool _autoAdvance = true;
   bool? _systemFullscreen;
@@ -438,8 +441,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _applyLifecycleVisibility({bool pauseWhenHidden = true}) {
+    final windowsInactive =
+        Platform.isWindows && _lifecycleState == AppLifecycleState.inactive;
     final visible =
         _lifecycleState == AppLifecycleState.resumed ||
+        windowsInactive ||
         _pictureInPictureVisible;
     _foreground = visible;
     _enhancement.setForeground(_foreground);
@@ -450,7 +456,6 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (pauseWhenHidden &&
         !visible &&
         (_lifecycleState == AppLifecycleState.paused ||
-            _lifecycleState == AppLifecycleState.inactive ||
             _lifecycleState == AppLifecycleState.hidden)) {
       _playIntent = false;
       unawaited(_player.pause());
@@ -1095,6 +1100,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool get _showFullscreen =>
       _television ||
       _fullscreen ||
+      _pageFullscreen ||
+      _windowFullscreen ||
       (_mobile &&
           !_automaticFullscreenSuppressed &&
           _aspectRatio >= 1 &&
@@ -1104,17 +1111,24 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (_rotating || _television) {
       return;
     }
-    final fullscreen = !_showFullscreen;
+    final windows = Platform.isWindows;
+    final fullscreen = windows ? !_windowFullscreen : !_showFullscreen;
     final previous = _fullscreen;
+    final previousPageFullscreen = _pageFullscreen;
+    final previousWindowFullscreen = _windowFullscreen;
     final previousSuppressed = _automaticFullscreenSuppressed;
     _interactions.cancel();
     _rotating = true;
     setState(() {
-      _fullscreen = fullscreen;
-      _automaticFullscreenSuppressed = !fullscreen;
+      if (windows) {
+        _windowFullscreen = fullscreen;
+      } else {
+        _fullscreen = fullscreen;
+        _automaticFullscreenSuppressed = !fullscreen;
+      }
     });
     try {
-      if (Platform.isWindows) {
+      if (windows) {
         await windowManager.setFullScreen(fullscreen);
       } else if (_mobile) {
         await (_orientationController?.setPlayback(
@@ -1134,6 +1148,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (mounted && !_closed) {
         setState(() {
           _fullscreen = previous;
+          _pageFullscreen = previousPageFullscreen;
+          _windowFullscreen = previousWindowFullscreen;
           _automaticFullscreenSuppressed = previousSuppressed;
         });
         _notice('无法切换全屏，请重试');
@@ -1407,11 +1423,28 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _back() {
+    if (_pageFullscreen && !_television) {
+      _togglePageFullscreen();
+      return;
+    }
     if (_showFullscreen && !_television) {
       _rotate();
     } else {
       Navigator.of(context).maybePop();
     }
+  }
+
+  void _togglePageFullscreen() {
+    if (_television || _closed) return;
+    _interactions.cancel();
+    setState(() => _pageFullscreen = !_pageFullscreen);
+    _scheduleSystemUi();
+  }
+
+  void _toggleEpisodePanel() {
+    if (_closed || _showFullscreen || _mobile) return;
+    _interactions.cancel();
+    setState(() => _episodePanelVisible = !_episodePanelVisible);
   }
 
   @override
@@ -1553,17 +1586,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                                 constraints.maxHeight * 1.3) {
                           return Row(
                             children: [
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    Expanded(child: _videoPane(context)),
-                                  ],
+                              Expanded(child: _videoPane(context)),
+                              if (_episodePanelVisible)
+                                SizedBox(
+                                  width: desktop ? 312 : 210,
+                                  child: _episodePanel(
+                                    onClose: _toggleEpisodePanel,
+                                  ),
                                 ),
-                              ),
-                              SizedBox(
-                                width: desktop ? 312 : 210,
-                                child: _episodePanel(),
-                              ),
                             ],
                           );
                         }
@@ -1635,11 +1665,17 @@ class _PlayerScreenState extends State<PlayerScreen>
             enhancement: _enhancementForUi,
             panelOpen: _panelOpen,
             fullscreen: _showFullscreen,
+            pageFullscreen: _pageFullscreen,
+            windowFullscreen: _windowFullscreen,
             showOnPlaybackReady: _showControlsOnPlaybackReady,
             title: title,
             onTogglePlayback: _togglePlayback,
             swipeEnabled: _mobile,
             onFullscreen: _rotate,
+            onPageFullscreen: Platform.isWindows
+                ? _togglePageFullscreen
+                : null,
+            onExitFullscreen: _back,
             onBack: _back,
             onFocusSurface: _playerFocus.requestFocus,
             onSeek: _seekTo,
@@ -1648,7 +1684,13 @@ class _PlayerScreenState extends State<PlayerScreen>
             showDanmaku: widget.detail.drama.source == 'hongguo',
             danmakuEnabled: _danmakuEnabled,
             danmakuStatus: _danmaku.status,
-            onEpisodes: () => _openPanel(PlayerMenuSection.episodes),
+            onEpisodes: () async {
+              if (!_mobile && !_showFullscreen) {
+                _toggleEpisodePanel();
+              } else {
+                await _openPanel(PlayerMenuSection.episodes);
+              }
+            },
             onSpeed: () => _openPanel(PlayerMenuSection.speed),
             onQuality: () => _openPanel(PlayerMenuSection.quality),
             onDanmaku: widget.detail.drama.source == 'hongguo'
@@ -2038,14 +2080,32 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  Widget _episodePanel({bool compact = false}) => ColoredBox(
-    color: Theme.of(context).colorScheme.surface,
-    child: PlayerEpisodeGrid(
-      episodes: widget.detail.episodes,
-      currentIndex: _index,
-      compact: compact,
-      title: compact ? '剧集' : '选集',
-      onSelected: (index) => _play(index),
-    ),
-  );
+  Widget _episodePanel({bool compact = false, VoidCallback? onClose}) {
+    final panel = ColoredBox(
+      color: Theme.of(context).colorScheme.surface,
+      child: PlayerEpisodeGrid(
+        episodes: widget.detail.episodes,
+        currentIndex: _index,
+        compact: compact,
+        title: compact ? '剧集' : '选集',
+        onSelected: (index) => _play(index),
+      ),
+    );
+    if (compact || onClose == null) return panel;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        panel,
+        Positioned(
+          top: 2,
+          right: 4,
+          child: IconButton(
+            tooltip: '关闭选集',
+            onPressed: onClose,
+            icon: const Icon(Icons.close_rounded),
+          ),
+        ),
+      ],
+    );
+  }
 }
