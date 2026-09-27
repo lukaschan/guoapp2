@@ -49,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _scroll = ScrollController();
   final _filtersKey = GlobalKey<RemoteRowState>();
   final _gridKey = GlobalKey<RemoteGridState>();
+  final _navKey = GlobalKey<RemoteListState>();
   Timer? _debounce;
   late SourceSite _source;
   bool _allSources = false;
@@ -1202,31 +1203,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (television) ...[
                   SizedBox(
                     width: 164,
-                    child: Padding(
+                    child: RemoteList(
+                      key: _navKey,
+                      itemKeys: [
+                        'discover',
+                        'saved',
+                        'history',
+                        if (widget.store.canDownload) 'downloads',
+                      ],
+                      itemExtent: 64,
+                      spacing: 14,
                       padding: const EdgeInsets.fromLTRB(8, 24, 8, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (final entry in [
-                            (Icons.explore_rounded, '发现'),
-                            (Icons.bookmark_rounded, '追剧'),
-                            (Icons.history_rounded, '最近观看'),
-                            if (widget.store.canDownload)
-                              (Icons.download_rounded, '下载'),
-                          ].indexed)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: RemoteButton(
-                                key: ValueKey('tv-nav-${entry.$1}'),
-                                label: entry.$2.$2,
-                                icon: entry.$2.$1,
-                                selected: _tab == entry.$1,
-                                autofocus: entry.$1 == 0,
-                                onPressed: () => _changeTab(entry.$1),
-                              ),
-                            ),
-                        ],
-                      ),
+                      autofocus: true,
+                      itemBuilder: (_, index, node, onFocus) {
+                        final entries = [
+                          (Icons.explore_rounded, '发现'),
+                          (Icons.bookmark_rounded, '追剧'),
+                          (Icons.history_rounded, '最近观看'),
+                          if (widget.store.canDownload)
+                            (Icons.download_rounded, '下载'),
+                        ];
+                        final entry = entries[index];
+                        return RemoteButton(
+                          key: ValueKey('tv-nav-$index'),
+                          label: entry.$2,
+                          icon: entry.$1,
+                          selected: _tab == index,
+                          focusNode: node,
+                          onFocus: onFocus,
+                          onPressed: () => _changeTab(index),
+                        );
+                      },
                     ),
                   ),
                   const VerticalDivider(width: 1),
