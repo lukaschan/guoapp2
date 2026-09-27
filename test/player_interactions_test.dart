@@ -33,7 +33,7 @@ void main() {
       width: 100,
     );
     await Future<void>.delayed(const Duration(milliseconds: 400));
-    expect(platform.rates, contains(3));
+    expect(platform.rates, contains(2));
     expect(interactions.feedback, contains('快进'));
 
     interactions.pointerUp(
@@ -78,7 +78,7 @@ void main() {
       width: 100,
     );
     await Future<void>.delayed(const Duration(milliseconds: 400));
-    expect(platform.rates, contains(3));
+    expect(platform.rates, contains(2));
     expect(interactions.feedback, isNot(contains('快进')));
 
     interactions.pointerCancel(

@@ -68,7 +68,7 @@ class PlayerInteractions extends ChangeNotifier {
       _hintTimer = Timer(const Duration(milliseconds: 1200), () {
       hint(
         _boosting
-            ? (_sideFastForward ? '3 倍速快进 · 松开恢复' : '3 倍速 · 松开恢复')
+            ? (_sideFastForward ? '2 倍速快进 · 松开恢复' : '2 倍速 · 松开恢复')
             : '',
         persistent: true,
       );
@@ -104,9 +104,9 @@ class PlayerInteractions extends ChangeNotifier {
       }
       _boosting = true;
       _held = true;
-      unawaited(_setRate(3));
+      unawaited(_setRate(2));
       hint(
-        _sideFastForward ? '3 倍速快进 · 松开恢复' : '3 倍速 · 松开恢复',
+        _sideFastForward ? '2 倍速快进 · 松开恢复' : '2 倍速 · 松开恢复',
         persistent: true,
       );
     });
