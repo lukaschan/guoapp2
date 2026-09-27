@@ -89,6 +89,18 @@ class AppBuildTests(unittest.TestCase):
                     self.assertIn('--dart-define=ALL_SOURCES=' + str(enabled).lower(), flutter)
                     self.assertIn('core.buildAllSources=' + str(enabled).lower(), BuildVariant(enabled).linker_flags)
 
+    def test_android_resources_do_not_define_duplicate_names(self):
+        resources = Path(__file__).resolve().parents[1] / 'android/app/src/main/res'
+        owners = {}
+        for folder in sorted(path for path in resources.iterdir() if path.is_dir()):
+            for entry in sorted(path for path in folder.iterdir() if path.is_file()):
+                identifier = f'{folder.name}/{entry.stem}'
+                self.assertNotIn(
+                    identifier, owners,
+                    f'{identifier} 同时来自 {owners.get(identifier)} 和 {entry.name}，会造成资源重复',
+                )
+                owners[identifier] = entry.name
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -24,6 +24,7 @@ void main() {
     ScriptedPlayer platform, {
     Size? size,
     FakeViewPadding? padding,
+    ThemeData? theme,
   }) async {
     SharedPreferences.setMockInitialValues({});
     if (size != null) {
@@ -37,7 +38,7 @@ void main() {
     final detail = await repository.detail(FixtureRepository.free);
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData.dark(),
+        theme: theme ?? ThemeData.dark(),
         home: PlayerScreen(
           detail: detail,
           initialIndex: 0,
@@ -259,6 +260,43 @@ void main() {
       await unmount(tester, player);
     } finally {
       messenger.setMockMethodCallHandler(AppDevice.channel, null);
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('fast forward feedback stays readable on a light theme', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    try {
+      final repository = RouteRepository();
+      final player = ScriptedPlayer();
+      await mount(
+        tester,
+        repository,
+        player,
+        size: const Size(390, 844),
+        theme: ThemeData.light(),
+      );
+      final surface = tester.getRect(
+        find.byKey(const ValueKey('player-gesture-surface')),
+      );
+      final target = Offset(surface.right - 20, surface.center.dy);
+      final gesture = await tester.startGesture(target);
+      await tester.pump(const Duration(milliseconds: 450));
+      final label = find.text('2 倍速快进 · 松开恢复');
+      expect(label, findsOneWidget);
+      final text = tester.widget<Text>(label);
+      expect(text.style?.color, Colors.white);
+      final container = tester.widget<Container>(
+        find.ancestor(of: label, matching: find.byType(Container)).first,
+      );
+      final decoration = container.decoration as BoxDecoration;
+      expect(decoration.color, Colors.black87);
+      await gesture.up();
+      await tester.pump();
+      await unmount(tester, player);
+    } finally {
       debugDefaultTargetPlatformOverride = null;
     }
   });

@@ -362,6 +362,7 @@ class _PlayerControlsState extends State<PlayerControls> {
                   widget.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white),
                 ),
               )
             else
@@ -1030,7 +1031,16 @@ class _PlayerControlsState extends State<PlayerControls> {
               color: Colors.black87,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(feedback, textAlign: TextAlign.center),
+            child: Text(
+              feedback,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                height: 1.2,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
       );

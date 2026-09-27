@@ -1,6 +1,6 @@
 # 红果鉴 / 真果鉴
 
-Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**0.2.55+66（未验证开发快照）**。本轮将桌面副本新增的十二个短剧站源、弹幕表情转换与组合表情安全截断，以及 Android TV 遥控焦点导航组件合入；保留本地播放器交互、弹幕刷新节流、Liquid Glass 界面、品牌资源和 GitHub Actions 配置。站源与电视改动尚未在本仓库执行集中构建和平台验收，状态保持未验证。
+Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**0.2.56+67（未验证开发快照）**。本轮修复长按快进提示文字在浅色主题下落在黑色半透明背景上导致看不清的问题，改为显式白色文字并修正全屏标题颜色；删除与 `app_icon.png` 重名的 `app_icon.xml`，解除 Android 资源重复导致的 `assembleRelease` 构建失败；Android / iOS 产物不再二次压缩，非 PR 运行时按版本把 APK 与未签名 IPA 直接发布为 GitHub Release 资产。保留本地播放器交互、弹幕刷新节流、Liquid Glass 界面、品牌资源和 GitHub Actions 配置。其余站源与电视改动仍保持未验证。
 
 按用户 2026-09-21 的要求，继续暂停整体验证。启动、榜单、画质增强、站源改名、画中画、连续播放控制栏、红果系列剧提醒、播放器 Tab 化、首页 / 播放页优化、多站源站源修复和本轮启动登录开关均保留未验证快照状态；桌面版此前只执行源码级定向检查；本轮在 GitHub Actions 构建 Release 安装包，未完成真实设备视觉验收或真实站源播放验收。历史版本的检查记录不能作为本轮新增功能的验收结论。
 
@@ -691,7 +691,7 @@ SR-1、SR-2 与 SR-4 已接入源码，小型动漫 CNN 也包含在本轮；SR-
 | `hongguojian-windows` | `zhenguojian-windows` | 完整 ZIP 和 SHA256；显式开启完整检查后，从解压包检查原生核心、FFprobe、换封装及播放器启动 |
 | `hongguojian-ios-unsigned` | `zhenguojian-ios-unsigned` | 标准 `Payload/*.app` 结构的未签名 IPA 和 SHA256，安装前仍需签名 |
 
-Actions 分别传入默认参数与 `--all-sources` 构建两版；显式开启完整检查后，Flutter 和 Go 回归也覆盖两种编译配置。产物保留 14 天，不自动创建 GitHub Release。首次平台构建结果以实际 Actions 输出为准。
+Actions 分别传入默认参数与 `--all-sources` 构建两版；显式开启完整检查后，Flutter 和 Go 回归也覆盖两种编译配置。产物保留 14 天。非 PR 运行结束后，`release` 任务会按 `pubspec.yaml` 版本把各架构 APK 与未签名 IPA 直接作为 Release 资产发布，不再二次压缩为 ZIP；Windows 仍保留完整 ZIP。Android / iOS 直接下载 `apk` / `ipa`，Windows 解压 ZIP 后运行。首次平台构建结果以实际 Actions 输出为准。
 
 Android 正式发布持续使用同一签名并递增构建号，在仓库 Secrets 配置：
 
@@ -968,6 +968,8 @@ python3 scripts/sync_source.py --check
 | 平台工程 | Android 三架构、Windows / iOS 构建脚本、TV 布局与遥控；0.2.29 补强电视自动识别与统一横屏，待集中验证；国内依赖镜像、源码版本快照 |
 
 ### 当前检查与平台状态
+
+0.2.56+67 按用户反馈修复两处回归：播放器长按快进（以及其它触屏手势）的提示条此前只有黑色半透明背景而没有指定文字颜色，会继承外层浅色主题的深色文字，在黑色背景上几乎不可见；现已固定为白色文字，并同步修正全屏标题在浅色主题下的颜色。Android 侧 `res/drawable` 同时存在 `app_icon.png` 与 `app_icon.xml` 两个 `@drawable/app_icon`，资源合并报 `Duplicate resources`，`assembleRelease` 因此在 `:app:packageReleaseResources` 失败；合并自桌面副本的提交重新加入了多余的矢量图标，现删除该矢量文件并新增 Python 检查防止同类重复资源再次进入。构建产物交付方式调整为 iOS / Android 不再压缩：非 PR 的 Actions 运行新增 `release` 任务，按 `pubspec.yaml` 版本把各架构 APK 与未签名 IPA 直接作为 Release 资产上传，Windows 仍提供完整 ZIP。已在本机执行 `python3 -m unittest discover -s scripts -p 'test_*.py'`（23 项通过、1 项跳过）；按用户要求未在本机编译或运行 Flutter 测试，Dart 侧改动将在本轮 GitHub Actions 的 `checks` 任务集中验证。
 
 0.2.55+64 合入桌面副本的十二个新增短剧站源、红果弹幕表情转换与组合表情安全截断，以及 Android TV 遥控行 / 列表 / 操作选项控件和页面初始焦点兜底。保留本地播放器交互、弹幕刷新节流、UI、品牌资源和 Actions 配置。当前机器未安装 Flutter、GitHub CLI 或 Flutter 依赖，使用临时 Dart / Go 工具完成了 Go 定向测试和格式检查；未完成 Flutter 测试、平台构建和 Actions 构建。以上新增内容均为未验证开发快照。尚未完成遥控焦点控件在首页、下载与设置等全部页面的逐区串联，设备遥控验收待后续完成。
 
