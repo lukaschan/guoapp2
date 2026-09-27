@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'app_layout.dart';
 import 'catalog_filters.dart';
 import 'core_bridge.dart';
 import 'detail_screen.dart';
 import 'local_store.dart';
 import 'models.dart';
 import 'ranking_models.dart';
+import 'remote_widgets.dart';
 import 'widgets.dart';
 
 class RankingsScreen extends StatefulWidget {
@@ -36,6 +38,8 @@ class _RankingsScreenState extends State<RankingsScreen> {
   int _generation = 0;
   String? _error;
   String _updated = '';
+  final _boardsKey = GlobalKey<RemoteRowState>();
+  final _listKey = GlobalKey<RemoteListState>();
 
   @override
   void initState() {
@@ -180,6 +184,7 @@ class _RankingsScreenState extends State<RankingsScreen> {
                   item.drama.vip),
         )
         .toList();
+    final television = AppLayout.isTelevision(context);
     return Scaffold(
       appBar: AppBar(
         title: PopupMenuButton<SourceGroup>(
@@ -218,6 +223,11 @@ class _RankingsScreenState extends State<RankingsScreen> {
             if (boards.isNotEmpty)
               CatalogFilters(
                 key: ValueKey('ranking-boards-${_board!.groupId}'),
+                remoteKey: _boardsKey,
+                remoteAutofocus: television,
+                onExitDown: television
+                    ? () => _listKey.currentState?.focusCurrent()
+                    : null,
                 categories: [
                   for (final board in boards)
                     CatalogCategory(board.id, board.name),
@@ -286,6 +296,23 @@ class _RankingsScreenState extends State<RankingsScreen> {
                       onRetry: _board == null
                           ? _initialize
                           : () => _load(force: true),
+                    )
+                  : television
+                  ? RemoteList(
+                      key: _listKey,
+                      itemKeys: [
+                        for (var index = 0; index < items.length; index++)
+                          '${items[index].rank}-${items[index].drama.id}',
+                      ],
+                      itemExtent: 140,
+                      spacing: 10,
+                      controller: _scroll,
+                      onExitUp: () => _boardsKey.currentState?.focusCurrent(),
+                      itemBuilder: (_, index, node, onFocus) => _rankTile(
+                        items[index],
+                        focusNode: node,
+                        onFocus: onFocus,
+                      ),
                     )
                   : RefreshIndicator.adaptive(
                       onRefresh: () => _load(force: true),
@@ -418,6 +445,39 @@ class _RankingsScreenState extends State<RankingsScreen> {
                     ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _rankTile(
+    RankingItem item, {
+    FocusNode? focusNode,
+    VoidCallback? onFocus,
+  }) {
+    final metric = item.metric.isEmpty ? item.drama.category : item.metric;
+    return RemoteListTile(
+      title: '${item.rank}. ${item.drama.title}',
+      subtitle: metric,
+      leading: SizedBox(
+        width: 64,
+        height: 104,
+        child: DramaCover(
+          drama: item.drama,
+          repository: widget.repository,
+          radius: 8,
+        ),
+      ),
+      focusNode: focusNode,
+      onFocus: onFocus,
+      onPressed: () => Navigator.push<void>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DetailScreen(
+            drama: item.drama,
+            repository: widget.repository,
+            store: widget.store,
+          ),
         ),
       ),
     );

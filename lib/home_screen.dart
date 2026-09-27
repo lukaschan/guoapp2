@@ -1310,6 +1310,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   widget.store.canDownload
                               ? (drama) => _openDrama(drama, download: true)
                               : null,
+                          remoteAutofocus: television,
+                          onExitLeft: () => _navKey.currentState?.focusCurrent(),
                         ),
                 ),
               ],

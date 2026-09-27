@@ -15,6 +15,7 @@ import 'ios_dialogs.dart';
 import 'liquid_glass.dart';
 import 'local_store.dart';
 import 'profiles_screen.dart';
+import 'remote_widgets.dart';
 import 'app_build.dart';
 import 'sources_screen.dart';
 import 'widgets.dart';
@@ -45,6 +46,12 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _busy = false;
   String? _message;
+
+  @override
+  void initState() {
+    super.initState();
+    ensureTelevisionFocus(context);
+  }
 
   Future<void> _chooseTheme() async {
     final selected = await showDialog<String>(
