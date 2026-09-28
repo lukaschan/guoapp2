@@ -191,8 +191,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _video = widget.videoBuilder == null
         ? VideoController(
             _player,
-            configuration: VideoControllerConfiguration(
-              enableHardwareAcceleration: !Platform.isIOS,
+            configuration: const VideoControllerConfiguration(
+              enableHardwareAcceleration: true,
             ),
           )
         : null;
