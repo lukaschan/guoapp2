@@ -78,15 +78,22 @@ class AppBuildTests(unittest.TestCase):
                             mock.patch.dict(os.environ, {'PATH': '/tools'}, clear=True), \
                             mock.patch('platform.system', return_value='Windows' if target == 'windows' else 'Linux'), \
                             mock.patch('shutil.which', return_value='/tools/flutter'), \
+                            mock.patch('android_build_retry.run_android_build') as android_build, \
                             mock.patch('subprocess.run') as run:
                         runpy.run_path(str(script), run_name='__main__')
                     calls = [call.args[0] for call in run.call_args_list]
+                    calls += [call.args[0] for call in android_build.call_args_list]
                     native = next(call for call in calls if any(str(arg).endswith('build_native.py') for arg in call))
                     flutter = next(call for call in calls if 'build' in call)
                     package = next(call for call in calls if any(str(arg).endswith('package_release.py') for arg in call))
                     self.assertEqual('--all-sources' in native, enabled)
                     self.assertEqual('--all-sources' in package, enabled)
                     self.assertIn('--dart-define=ALL_SOURCES=' + str(enabled).lower(), flutter)
+                    if target == 'android':
+                        android_build.assert_called_once()
+                        self.assertEqual(android_build.call_args.kwargs['edition'], BuildVariant(enabled).slug)
+                    else:
+                        android_build.assert_not_called()
                     self.assertIn('core.buildAllSources=' + str(enabled).lower(), BuildVariant(enabled).linker_flags)
 
     def test_android_resources_do_not_define_duplicate_names(self):

@@ -8,6 +8,7 @@ from pathlib import Path
 
 from build_mirrors import china_mirror_environment, mirrored_pub_lockfile
 from app_build import BuildVariant, add_variant_argument
+from android_build_retry import run_android_build
 
 root = Path(__file__).resolve().parents[1]
 parser = argparse.ArgumentParser()
@@ -36,6 +37,9 @@ with china_mirror_environment(environment, options.cn_mirrors) as env, mirrored_
     if options.abi:
         targets = {'arm64-v8a': 'android-arm64', 'armeabi-v7a': 'android-arm', 'x86_64': 'android-x64'}
         build_args += ['--target-platform', ','.join(targets[abi] for abi in options.abi)]
-    subprocess.run(build_args, cwd=root, env=env, check=True)
+    try:
+        run_android_build(build_args, cwd=root, env=env, edition=variant.slug)
+    except subprocess.CalledProcessError as error:
+        raise SystemExit(error.returncode) from None
     subprocess.run([sys.executable, str(root / 'scripts' / 'package_release.py'), '--platform', 'android', *abi_args, *variant.arguments],
                    cwd=root, env=env, check=True)

@@ -1,8 +1,10 @@
 # 红果鉴 / 真果鉴
 
-Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**0.2.58+69（未验证开发快照）**。本轮移除 iOS 强制关闭视频硬件渲染的配置，恢复硬件加速输出，解码继续使用播放器默认的自动选择。保留长按加速时隐藏提示文字、底框和控制层的行为。其余站源与电视改动仍保持未验证。
+Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**0.2.59+70（未验证开发快照）**。本轮为 Android APK 构建增加临时依赖下载故障的有限重试，并在 GitHub Actions 保留逐次构建日志。保留 iOS 硬件渲染与长按加速隐藏提示的调整。其余站源与电视改动仍保持未验证。
 
-按用户 2026-09-21 的要求，继续暂停整体验证。本轮核对锁定的 `media_kit_video 2.0.1` 官方源码，执行 Dart 格式与源码差异检查；当前环境缺少 Flutter SDK，未执行 Flutter 测试、静态分析或平台构建，Android、Windows、Android TV 与 iOS 均未进行本轮设备验收。历史版本的检查记录不能作为本轮新增功能的验收结论。
+按用户 2026-09-21 的要求，继续暂停整体验证。本轮 11 项 Python 定向测试通过，覆盖临时下载故障识别、重试上限、失败退出、真实子进程日志和双版本构建参数；脚本语法与源码差异检查通过。当前环境缺少 Flutter SDK，未执行 Flutter 测试、Dart 静态分析、APK 构建或设备验收，也未触发远程 Actions。历史版本的检查记录不能作为本轮新增功能的验收结论。
+
+Android 构建下载故障（0.2.59）：用户日志显示 Flutter 自带 Gradle 构建在下载 `kotlin-compiler-embeddable:2.2.21` 时，GitHub 下载地址返回 HTTP 500；`Got dependencies!` 后的包更新提示不是该失败原因。APK 阶段识别最后一次 Gradle 失败中的临时下载错误（HTTP 408 / 429 / 5xx、连接超时或重置等），等待 10 秒、30 秒后重试，最多运行 3 次 Flutter APK 构建命令，Flutter 自身可能还有内部重试。不重跑已经完成的原生核心编译和 Pub 取包，不清理构建缓存，不更换 Kotlin 版本或依赖源。权限、缺包、证书和普通编译错误不按此规则重试；重试耗尽保持失败退出，不进入发布打包。日志实时显示并保存到 `build/logs/android/<版本名称与本次标识>/attempt-N.log`；Actions 无论成功或失败均尝试上传为 `<版本名称>-android-build-logs`，没有生成日志时跳过。该处理提高临时网络故障的恢复能力，不代表上游下载服务已恢复或 APK 已构建成功。
 
 iOS 发热排查：原配置 `enableHardwareAcceleration: !Platform.isIOS` 会使 iPhone 使用 `TextureSW` 软件渲染。该选项控制渲染，不能据此认定所有视频都采用软件解码；依赖中 `hwdec` 默认仍为 `auto`。0.2.58 恢复 `TextureHW` 硬件渲染，iOS 模拟器仍由播放器插件自动选择软件渲染。依据为该版本的 `lib/src/video_controller/platform_video_controller.dart` 与 `common/darwin/Classes/plugin/VideoOutput.swift`。这是已定位的额外开销来源，实际温度、耗电和兼容性需安装新构建后在 iPhone 上对比验证，不能认定已经达到官方 App 的能耗水平。
 
