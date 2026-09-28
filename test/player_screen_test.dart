@@ -264,7 +264,7 @@ void main() {
     }
   });
 
-  testWidgets('fast forward feedback stays readable on a light theme', (
+  testWidgets('holding fast forward hides feedback and controls', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -284,17 +284,26 @@ void main() {
       final target = Offset(surface.right - 20, surface.center.dy);
       final gesture = await tester.startGesture(target);
       await tester.pump(const Duration(milliseconds: 450));
-      final label = find.text('2 倍速快进 · 松开恢复');
-      expect(label, findsOneWidget);
-      final text = tester.widget<Text>(label);
-      expect(text.style?.color, Colors.white);
-      final container = tester.widget<Container>(
-        find.ancestor(of: label, matching: find.byType(Container)).first,
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(player.rates.last, 2);
+      expect(find.textContaining('松开恢复'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('player-speed')).hitTestable(),
+        findsNothing,
       );
-      final decoration = container.decoration as BoxDecoration;
-      expect(decoration.color, Colors.black87);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Container &&
+              widget.decoration is BoxDecoration &&
+              (widget.decoration as BoxDecoration).color == Colors.black87,
+        ),
+        findsNothing,
+      );
       await gesture.up();
       await tester.pump();
+      expect(player.rates.last, 1);
+      expect(find.textContaining('恢复'), findsNothing);
       await unmount(tester, player);
     } finally {
       debugDefaultTargetPlatformOverride = null;

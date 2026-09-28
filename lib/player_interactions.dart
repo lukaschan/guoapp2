@@ -44,7 +44,6 @@ class PlayerInteractions extends ChangeNotifier {
   bool _moved = false;
   bool _held = false;
   bool _boosting = false;
-  bool _sideFastForward = false;
   bool _keyboardHold = false;
   bool _cancelUntilRelease = false;
   bool _disposed = false;
@@ -66,10 +65,7 @@ class PlayerInteractions extends ChangeNotifier {
     }
     if (!persistent && message.isNotEmpty) {
       _hintTimer = Timer(const Duration(milliseconds: 1200), () {
-        hint(
-          _boosting ? (_sideFastForward ? '2 倍速快进 · 松开恢复' : '2 倍速 · 松开恢复') : '',
-          persistent: true,
-        );
+        hint('', persistent: true);
       });
     }
   }
@@ -88,10 +84,9 @@ class PlayerInteractions extends ChangeNotifier {
     return _rates;
   }
 
-  void _beginHold({bool keyboard = false, bool sideFastForward = false}) {
+  void _beginHold({bool keyboard = false}) {
     if (!available() || _holdTimer != null || _boosting) return;
     _keyboardHold = keyboard;
-    _sideFastForward = sideFastForward;
     _holdTimer = Timer(const Duration(milliseconds: 350), () {
       _holdTimer = null;
       if (_disposed ||
@@ -103,31 +98,21 @@ class PlayerInteractions extends ChangeNotifier {
       _boosting = true;
       _held = true;
       unawaited(_setRate(2));
-      hint(
-        _sideFastForward ? '2 倍速快进 · 松开恢复' : '2 倍速 · 松开恢复',
-        persistent: true,
-      );
+      hint('');
+      notifyListeners();
     });
   }
 
-  void _endHold({bool tap = false, bool silent = false}) {
+  void _endHold({bool tap = false}) {
     final wasKeyboard = _keyboardHold;
     final boosted = _boosting;
-    final sideFastForward = _sideFastForward;
     _holdTimer?.cancel();
     _holdTimer = null;
     _keyboardHold = false;
     _boosting = false;
-    _sideFastForward = false;
     if (boosted) {
       unawaited(_setRate(baseSpeed()));
-      if (!silent) {
-        hint(
-          sideFastForward
-              ? '结束快进，恢复 ${baseSpeed()} 倍速'
-              : '恢复 ${baseSpeed()} 倍速',
-        );
-      }
+      notifyListeners();
     } else if (tap && wasKeyboard) {
       seek(5);
     }
@@ -142,7 +127,7 @@ class PlayerInteractions extends ChangeNotifier {
     _pointer = null;
     _origin = null;
     _lastPosition = null;
-    _endHold(silent: true);
+    _endHold();
     hint('');
   }
 
@@ -164,10 +149,7 @@ class PlayerInteractions extends ChangeNotifier {
     _swipeEnabled = swipeEnabled && event.kind == PointerDeviceKind.touch;
     _swipeThreshold = math.max(56, math.min(100, height * .1));
     _moved = _held = false;
-    _beginHold(
-      sideFastForward:
-          _swipeEnabled && width > 0 && event.localPosition.dx >= width * .7,
-    );
+    _beginHold();
   }
 
   void pointerMove(PointerMoveEvent event) {

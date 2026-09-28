@@ -35,7 +35,7 @@ void main() {
     );
     await Future<void>.delayed(const Duration(milliseconds: 400));
     expect(platform.rates, contains(2));
-    expect(interactions.feedback, contains('快进'));
+    expect(interactions.feedback, isEmpty);
 
     interactions.pointerUp(
       PointerUpEvent(
@@ -49,6 +49,7 @@ void main() {
     );
     await Future<void>.delayed(Duration.zero);
     expect(platform.rates.last, 1.5);
+    expect(interactions.feedback, isEmpty);
 
     interactions.dispose();
     await player.dispose();
@@ -82,7 +83,7 @@ void main() {
     );
     await Future<void>.delayed(const Duration(milliseconds: 400));
     expect(platform.rates, contains(2));
-    expect(interactions.feedback, isNot(contains('快进')));
+    expect(interactions.feedback, isEmpty);
 
     interactions.pointerCancel(
       PointerCancelEvent(

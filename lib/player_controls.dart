@@ -172,7 +172,13 @@ class _PlayerControlsState extends State<PlayerControls> {
   }
 
   void _interactionChanged() {
-    if (mounted && widget.interactions.feedback.isNotEmpty) _show();
+    if (!mounted) return;
+    if (widget.interactions.boosting) {
+      _hideTimer?.cancel();
+      setState(() => _visible = false);
+    } else if (widget.interactions.feedback.isNotEmpty) {
+      _show();
+    }
   }
 
   void _scheduleProgressRefresh() {
