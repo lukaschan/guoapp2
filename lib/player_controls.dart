@@ -339,6 +339,7 @@ class _PlayerControlsState extends State<PlayerControls> {
               ),
             ),
             _gestureFeedback(),
+            _boostBadge(),
           ],
         ),
       ),
@@ -1045,6 +1046,58 @@ class _PlayerControlsState extends State<PlayerControls> {
                 fontSize: 14,
                 height: 1.2,
                 fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
+  Widget _boostBadge() => AnimatedBuilder(
+    animation: widget.interactions,
+    builder: (context, _) {
+      final boosting = widget.interactions.boosting && widget.enabled;
+      return IgnorePointer(
+        child: AnimatedOpacity(
+          key: const ValueKey('player-boost-badge'),
+          opacity: boosting ? 1 : 0,
+          duration: const Duration(milliseconds: 150),
+          child: Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: EdgeInsets.only(top: _topChromeInset() + 6, right: 12),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: .34),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.fast_forward_rounded,
+                        size: 14,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '${PlayerInteractions.boostRate.toStringAsFixed(1)}x',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          height: 1,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

@@ -9,6 +9,8 @@ import 'package:media_kit/media_kit.dart';
 import 'widgets.dart';
 
 class PlayerInteractions extends ChangeNotifier {
+  static const double boostRate = 2;
+
   PlayerInteractions({
     required this.player,
     required this.available,
@@ -97,7 +99,7 @@ class PlayerInteractions extends ChangeNotifier {
       }
       _boosting = true;
       _held = true;
-      unawaited(_setRate(2));
+      unawaited(_setRate(boostRate));
       hint('');
       notifyListeners();
     });

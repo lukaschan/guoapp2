@@ -288,6 +288,14 @@ void main() {
       expect(player.rates.last, 2);
       expect(find.textContaining('松开恢复'), findsNothing);
       expect(
+        tester
+            .widget<AnimatedOpacity>(
+              find.byKey(const ValueKey('player-boost-badge')),
+            )
+            .opacity,
+        1,
+      );
+      expect(
         find.byKey(const ValueKey('player-speed')).hitTestable(),
         findsNothing,
       );
@@ -304,6 +312,14 @@ void main() {
       await tester.pump();
       expect(player.rates.last, 1);
       expect(find.textContaining('恢复'), findsNothing);
+      expect(
+        tester
+            .widget<AnimatedOpacity>(
+              find.byKey(const ValueKey('player-boost-badge')),
+            )
+            .opacity,
+        0,
+      );
       await unmount(tester, player);
     } finally {
       debugDefaultTargetPlatformOverride = null;
