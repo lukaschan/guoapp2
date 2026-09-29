@@ -293,6 +293,17 @@ class _PlayerScreenState extends State<PlayerScreen>
       );
     }
     _subscriptions.add(
+      _player.stream.playing.listen((playing) {
+        final plan = _plan;
+        if (!playing || plan == null || plan.routeIndex == _routeIndex) {
+          return;
+        }
+        if (mounted && !_closed) {
+          setState(() => _routeIndex = plan.routeIndex);
+        }
+      }),
+    );
+    _subscriptions.add(
       _player.stream.videoParams.listen((parameters) {
         final size = videoDisplaySize(parameters);
         if (size != null && mounted && !_closed) {
@@ -1041,7 +1052,6 @@ class _PlayerScreenState extends State<PlayerScreen>
           await platform.setProperty('network-timeout', '20');
         }
         _plan = plan;
-        if (plan.routeIndex > 0) _routeIndex = plan.routeIndex;
         installed = true;
         _acceptErrors = true;
         await _player.open(
