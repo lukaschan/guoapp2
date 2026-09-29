@@ -75,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _selectionMode = false;
   bool _showRecommendations = false;
   bool _catalogLoadScheduled = false;
+  bool _openingPlayback = false;
 
   List<SourceGroup> get _sourceGroups {
     final groups = SourceGroup.fromSources(widget.store.sources);
@@ -617,6 +618,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openDrama(Drama drama, {bool resume = false, bool download = false}) {
+    if (!download && _openingPlayback) return;
     _pauseCatalog();
     if (download) {
       Navigator.of(context).push(
@@ -631,13 +633,16 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
+    _openingPlayback = true;
     unawaited(
       openPlaybackDirectly(
         context,
         drama: drama,
         repository: widget.repository,
         store: widget.store,
-      ),
+      ).whenComplete(() {
+        _openingPlayback = false;
+      }),
     );
   }
 

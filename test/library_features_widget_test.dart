@@ -6,6 +6,7 @@ import 'package:duanju_app/follow_state.dart';
 import 'package:duanju_app/home_screen.dart';
 import 'package:duanju_app/local_store.dart';
 import 'package:duanju_app/models.dart';
+import 'package:duanju_app/playback_launch_screen.dart';
 import 'package:duanju_app/saved_library.dart';
 import 'package:duanju_app/widgets.dart';
 import 'package:flutter/material.dart';
@@ -334,8 +335,58 @@ void main() {
     },
   );
 
+  for (final entry in ['continue', 'card']) {
+    testWidgets(
+      'history $entry ignores repeated taps while playback is loading',
+      (tester) async {
+        viewport(tester, const Size(390, 844));
+        final store = await create();
+        await store.saveWatch(watch(first));
+        final repository = LibraryFeatureRepository()
+          ..pendingDetail = Completer<DramaDetail>();
+        await tester.pumpWidget(
+          MaterialApp(
+            home: HomeScreen(repository: repository, store: store),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('最近观看'));
+        await tester.pumpAndSettle();
+
+        late final VoidCallback open;
+        if (entry == 'continue') {
+          open = tester
+              .widget<ListTile>(
+                find.byKey(const ValueKey('continue-watching')),
+              )
+              .onTap!;
+        } else {
+          open = tester
+              .widget<DramaTile>(
+                find.byKey(ValueKey('saved-${first.id}')),
+              )
+              .onTap;
+        }
+        open();
+        open();
+        await tester.pump();
+
+        expect(find.byType(PlaybackLaunchScreen), findsNothing);
+        expect(find.text('正在进入播放'), findsNothing);
+        expect(repository.detailRequests, [first.id]);
+        expect(tester.takeException(), isNull);
+
+        await tester.pumpWidget(const SizedBox.shrink());
+        repository.pendingDetail!.complete(
+          LibraryFeatureRepository.makeDetail(first, 2),
+        );
+        await tester.pump();
+      },
+    );
+  }
+
   testWidgets(
-    'catalog card waits on home then opens player without launch page',
+    'catalog card waits on home and ignores repeated taps without launch page',
     (tester) async {
       viewport(tester, const Size(390, 844));
       final store = await create();
@@ -347,7 +398,11 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(ValueKey(first.id)));
+      final open = tester
+          .widget<DramaTile>(find.byKey(ValueKey(first.id)))
+          .onTap;
+      open();
+      open();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
       expect(find.text('正在进入播放'), findsNothing);

@@ -45,6 +45,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
   bool _more = false;
   bool _hasMore = true;
   bool _failedMore = false;
+  bool _openingPlayback = false;
   String? _error;
   int _generation = 0;
 
@@ -73,6 +74,21 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           item.id == drama.id ? item.merge(drama) : item,
       ];
     });
+  }
+
+  void _openDrama(Drama drama) {
+    if (_openingPlayback) return;
+    _openingPlayback = true;
+    unawaited(
+      openPlaybackDirectly(
+        context,
+        drama: drama,
+        repository: widget.repository,
+        store: widget.store,
+      ).whenComplete(() {
+        _openingPlayback = false;
+      }),
+    );
   }
 
   Future<void> _load({bool more = false, bool force = false}) async {
@@ -232,14 +248,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                             repository: widget.repository,
                             focusNode: node,
                             onFocus: onFocus,
-                            onTap: () => unawaited(
-                              openPlaybackDirectly(
-                                context,
-                                drama: drama,
-                                repository: widget.repository,
-                                store: widget.store,
-                              ),
-                            ),
+                            onTap: () => _openDrama(drama),
                           );
                         },
                       );
@@ -266,14 +275,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
                                   key: ValueKey(drama.id),
                                   drama: drama,
                                   repository: widget.repository,
-                                  onTap: () => unawaited(
-                                    openPlaybackDirectly(
-                                      context,
-                                      drama: drama,
-                                      repository: widget.repository,
-                                      store: widget.store,
-                                    ),
-                                  ),
+                                  onTap: () => _openDrama(drama),
                                 );
                               }, childCount: _items.length),
                             ),
