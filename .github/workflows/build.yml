@@ -58,9 +58,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - edition: hongguojian
+          - edition: duanjushijie
             arguments: ''
-          - edition: zhenguojian
+          - edition: quanjushijie
             arguments: '--all-sources'
     steps:
       - uses: actions/checkout@v4
@@ -95,14 +95,6 @@ jobs:
       - name: Remove signing files
         if: always()
         run: python scripts/configure_signing.py --clean
-      - name: Upload Android build logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.edition }}-android-build-logs
-          path: build/logs/android/**/*.log
-          if-no-files-found: ignore
-          retention-days: 14
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.edition }}-android
@@ -116,9 +108,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - edition: hongguojian
+          - edition: duanjushijie
             arguments: ''
-          - edition: zhenguojian
+          - edition: quanjushijie
             arguments: '--all-sources'
     steps:
       - uses: actions/checkout@v4
@@ -179,9 +171,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - edition: hongguojian
+          - edition: duanjushijie
             arguments: ''
-          - edition: zhenguojian
+          - edition: quanjushijie
             arguments: '--all-sources'
     steps:
       - uses: actions/checkout@v4
@@ -224,11 +216,12 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4
         with:
+          pattern: duanjushijie-*
           path: release
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: 红果鉴 / 真果鉴 ${{ steps.version.outputs.version }}
+          name: 短剧视界 ${{ steps.version.outputs.version }}
           files: |
             release/**/*.apk
             release/**/*.ipa

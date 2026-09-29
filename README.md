@@ -1,25 +1,32 @@
-# 红果鉴 / 真果鉴
+# 短剧视界 / 全剧视界
 
-Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**0.2.61+72（未验证开发快照）**。本轮补齐 GitHub Release 的 Windows x64 安装版与便携版，红果鉴、真果鉴均提供两种包；发布任务等待 Android、Windows、iOS 构建完成。其余站源与电视改动仍保持未验证。
+Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**1.0.0+74（未验证开发快照）**。本轮按用户要求统一改名：默认版显示名为“短剧视界”，`--all-sources` 全站源版为“全剧视界”，分发文件名前缀同步改为 `duanjushijie` / `quanjushijie`，版本号进入 1.0；GitHub Release 只发布短剧视界版安装包，全剧视界版只在 Actions Artifact 下载；Android Actions 不再保留构建日志上传。发布任务等待 Android、Windows、iOS 构建完成，其余站源与电视改动仍保持未验证。
 
-按用户 2026-09-21 的要求，继续暂停整体验证。本轮在 Windows Terminal 中通过 5 项 Windows 分发脚本定向测试（合成文件、模拟 Inno 编译器），覆盖两版文件完整性、缺失运行库、缺失编译器、编译失败及无有效安装产物；Python 语法检查与 `git diff --check` 通过，记录在 `build/windows-release-check/check.log`。未执行 Flutter 完整构建、真实 Inno Setup 编译、安装 / 升级 / 卸载或设备验收，也未触发远程 Actions。历史版本的检查记录不能作为本轮新增功能的验收结论。
+本轮（1.0.0+74）只改显示名、分发包前缀、版本号与 Actions 发布范围：Dart 常量、Android 清单占位、Windows 资源与 CMake 程序名、iOS 显示名与 podspec、两版电视横幅、构建与打包脚本及其脚本测试同步更新；Android `applicationId`、iOS Bundle Identifier、应用数据目录、备份标识、通知通道和 Emby 导出标识等内部标识保持不变，以保留既有数据并支持覆盖升级。用户明确要求不在本机下载或编译任何东西，因此本机没有运行 Python、Flutter、平台构建或脚本测试，只做文本与资源改动；两版横幅由本机 PowerShell 与 System.Drawing 依据 `assets/app_icon_master.png` 重新生成，未请求站源图片。构建、脚本测试与实际行为验证全部交给 GitHub Actions，运行记录见下文。按用户 2026-09-21 的要求，继续暂停本机整体验证。本轮在 Windows Terminal 中通过 5 项 Windows 分发脚本定向测试（合成文件、模拟 Inno 编译器），覆盖两版文件完整性、缺失运行库、缺失编译器、编译失败及无有效安装产物；Python 语法检查与 `git diff --check` 通过，记录在 `build/windows-release-check/check.log`。未执行 Flutter 完整构建、真实 Inno Setup 编译、安装 / 升级 / 卸载或设备验收，也未触发远程 Actions。历史版本的检查记录不能作为本轮新增功能的验收结论。
 
 长按倍速标志（0.2.60）：长按画面或长按键盘右方向键进入临时 2 倍速时，控制层保持隐藏，只在画面右上角显示一个带快进图标的半透明小胶囊，内容为 `2.0x`；松开恢复原倍速后淡出。标志不接收点击、不使用高对比底色，尽量不遮挡画面。实际显示位置、尺寸与可读性需安装构建后在 Android、Windows 与 Android TV 上验收。
 
-Android 构建下载故障（0.2.59）：用户日志显示 Flutter 自带 Gradle 构建在下载 `kotlin-compiler-embeddable:2.2.21` 时，GitHub 下载地址返回 HTTP 500；`Got dependencies!` 后的包更新提示不是该失败原因。APK 阶段识别最后一次 Gradle 失败中的临时下载错误（HTTP 408 / 429 / 5xx、连接超时或重置等），等待 10 秒、30 秒后重试，最多运行 3 次 Flutter APK 构建命令，Flutter 自身可能还有内部重试。不重跑已经完成的原生核心编译和 Pub 取包，不清理构建缓存，不更换 Kotlin 版本或依赖源。权限、缺包、证书和普通编译错误不按此规则重试；重试耗尽保持失败退出，不进入发布打包。日志实时显示并保存到 `build/logs/android/<版本名称与本次标识>/attempt-N.log`；Actions 无论成功或失败均尝试上传为 `<版本名称>-android-build-logs`，没有生成日志时跳过。该处理提高临时网络故障的恢复能力，不代表上游下载服务已恢复或 APK 已构建成功。
+Android 构建下载故障（0.2.59）：用户日志显示 Flutter 自带 Gradle 构建在下载 `kotlin-compiler-embeddable:2.2.21` 时，GitHub 下载地址返回 HTTP 500；`Got dependencies!` 后的包更新提示不是该失败原因。APK 阶段识别最后一次 Gradle 失败中的临时下载错误（HTTP 408 / 429 / 5xx、连接超时或重置等），等待 10 秒、30 秒后重试，最多运行 3 次 Flutter APK 构建命令，Flutter 自身可能还有内部重试。不重跑已经完成的原生核心编译和 Pub 取包，不清理构建缓存，不更换 Kotlin 版本或依赖源。权限、缺包、证书和普通编译错误不按此规则重试；重试耗尽保持失败退出，不进入发布打包。日志实时显示并保存到 `build/logs/android/<版本名称与本次标识>/attempt-N.log`；按用户要求不再上传为 Actions Artifact，日志只留在构建机上。该处理提高临时网络故障的恢复能力，不代表上游下载服务已恢复或 APK 已构建成功。
 
 iOS 发热排查：原配置 `enableHardwareAcceleration: !Platform.isIOS` 会使 iPhone 使用 `TextureSW` 软件渲染。该选项控制渲染，不能据此认定所有视频都采用软件解码；依赖中 `hwdec` 默认仍为 `auto`。0.2.58 恢复 `TextureHW` 硬件渲染，iOS 模拟器仍由播放器插件自动选择软件渲染。依据为该版本的 `lib/src/video_controller/platform_video_controller.dart` 与 `common/darwin/Classes/plugin/VideoOutput.swift`。这是已定位的额外开销来源，实际温度、耗电和兼容性需安装新构建后在 iPhone 上对比验证，不能认定已经达到官方 App 的能耗水平。
 
 | 编译方式 | 应用名称 | 可用站源 |
 | --- | --- | --- |
-| 默认，不加参数 | 红果鉴 | 仅红果 |
-| 构建脚本加 `--all-sources` | 真果鉴 | 红果、黄豆、剧果、野果、帝果、黄果视频、黄果 AI、黄果旧版，以及芽果、猫果、饭果、观果、河果、星果、花果、牛果、网果、发果、皮果、伍果 |
+| 默认，不加参数 | 短剧视界 | 仅红果 |
+| 构建脚本加 `--all-sources` | 全剧视界 | 红果、黄豆、剧果、野果、帝果、黄果视频、黄果 AI、黄果旧版，以及芽果、猫果、饭果、观果、河果、星果、花果、牛果、网果、发果、皮果、伍果 |
 
 全站源版首页提供“全部站源 / 红果 / 黄豆 / 剧果 / 野果 / 帝果 / 黄果”及十二个新增站源入口；全部站源只汇总当前用户获准的入口。剧果、野果、帝果作为独立站源；黄果统一汇总视频、AI 与旧 API 的分类和内容。其余站源入口保留各自的权限、分页、独立更新和健康检测，可在站源管理中分别维护。已有受限用户不会自动获得新增站源权限，管理员可在用户管理中勾选。
 
-这是编译选项，应用内不能切换版本。标题、Android 桌面名称与电视横幅、Windows 窗口与分发文件名、iOS 显示名随编译选项变化。界面、站源调用、原生下载调度同时限制可用站源；红果版不会访问或继续执行其他站源的旧任务。
+这是编译选项，应用内不能切换版本。标题、Android 桌面名称与电视横幅、Windows 窗口与分发文件名、iOS 显示名随编译选项变化。界面、站源调用、原生下载调度同时限制可用站源；短剧视界版不会访问或继续执行其他站源的旧任务。
 
-两版保留原 Android / iOS 应用标识及数据目录；Android 使用同一签名可相互覆盖升级，不能作为两个独立正式应用并排安装。Windows 沿用原内部产品标识与数据目录。切换版本保留追剧、观看记录、用户权限和下载记录；红果版隐藏其他站源内容，恢复全站源版后可继续使用。备份格式也保持兼容。
+版本 1.0.0 起，显示名与分发包前缀固定为下表；1.0.0 之前发布的 `hongguojian-` / `zhenguojian-` 包名不再产出新包。
+
+| 编译方式 | 显示名 | 分发包前缀 | 示例 |
+| --- | --- | --- | --- |
+| 默认 | 短剧视界 | `duanjushijie` | `duanjushijie-1.0.0+74-arm64-v8a.apk`、`duanjushijie.exe` |
+| `--all-sources` | 全剧视界 | `quanjushijie` | `quanjushijie-1.0.0+74-arm64-v8a.apk`、`quanjushijie.exe` |
+
+两版保留原 Android / iOS 应用标识及数据目录；Android 使用同一签名可相互覆盖升级，不能作为两个独立正式应用并排安装。Windows 沿用原内部产品标识与数据目录。切换版本保留追剧、观看记录、用户权限和下载记录；短剧视界版隐藏其他站源内容，恢复全站源版后可继续使用。备份格式也保持兼容。
 
 ### 0.2.53 GitHub Actions 验证
 
@@ -30,7 +37,7 @@ iOS 发热排查：原配置 `enableHardwareAcceleration: !Platform.isIOS` 会�
 | Dart 格式与静态分析 | 通过 |
 | Flutter 默认测试 | 127 项通过、21 项失败、1 项跳过；失败涉及追剧存储、电视焦点、下载队列和本地媒体合并 |
 | 本轮定向测试 | 播放器点击行为、弹幕节流、跨平台外壳与菜单测试通过；全站源 Flutter 测试和两组 Go race 测试因前置测试失败而跳过 |
-| Android | 红果版与全站源版 Release 构建通过 |
+| Android | 短剧视界版与全站源版 Release 构建通过 |
 | iOS | 两版未签名 IPA 构建通过 |
 | Windows | 两版可执行文件编译成功；MPV smoke 在 20 秒内未检测到播放进度，两个 smoke job 失败且未上传 ZIP |
 | 设备验收 | 未测试真实播放、交互、温度或帧耗 |
@@ -663,25 +670,25 @@ SR-1、SR-2 与 SR-4 已接入源码，小型动漫 CNN 也包含在本轮；SR-
 
 ## 安装包与平台状态
 
-0.2.18+24 当前只有源码快照，没有本轮修复包。目录中已有 0.2.17+23 APK，其中真果鉴 ARM64 被报告启动崩溃；已在源码修正确定的初始化正则缺陷，尚未重新构建或启动确认。以下 0.2.15 数据为历史构建记录。
+0.2.18+24 当前只有源码快照，没有本轮修复包。目录中已有 0.2.17+23 APK，其中全剧视界 ARM64 被报告启动崩溃；已在源码修正确定的初始化正则缺陷，尚未重新构建或启动确认。以下 0.2.15 数据为历史构建记录。
 
 0.2.15+21 已完成两版 Android ARM64 打包与安装包检查，签名与 0.2.10+16、0.2.14+20 一致，ARM64 分包版本码递增至 2021，可直接覆盖升级。此版本包含启动导航修复与首页多选、推荐、榜单的布局调整。Windows / iOS 完整应用仍待相应平台构建，本轮没有进行设备运行确认。
 
 | 平台 | 包与状态 |
 | --- | --- |
 | Android 8.0+ 手机 | 源码已更新到 `0.2.53+59`（未验证）；Actions APK 构建与测试待本轮运行，ARMv7 / ARM64 / x86_64 支持保留，真实安装、播放热量和帧耗仍待设备验收 |
-| Windows 10/11 x64 | `0.2.61+72` 补齐 Release 安装版 `setup.exe` 与便携版 `portable.zip`（未验证）；便携版完整解压后运行 `hongguojian.exe`，全站源版为 `zhenguojian.exe`，保留所有 DLL 和 `data`；Actions 构建、安装 / 升级 / 卸载与桌面运行待验收，局域网原生发现依赖 Windows 10 1903+ |
+| Windows 10/11 x64 | `1.0.0+74` 补齐 Release 安装版 `setup.exe` 与便携版 `portable.zip`（未验证）；便携版完整解压后运行 `duanjushijie.exe`，全站源版为 `quanjushijie.exe`，保留所有 DLL 和 `data`；Actions 构建、安装 / 升级 / 卸载与桌面运行待验收，局域网原生发现依赖 Windows 10 1903+ |
 | Android TV | 与手机共用 Android 源码并保持电视遥控布局；源码已更新到 `0.2.53+59`（未验证）；待电视 / 盒子实机验收；0.2.12 选集 / 设置及 0.2.13 同步仍待集中验证 |
 | iOS 15.1+ | 源码已更新到 `0.2.53+59`，含 iOS 定制界面（未编译、未验收）；已加入工程、Go 核心链接、媒体依赖、文件管理、系统代理桥接、Bonjour / 局域网权限和构建脚本；0.2.40 起 iOS 播放页禁用 media_kit_video 硬件纹理加速以规避 libmpv OpenGL ES 渲染上下文失败直接退出；待 Xcode 构建与真机验收，没有已签名 IPA |
 
 | 历史版本 0.2.15 | 安装包 | 大小 |
 | --- | --- | --- |
-| 红果鉴，仅红果 | `dist/android/hongguojian-0.2.15+21-arm64-v8a.apk` | 30.9 MB |
-| 真果鉴，全部站源 | `dist/android/zhenguojian-0.2.15+21-arm64-v8a.apk` | 30.9 MB |
+| 短剧视界，仅红果 | `dist/android/hongguojian-0.2.15+21-arm64-v8a.apk` | 30.9 MB |
+| 全剧视界，全部站源 | `dist/android/zhenguojian-0.2.15+21-arm64-v8a.apk` | 30.9 MB |
 
 两份安装包的 SHA256 校验值保存在 `dist/android/SHA256SUMS.txt`。应用名称、包名、版本、签名、包 CRC、ZIP 对齐和对应原生核心均已核对；实际运行行为仍待安装验收。
 
-从 0.2.6 起，Android APK 默认压缩原生 `.so` 库，对红果版和全站源版同时生效。系统在安装时解压原生库后加载，缩小安装包下载体积；安装后仍需保留解压后的原生库空间。
+从 0.2.6 起，Android APK 默认压缩原生 `.so` 库，对短剧视界版和全站源版同时生效。系统在安装时解压原生库后加载，缩小安装包下载体积；安装后仍需保留解压后的原生库空间。
 
 `INSTALL_FAILED_NO_MATCHING_ABIS` 表示 APK 与设备架构不匹配，请更换对应架构安装包。
 
@@ -691,22 +698,22 @@ SR-1、SR-2 与 SR-4 已接入源码，小型动漫 CNN 也包含在本轮；SR-
 
 推送 `main` / `master` 或手动运行 **Build app packages**，会并行构建三平台两种版本。恢复 tag 不重复触发构建；PR 或手动勾选 `run_checks` 时另行运行完整检查，检查任务不阻挡平台打包。Windows 安装程序由 Inno Setup 6 编译，runner 缺少编译器时自动安装；云端结果与设备验收分别记录：
 
-| 红果版 Artifact | 全站源版 Artifact | 内容 |
+| 短剧视界版 Artifact | 全站源版 Artifact | 内容 |
 | --- | --- | --- |
-| `hongguojian-android` | `zhenguojian-android` | 三种架构 APK 和 SHA256 |
-| `hongguojian-windows` | `zhenguojian-windows` | `*-windows-x64-setup.exe` 安装版、`*-windows-x64-portable.zip` 便携版及两者的 SHA256；显式开启完整检查后，从便携包检查原生核心、FFprobe、换封装及播放器启动 |
-| `hongguojian-ios-unsigned` | `zhenguojian-ios-unsigned` | 标准 `Payload/*.app` 结构的未签名 IPA 和 SHA256，安装前仍需签名 |
+| `duanjushijie-android` | `quanjushijie-android` | 三种架构 APK 和 SHA256 |
+| `duanjushijie-windows` | `quanjushijie-windows` | `*-windows-x64-setup.exe` 安装版、`*-windows-x64-portable.zip` 便携版及两者的 SHA256；显式开启完整检查后，从便携包检查原生核心、FFprobe、换封装及播放器启动 |
+| `duanjushijie-ios-unsigned` | `quanjushijie-ios-unsigned` | 标准 `Payload/*.app` 结构的未签名 IPA 和 SHA256，安装前仍需签名 |
 
-Actions 分别传入默认参数与 `--all-sources` 构建两版；显式开启完整检查后，Flutter 和 Go 回归也覆盖两种编译配置。Artifact 保留 14 天。非 PR 运行中，`release` 任务等待 Android、Windows、iOS 全部构建成功，再按 `pubspec.yaml` 版本发布各架构 APK、未签名 IPA，以及两种版本各自的 Windows 安装程序和便携 ZIP。任一平台失败时不发布本轮 Release；实际产物以 Actions 输出为准。
+Actions 分别传入默认参数与 `--all-sources` 构建两版；显式开启完整检查后，Flutter 和 Go 回归也覆盖两种编译配置。Artifact 保留 14 天。非 PR 运行中，`release` 任务等待 Android、Windows、iOS 全部构建成功，只按 `pubspec.yaml` 版本发布短剧视界版（`duanjushijie-*`）产物：各架构 APK、未签名 IPA，以及该版的 Windows 安装程序和便携 ZIP；全剧视界版（`quanjushijie-*`）只在 Actions Artifact 下载，不进入 Release。任一平台失败时不发布本轮 Release；实际产物以 Actions 输出为准。
 
 Windows 下载选择：
 
 | 类型 | Release 文件名示例 | 使用方式 |
 | --- | --- | --- |
-| 安装版 | `hongguojian-0.2.61+72-windows-x64-setup.exe` | 双击安装到当前用户目录，创建开始菜单入口，可选桌面快捷方式；支持系统卸载入口与同版后续覆盖升级 |
-| 便携版 | `hongguojian-0.2.61+72-windows-x64-portable.zip` | 完整解压后运行 `hongguojian.exe`，不能只取 EXE；无需安装 |
+| 安装版 | `duanjushijie-1.0.0+74-windows-x64-setup.exe` | 双击安装到当前用户目录，创建开始菜单入口，可选桌面快捷方式；支持系统卸载入口与同版后续覆盖升级 |
+| 便携版 | `duanjushijie-1.0.0+74-windows-x64-portable.zip` | 完整解压后运行 `duanjushijie.exe`，不能只取 EXE；无需安装 |
 
-全站源版把文件名前缀及程序名换为 `zhenguojian`。两种分发形式均包含 Flutter、原生核心、媒体库和 VC 运行库；应用数据仍沿用现有用户目录，便携版不把设置和下载记录改存到程序旁。两版安装目录与卸载标识分别固定，现有应用数据目录仍共享。
+全站源版把文件名前缀及程序名换为 `quanjushijie`。两种分发形式均包含 Flutter、原生核心、媒体库和 VC 运行库；应用数据仍沿用现有用户目录，便携版不把设置和下载记录改存到程序旁。两版安装目录与卸载标识分别固定，现有应用数据目录仍共享。
 
 实现依据：[GitHub，工作流任务依赖](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idneeds)、[softprops，Release 资产上传](https://github.com/softprops/action-gh-release#uploading-release-assets)、[Inno Setup，命令行编译](https://jrsoftware.org/ishelp/topic_compilercmdline.htm)与[当前用户安装权限](https://jrsoftware.org/ishelp/topic_setup_privilegesrequired.htm)。Inno Setup 行为依据其官方文档单一来源，尚未完成真实安装验收。
 
@@ -722,15 +729,15 @@ Android 正式发布持续使用同一签名并递增构建号，在仓库 Secre
 未配置时生成预览 APK，不同构建机的预览签名可能无法相互覆盖。创建签名文件并保存到项目外：
 
 ~~~sh
-keytool -genkeypair -v -keystore zhenguojian-release.jks -storetype JKS -alias zhenguojian -keyalg RSA -keysize 2048 -validity 10000
+keytool -genkeypair -v -keystore duanjushijie-release.jks -storetype JKS -alias duanjushijie -keyalg RSA -keysize 2048 -validity 10000
 ~~~
 
 本地不入库的 `android/key.properties`：
 
 ~~~properties
-storeFile=/absolute/path/zhenguojian-release.jks
+storeFile=/absolute/path/duanjushijie-release.jks
 storePassword=你的密码
-keyAlias=zhenguojian
+keyAlias=duanjushijie
 keyPassword=你的密码
 ~~~
 
@@ -747,7 +754,7 @@ python3 scripts/build_android.py --abi arm64-v8a
 python3 scripts/build_android.py --cn-mirrors
 ~~~
 
-首条默认生成红果鉴，第二条生成含全部站源的真果鉴。`--all-sources` 可以与 `--abi`、`--cn-mirrors` 组合，例如 `python3 scripts/build_android.py --all-sources --abi arm64-v8a --cn-mirrors`。
+首条默认生成短剧视界，第二条生成含全部站源的全剧视界。`--all-sources` 可以与 `--abi`、`--cn-mirrors` 组合，例如 `python3 scripts/build_android.py --all-sources --abi arm64-v8a --cn-mirrors`。
 
 Windows PowerShell：
 
@@ -757,7 +764,7 @@ Windows PowerShell：
 .\scripts\build_windows.ps1 -ChinaMirrors
 ~~~
 
-Windows 也可运行 `python scripts/build_windows.py --all-sources`；省略参数为红果版。本地打包还需安装 Inno Setup 6，脚本从 `PATH` 或默认安装位置查找 `ISCC.exe`，一次生成安装 EXE 与便携 ZIP；编译器缺失或安装程序生成失败会终止打包。
+Windows 也可运行 `python scripts/build_windows.py --all-sources`；省略参数为短剧视界版。本地打包还需安装 Inno Setup 6，脚本从 `PATH` 或默认安装位置查找 `ISCC.exe`，一次生成安装 EXE 与便携 ZIP；编译器缺失或安装程序生成失败会终止打包。
 
 国内构建可使用以上镜像开关：Flutter/pub 使用 `storage.flutter-io.cn` / `pub.flutter-io.cn`，Android 的 Google、Maven Central 和 Gradle 插件依赖优先使用阿里云镜像，同时保留官方仓库。已有环境变量优先；镜像配置仅作用于本次构建，保留锁定的依赖版本与 SHA256 校验值；结束后恢复原锁文件并清理临时 Gradle 配置，不改全局代理。GitHub Actions 默认使用官方源。镜像可能有同步延迟，遇到镜像缺失或异常可去掉开关重试；此开关不替代 Flutter SDK 和 Gradle 发行包的初次安装。
 
@@ -776,7 +783,7 @@ python3 scripts/build_ios.py --core-only --simulator
 python3 scripts/build_ios.py --export-options /path/to/ExportOptions.plist
 ~~~
 
-产物在 `dist/android`、`dist/windows`、`dist/ios`，红果版以 `hongguojian-` 开头，全站源版以 `zhenguojian-` 开头。iOS 脚本将 Go 核心生成 XCFramework，再经 CocoaPods 链接并检查 FFI 导出符号；媒体库随应用打包。
+产物在 `dist/android`、`dist/windows`、`dist/ios`，短剧视界版以 `duanjushijie-` 开头，全站源版以 `quanjushijie-` 开头；1.0.0 之前的 `hongguojian-` / `zhenguojian-` 只出现在历史记录中。iOS 脚本将 Go 核心生成 XCFramework，再经 CocoaPods 链接并检查 FFI 导出符号；媒体库随应用打包。
 
 首次 Android 调试先编译对应架构核心：
 
@@ -887,7 +894,7 @@ python3 scripts/sync_source.py --check
 
 ### 优先修复：分页、资料与近期协议差异
 
-“两版”指默认红果鉴与全站源真果鉴；黄豆、黄果专项仅用于全站源版。保留原有功能编号，资料模型与搜索问题分别归入 P1-7 / P2-8、P1-8，不另建重复待办。
+“两版”指默认短剧视界与全站源全剧视界；黄豆、黄果专项仅用于全站源版。保留原有功能编号，资料模型与搜索问题分别归入 P1-7 / P2-8、P1-8，不另建重复待办。
 
 | 编号 | 范围 | 已确认问题与代码依据 | 修复验收 |
 | --- | --- | --- | --- |
@@ -976,7 +983,7 @@ python3 scripts/sync_source.py --check
 | 站源管理与完整黄果入口 | 0.2.4 加入逐站任务、健康检测、CF 诊断和黄果旧 API；修复黄果视频取流请求与密钥凭证；0.2.8 检测详情可独立展开 / 收起，后台刷新保留手动选择 |
 | 站源分组与内容分类 | 0.2.7 首页黄果统一展示，合并接口分类与已缓存细分类，各接口独立续页；补齐分类字段和资料回写；AI 实际播放仍待恢复 |
 | 榜单与封面兼容 | 0.2.7 接入三站 12 个真实榜单；HEIC 本地转 JPEG，封面地址补齐及新图床 DNS 回退 |
-| 版本编译开关 | 0.2.3 加入默认红果鉴 / `--all-sources` 真果鉴，贯通原生核心、Flutter、平台名称、分发文件与 Actions |
+| 版本编译开关 | 0.2.3 加入默认短剧视界 / `--all-sources` 全剧视界，贯通原生核心、Flutter、平台名称、分发文件与 Actions；1.0.0 统一显示名并把分发包前缀改为 `duanjushijie` / `quanjushijie` |
 | 在线播放闭环 | 独立站源浏览、搜索、详情、选集、播放、错误重试；0.2.26 全站源版首页显示红果 / 黄豆 / 剧果 / 野果 / 帝果 / 黄果六个站源组，新增站源待验证 |
 | 播放与记录 | 画质、倍速、切集、横竖屏、自动连播、自动切线、收藏和本地续播 |
 | 界面与主题 | 默认跟随系统，浅色 / 深色选择；旋转刷新按钮、统一海报尺寸、黄豆专属 VIP 筛选、下载页布局调整 |
@@ -992,7 +999,7 @@ python3 scripts/sync_source.py --check
 
 0.2.44+50 更新野果默认入口为 `https://analyze.buxefaex.cc/`，并把 `https://ygdj7.com/` 作为线路发现页；新旧 `buxefaex` / `fzchosdi` 线路、`delta.ygrwdsgt.cc` 和 `yeguodj.com` 均归一为野果站源。0.2.47 起旧域名仅用于识别已有缓存和数据，不再作为运行时接口回退地址。0.2.48 将首页和推荐卡片普通点击改为无中间页直达播放：详情仍先读取，但不再 push “正在进入播放”页面，读取成功后直接打开播放器。剧果保留 `/play/<episode>` 返回的 CloudFront 三枚签名 Cookie，并让播放列表、分片、预加载和下载继续使用同来源凭证；帝果 vplayer 签名请求失败直接返回错误，不再静默交给播放器一个未签名地址。新增 Go 定向测试覆盖新域名识别、野果 50 页 POST 更新、目录页大小、三站源榜单、剧果签名 Cookie 和帝果签名错误传播；仅运行源码定向测试，未打包、未安装设备、未请求真实媒体或做真实播放验收。
 
-0.2.42+48 继续按播放页与首页反馈收紧：追剧确认固定在播放页“简介”内容区，不作为 Tab；播放页下方 Tab 保持“选集 / 简介 / 下载”，下载选择器嵌入下载 Tab；播放器底部工具按钮改为少量靠右连续成组，超过阈值再拆成左右两组，避免平均分散在整行；首页在已有内容时不再于分类下显示异常提醒，目录滚动接近底部自动续页并保留“加载更多”兜底。已执行 `dart analyze lib/home_screen.dart lib/player_controls.dart lib/player_screen.dart lib/download_picker.dart lib/television_controls.dart test/player_screen_test.dart test/downloads_test.dart test/widget_test.dart test/danmaku_widget_test.dart`，仅剩既有 info 级 lint；`flutter analyze ...` 仍在中文路径下触发 analysis server LSP JSON 解析异常，未作为有效检查。已执行 `flutter test --no-pub --dart-define=DISABLE_REMOTE_IMAGES=true test/player_screen_test.dart`、`test/downloads_test.dart --plain-name "mobile player moves download and follow into tabs"`、`test/widget_test.dart --plain-name "fresh disk catalog skips the network and resumes pagination"`、`test/widget_test.dart --plain-name "stale disk catalog remains usable when refresh fails"`、`test/danmaku_widget_test.dart` 均通过；新增 `compact player tools stay clustered instead of evenly spread` 覆盖播放器底部按钮不再平均分散。完整 `test/downloads_test.dart` 仍有既有下载合集默认折叠 / 遥控导航断言未通过，未作为本轮验收结论。已执行默认红果版 `flutter build apk --debug --no-pub`，生成 `build/app/outputs/flutter-apk/app-debug.apk`，大小 162 MB，版本 `0.2.42+48`，SHA-256 为 `eeaea66b8df3fd4658e29b33d947f92ae41bc5551d7aed8adc72f7f8a8325205`。本轮未生成 Release APK、未安装设备、未执行真实播放视觉验收。
+0.2.42+48 继续按播放页与首页反馈收紧：追剧确认固定在播放页“简介”内容区，不作为 Tab；播放页下方 Tab 保持“选集 / 简介 / 下载”，下载选择器嵌入下载 Tab；播放器底部工具按钮改为少量靠右连续成组，超过阈值再拆成左右两组，避免平均分散在整行；首页在已有内容时不再于分类下显示异常提醒，目录滚动接近底部自动续页并保留“加载更多”兜底。已执行 `dart analyze lib/home_screen.dart lib/player_controls.dart lib/player_screen.dart lib/download_picker.dart lib/television_controls.dart test/player_screen_test.dart test/downloads_test.dart test/widget_test.dart test/danmaku_widget_test.dart`，仅剩既有 info 级 lint；`flutter analyze ...` 仍在中文路径下触发 analysis server LSP JSON 解析异常，未作为有效检查。已执行 `flutter test --no-pub --dart-define=DISABLE_REMOTE_IMAGES=true test/player_screen_test.dart`、`test/downloads_test.dart --plain-name "mobile player moves download and follow into tabs"`、`test/widget_test.dart --plain-name "fresh disk catalog skips the network and resumes pagination"`、`test/widget_test.dart --plain-name "stale disk catalog remains usable when refresh fails"`、`test/danmaku_widget_test.dart` 均通过；新增 `compact player tools stay clustered instead of evenly spread` 覆盖播放器底部按钮不再平均分散。完整 `test/downloads_test.dart` 仍有既有下载合集默认折叠 / 遥控导航断言未通过，未作为本轮验收结论。已执行默认短剧视界版 `flutter build apk --debug --no-pub`，生成 `build/app/outputs/flutter-apk/app-debug.apk`，大小 162 MB，版本 `0.2.42+48`，SHA-256 为 `eeaea66b8df3fd4658e29b33d947f92ae41bc5551d7aed8adc72f7f8a8325205`。本轮未生成 Release APK、未安装设备、未执行真实播放视觉验收。
 
 0.2.40+46 针对用户反馈的 iOS IPA 播放闪退做源码排查与兜底：应用能启动、浏览和进入详情，说明 Flutter 壳与原生 Go 核心大概率已加载；崩溃发生在点击任意剧集进入播放后，最可疑点是 iOS 播放页创建 media_kit_video 的 libmpv 纹理输出。上游 iOS 插件在 `mpv_render_context_create` 失败时调用 `exit(1)`，不会回到 Flutter 错误页，因此外观看起来是点播放后 App 直接退出。已将 iOS `VideoController` 配置为禁用硬件纹理加速，改走软件纹理兜底；Android 和 Windows 保持原路径。本轮按要求未生成 IPA、未执行真机播放复验，需用 Xcode 设备日志确认是否仍有 `MPVHelpers`、`mpv_render_context_create` 或 `Mpv.framework` 相关崩溃。
 
@@ -1054,14 +1061,14 @@ python3 scripts/sync_source.py --check
 
 0.2.15 未执行静态分析、自动化测试、回归、设备 / 模拟器或真实局域网验证，也未请求站源图片；该版布局、切换推荐与多选操作的实际运行效果待用户安装确认。
 
-0.2.14+20 根据用户提供的“正在打开红果鉴”截图修复启动导航。0.2.13 为接收播放加入固定导航 key 后，初始化前后改变了 `MaterialApp` 的父节点层级，保留下来的根路由继续引用旧应用状态。现在初始化前后都使用同一层 `AnimatedBuilder`，保持应用与导航状态连续，使首页能够接替初始化页，并保留推送接收导航。定位依据为截图与源码，尚未在设备上确认启动效果。
+0.2.14+20 根据用户提供的“正在打开短剧视界”截图修复启动导航。0.2.13 为接收播放加入固定导航 key 后，初始化前后改变了 `MaterialApp` 的父节点层级，保留下来的根路由继续引用旧应用状态。现在初始化前后都使用同一层 `AnimatedBuilder`，保持应用与导航状态连续，使首页能够接替初始化页，并保留推送接收导航。定位依据为截图与源码，尚未在设备上确认启动效果。
 
 打包同时补齐 `lan_screen.dart` 对 `LocalStoreSync` 扩展的导入，解决 Release 编译失败。0.2.14 执行结果：
 
 | 检查 | 结果与范围 |
 | --- | --- |
 | 源码格式 | 变更 Dart / Go 文件完成格式整理 |
-| Android Release 构建 | 默认红果版、`--all-sources` 全站源版均通过，ARM64，版本 0.2.14+20 |
+| Android Release 构建 | 默认短剧视界版、`--all-sources` 全站源版均通过，ARM64，版本 0.2.14+20 |
 | 安装与升级信息 | 应用名称、包名、版本码 2020、最低 Android 8.0 和非调试标记正确；签名有效，且与 0.2.10 / 0.2.13 一致 |
 | 包完整性 | 每份 17 个原生库均为 ARM64 ELF、ZIP DEFLATE；包 CRC、ZIP 对齐和安装时解压配置通过 |
 | 编译配置与校验值 | 两版各自的原生核心与构建记录一致，Dart 与原生二进制分别区分两版；两份 APK 与 `SHA256SUMS.txt` 一致 |
@@ -1092,7 +1099,7 @@ python3 scripts/sync_source.py --check
 
 以下 0.2.11 及更早版本的检查和安装包记录，也不作为后续新增功能的验证结论。
 
-0.2.11+17 完成 P2-3 红果弹幕的源码接入，Go / Dart 格式与 Dart 静态检查通过。默认红果版和全站源版各通过 **6 项 Go 定向测试（含竞态检测）及 18 项 Flutter 定向测试**。原生检查使用内存文字响应，覆盖原始时间戳、分集身份、异常时间窗口、缓存去重、取消和播放会话隔离；Flutter 使用合成数据，覆盖分页与有界缓存、失败重试、迟到结果、暂停 / 缓冲 / 倍速 / 跳转、连续动画、开关持久化与备份兼容、用户切换、窄屏大字及 TV 设置。
+0.2.11+17 完成 P2-3 红果弹幕的源码接入，Go / Dart 格式与 Dart 静态检查通过。默认短剧视界版和全站源版各通过 **6 项 Go 定向测试（含竞态检测）及 18 项 Flutter 定向测试**。原生检查使用内存文字响应，覆盖原始时间戳、分集身份、异常时间窗口、缓存去重、取消和播放会话隔离；Flutter 使用合成数据，覆盖分页与有界缓存、失败重试、迟到结果、暂停 / 缓冲 / 倍速 / 跳转、连续动画、开关持久化与备份兼容、用户切换、窄屏大字及 TV 设置。
 
 0.2.11 只运行以下弹幕测试，Go 命令在 `native` 目录执行，Flutter 命令在项目根目录执行：
 
@@ -1105,7 +1112,7 @@ flutter test --no-pub --dart-define=DISABLE_REMOTE_IMAGES=true --dart-define=ALL
 
 Flutter 记录在 `build/danmaku-0211/flutter-default.log` 与 `flutter-all-sources.log`。0.2.11 未进行回归、真实站源弹幕请求、设备或模拟器验证，也未请求站源图片；Android、Windows 与 TV 的实际播放效果待平台验收。0.2.11 当时未单独打包，弹幕实现已包含在新版 APK 中。
 
-0.2.10+16 完成 P2-1 与 P2-2 的源码接入，Dart 格式与静态检查通过。默认红果版和全站源版各通过 **26 项新增功能针对性测试**，使用合成文字与分集数据，禁用远程图片；覆盖追剧记录与实际播放进度分离、已读基准、备份兼容与失败保留、用户隔离、共享更新任务与缓存续页、批量下载重试 / 停止，以及 360×640 和 1100×720 的大字布局。
+0.2.10+16 完成 P2-1 与 P2-2 的源码接入，Dart 格式与静态检查通过。默认短剧视界版和全站源版各通过 **26 项新增功能针对性测试**，使用合成文字与分集数据，禁用远程图片；覆盖追剧记录与实际播放进度分离、已读基准、备份兼容与失败保留、用户隔离、共享更新任务与缓存续页、批量下载重试 / 停止，以及 360×640 和 1100×720 的大字布局。
 
 0.2.10 功能实施阶段执行了以下三份测试文件：
 
@@ -1116,7 +1123,7 @@ flutter test --no-pub --dart-define=DISABLE_REMOTE_IMAGES=true --dart-define=ALL
 
 0.2.10 打包时移除了 `app_cover_metadata.go` 中遗留的 `parseHuangguoSortDetail` 重复定义，统一复用详情元数据解析实现；Go 格式整理和 `TestNativeCoverMetadataRejectsOtherDramaAndKeepsCurrentHost` 定向测试通过，测试只解析合成元数据，不请求图片。
 
-0.2.10 的红果鉴 / 真果鉴两份 ARM64 Release 构建和安装包检查已通过。每份 APK 的 17 个原生库均为 ARM64 ELF 并使用 ZIP DEFLATE 压缩，清单启用安装时解压；签名与 0.2.8 一致，包 CRC、ZIP 对齐、应用名称、包名、版本 `0.2.10`、ARM64 分包版本码 `2016` 和对应原生核心均正确。两份包及 `SHA256SUMS.txt` 已校验，构建与检查记录在 `build/packages-0210/`，对应 `release-default-arm64.log`、`release-all-sources-arm64.log`、`apk-default-verification.log` 和 `apk-all-sources-verification.log`。
+0.2.10 的短剧视界 / 全剧视界两份 ARM64 Release 构建和安装包检查已通过。每份 APK 的 17 个原生库均为 ARM64 ELF 并使用 ZIP DEFLATE 压缩，清单启用安装时解压；签名与 0.2.8 一致，包 CRC、ZIP 对齐、应用名称、包名、版本 `0.2.10`、ARM64 分包版本码 `2016` 和对应原生核心均正确。两份包及 `SHA256SUMS.txt` 已校验，构建与检查记录在 `build/packages-0210/`，对应 `release-default-arm64.log`、`release-all-sources-arm64.log`、`apk-default-verification.log` 和 `apk-all-sources-verification.log`。
 
 0.2.10 打包没有执行全量 Flutter / Go 回归、设备或模拟器测试，也没有请求站源图片。构建成功不代表新增功能已经完成平台验收。
 
@@ -1124,13 +1131,13 @@ flutter test --no-pub --dart-define=DISABLE_REMOTE_IMAGES=true --dart-define=ALL
 
 黄果 AI 的实际密钥连接与播放仍未恢复。0.2.13 已接入原清单中可独立实施的功能以及新增 P3-2 / P3-3；AI 待可通的入口后继续处理连接与播放问题，集中验证继续按用户安排执行。
 
-0.2.8 已通过 Dart 格式与静态检查，默认红果版和全站源版各通过 5 项站源界面定向检查。使用合成数据覆盖历史详情默认收起、两种主动检测展开、手动收起后跨请求返回 / 轮询 / 检测完成保持状态、完成后再次展开与收起，以及窄屏大字的失败诊断。记录在 `build/sources-028/`。
+0.2.8 已通过 Dart 格式与静态检查，默认短剧视界版和全站源版各通过 5 项站源界面定向检查。使用合成数据覆盖历史详情默认收起、两种主动检测展开、手动收起后跨请求返回 / 轮询 / 检测完成保持状态、完成后再次展开与收起，以及窄屏大字的失败诊断。记录在 `build/sources-028/`。
 
-0.2.7 已通过 Dart 格式与静态检查、相关 Go 定向检查（含竞态检测），另验证默认红果版的权限、分类和合成 HEIC。Flutter 定向检查默认版通过 14 项、全站源版通过 15 项；覆盖紧凑布局、大字体、展开搜索、黄果聚合 / 分类去重、独立分页与失败页重试、过期响应隔离、真实榜单名次、VIP 筛选及海报尺寸。合成 HEIC 还经过真实原生准备接口与开发机 FFmpeg 转成 JPEG，验证旋转后尺寸由 64×96 变为 96×64；此项不等同于 Android 原生插件实机验收。检查记录在 `build/sources-027/`。
+0.2.7 已通过 Dart 格式与静态检查、相关 Go 定向检查（含竞态检测），另验证默认短剧视界版的权限、分类和合成 HEIC。Flutter 定向检查默认版通过 14 项、全站源版通过 15 项；覆盖紧凑布局、大字体、展开搜索、黄果聚合 / 分类去重、独立分页与失败页重试、过期响应隔离、真实榜单名次、VIP 筛选及海报尺寸。合成 HEIC 还经过真实原生准备接口与开发机 FFmpeg 转成 JPEG，验证旋转后尺寸由 64×96 变为 96×64；此项不等同于 Android 原生插件实机验收。检查记录在 `build/sources-027/`。
 
 0.2.7 / 0.2.8 按当时要求没有运行整套回归、启动设备或模拟器，也未请求任何站源图片；各平台实际显示与播放效果仍需安装验证。0.2.6 的待办审查与边界问题证据保留在上文，以下保留历史版本验证结论。
 
-0.2.6 已完成红果鉴 / 真果鉴两份 ARM64 Release 构建。每份 APK 的 17 个原生库均采用 ZIP DEFLATE 压缩，最终清单已启用安装时解压；包 CRC、ZIP 对齐、应用名称、版本、签名和内置核心对比均通过。两份签名与 0.2.5 一致。全站源包由 67.4 MB 缩小到 30.1 MB，减少约 55.3%；第三方原生库解压后的内容与 0.2.5 一致。记录在 `build/sources-026/`。
+0.2.6 已完成短剧视界 / 全剧视界两份 ARM64 Release 构建。每份 APK 的 17 个原生库均采用 ZIP DEFLATE 压缩，最终清单已启用安装时解压；包 CRC、ZIP 对齐、应用名称、版本、签名和内置核心对比均通过。两份签名与 0.2.5 一致。全站源包由 67.4 MB 缩小到 30.1 MB，减少约 55.3%；第三方原生库解压后的内容与 0.2.5 一致。记录在 `build/sources-026/`。
 
 0.2.5 已通过 Dart 格式与静态检查、5 项定向 Go 检查（含竞态检测）和 1 项分类界面检查，覆盖分类分页 / 缓存隔离、旧 API 单剧 404、封面地址与合成解码、密钥 EOF 后备用 DNS 连接，以及分组切换和过期分类响应隔离。按用户要求不运行整套回归，记录在 `build/sources-025/`。
 
@@ -1142,8 +1149,8 @@ flutter test --no-pub --dart-define=DISABLE_REMOTE_IMAGES=true --dart-define=ALL
 
 | 版本 | 安装包 | 大小 |
 | --- | --- | --- |
-| 红果鉴，仅红果 | `dist/android/hongguojian-0.2.8+14-arm64-v8a.apk` | 30.2 MB |
-| 真果鉴，全部站源 | `dist/android/zhenguojian-0.2.8+14-arm64-v8a.apk` | 30.2 MB |
+| 短剧视界，仅红果 | `dist/android/hongguojian-0.2.8+14-arm64-v8a.apk` | 30.2 MB |
+| 全剧视界，全部站源 | `dist/android/zhenguojian-0.2.8+14-arm64-v8a.apk` | 30.2 MB |
 
 构建日志为 `build/sources-028/release-default-arm64.log` 和 `release-arm64.log`，包校验记录为同目录的 `apk-default-verification.log` 和 `apk-verification.log`。其他架构的构建开关和脚本保留，0.2.8 未生成其他架构安装包。
 

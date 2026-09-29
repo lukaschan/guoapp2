@@ -19,8 +19,8 @@ CloseApplications=yes
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#BundleDir}\zhenguojian.exe"; DestDir: "{app}"; DestName: "{#AppSlug}.exe"; Flags: ignoreversion
-Source: "{#BundleDir}\*"; DestDir: "{app}"; Excludes: "zhenguojian.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#BundleDir}\duanjushijie.exe"; DestDir: "{app}"; DestName: "{#AppSlug}.exe"; Flags: ignoreversion
+Source: "{#BundleDir}\*"; DestDir: "{app}"; Excludes: "duanjushijie.exe"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppSlug}.exe"; WorkingDir: "{app}"
