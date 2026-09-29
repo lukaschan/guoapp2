@@ -98,8 +98,7 @@ class _PlayerControlsState extends State<PlayerControls> {
   bool _pausedBeforeResume = false;
   double? _seekValue;
 
-  bool get _controlsVisible =>
-      _visible || widget.player.state.buffering || widget.panelOpen;
+  bool get _controlsVisible => _visible || widget.panelOpen;
 
   @override
   void initState() {
@@ -131,8 +130,8 @@ class _PlayerControlsState extends State<PlayerControls> {
         if (!playing) {
           if (wasPlaying && !widget.player.state.buffering) {
             _pausedBeforeResume = true;
+            _show();
           }
-          _show();
         } else if (!wasPlaying) {
           if (_pausedBeforeResume) {
             _pausedBeforeResume = false;

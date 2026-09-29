@@ -98,7 +98,7 @@ void main() {
   });
 
   test(
-    'seek feedback does not reveal controls while volume hints do',
+    'seek shows no overlay and reveals no controls while volume hints do',
     () async {
       final platform = ScriptedPlayer();
       final player = Player(platformPlayer: platform);
@@ -114,12 +114,12 @@ void main() {
 
       interactions.seek(5);
       await Future<void>.delayed(Duration.zero);
-      expect(interactions.feedback, contains('快进至'));
+      expect(interactions.feedback, isEmpty);
       expect(interactions.feedbackRevealsControls, isFalse);
 
       interactions.seek(-5);
       await Future<void>.delayed(Duration.zero);
-      expect(interactions.feedback, contains('后退至'));
+      expect(interactions.feedback, isEmpty);
       expect(interactions.feedbackRevealsControls, isFalse);
 
       interactions.changeVolume(5);

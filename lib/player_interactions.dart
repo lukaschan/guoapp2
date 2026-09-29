@@ -6,8 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart';
 
-import 'widgets.dart';
-
 class PlayerInteractions extends ChangeNotifier {
   static const double boostRate = 2;
 
@@ -210,10 +208,7 @@ class PlayerInteractions extends ChangeNotifier {
     final target = (player.state.position.inMilliseconds + seconds * 1000)
         .clamp(0, player.state.duration.inMilliseconds);
     unawaited((onSeek ?? player.seek)(Duration(milliseconds: target)));
-    hint(
-      '${seconds > 0 ? '快进至' : '后退至'} ${formatPosition(target / 1000)}',
-      revealControls: false,
-    );
+    hint('', persistent: true, revealControls: false);
   }
 
   void changeVolume(double delta) {

@@ -379,7 +379,7 @@ void main() {
         await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowLeft);
         await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowLeft);
         await tester.pump();
-        expect(find.textContaining('后退至'), findsOneWidget);
+        expect(find.textContaining('后退至'), findsNothing);
         expect(controls.hitTestable(), findsNothing);
 
         await mouse.removePointer();
