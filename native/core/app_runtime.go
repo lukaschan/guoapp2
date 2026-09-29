@@ -110,6 +110,7 @@ type nativeInput struct {
 	Chapter          Chapter                 `json:"chapter"`
 	Index            int                     `json:"index"`
 	Quality          int                     `json:"quality"`
+	Route            int                     `json:"route"`
 	Session          string                  `json:"session"`
 	Sequence         int64                   `json:"sequence"`
 	Force            bool                    `json:"force"`
@@ -466,6 +467,13 @@ func nativeDispatch(input nativeInput) (any, error) {
 			return engine.nativeNextPlayback(playback, input.Session)
 		}
 		return engine.nativeResolve(playback, input)
+	case "selectRoute":
+		playback, finish, err := engine.nativeBeginPlayback(ctx, input.Sequence)
+		if err != nil {
+			return nil, err
+		}
+		defer finish()
+		return engine.nativeSelectRoute(playback, input.Session, input.Route)
 	case "cancelPlayback":
 		engine.nativeCancelPlayback(input.Sequence)
 		return true, nil
@@ -758,5 +766,6 @@ func (engine *nativeEngine) nativeResolve(ctx context.Context, input nativeInput
 	if series, video, valid := hongguoPlaybackIDs(task); valid {
 		choice.danmakuSeries, choice.danmakuVideo = series, video
 	}
+	choice.index = nativePreferredRoute(input.Route, len(choice.media))
 	return engine.nativeOpenPlayback(ctx, choice)
 }

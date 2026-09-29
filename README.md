@@ -1,6 +1,8 @@
 # 短剧视界 / 全剧视界
 
-Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**1.0.1+75（未验证开发快照）**。1.0.0 起默认版显示名为“短剧视界”、`--all-sources` 全站源版为“全剧视界”，分发文件名前缀为 `duanjushijie` / `quanjushijie`；GitHub Release 只发布短剧视界版安装包，全剧视界版只在 Actions Artifact 下载；Android Actions 不再保留构建日志上传。本轮（1.0.1+75）按用户反馈修正 Windows 桌面播放器交互：鼠标在画面中移动不再弹出控制按钮，只有单击画面才切换显示 / 隐藏；鼠标移到画面最下方一条 72 像素高的区域仍会显示按钮，移到其他区域不会；按空格暂停仍弹出按钮，再按空格继续播放时按钮立即消失；左右方向键加减进度只显示跳转提示，不再弹出控制按钮。静默几秒后自动隐藏按钮的逻辑保留。发布任务等待 Android、Windows、iOS 构建完成，其余站源与电视改动仍保持未验证。
+Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**1.0.2+76（未验证开发快照）**。1.0.0 起默认版显示名为“短剧视界”、`--all-sources` 全站源版为“全剧视界”，分发文件名前缀为 `duanjushijie` / `quanjushijie`；GitHub Release 只发布短剧视界版安装包，全剧视界版只在 Actions Artifact 下载；Android Actions 不再保留构建日志上传。本轮（1.0.2+76）按用户反馈新增播放线路选择与线路复用：清晰度按钮右侧新增“线路 N”按钮，点击打开线路列表，可在播放中切换线路并保留当前位置与播放状态；选定线路后，同一剧集的后续集数（含自动连播、遥控上一集 / 下一集、滑动切集、选集菜单）默认复用该线路，不再从第一条线路重新尝试；切换下一集时默认不再弹出暂停按钮，只有单击画面、按空格暂停等原有操作才显示控制层，静默数秒自动隐藏的逻辑保留。线路列表来自站源返回的同一集多地址（按画质优先排序），原生核心新增 `selectRoute` 动作与 `nativePreferredRoute` 收敛 0 值与越界值，Dart 端切换线路时保留原会话再重开，切集时把当前线路索引传给解析与预加载。改动涉及 `lib/player_screen.dart`、`lib/player_controls.dart`、`lib/player_menu.dart`、`lib/television_controls.dart`、`lib/player_interactions.dart`、`lib/core_bridge.dart`、`lib/playback_loader.dart`、`lib/playback_preloader.dart`、`lib/local_media_screen.dart` 与 `native/core` 的播放线路代码；本机没有 Python、Flutter 与 Go，未在本机执行用例、静态分析或平台构建，验证交给本轮 GitHub Actions 运行。
+
+上一轮（1.0.1+75）按用户反馈修正 Windows 桌面播放器交互：鼠标在画面中移动不再弹出控制按钮，只有单击画面才切换显示 / 隐藏；鼠标移到画面最下方一条 72 像素高的区域仍会显示按钮，移到其他区域不会；按空格暂停仍弹出按钮，再按空格继续播放时按钮立即消失；左右方向键加减进度只显示跳转提示，不再弹出控制按钮。静默几秒后自动隐藏按钮的逻辑保留。发布任务已完成并验证，其余站源与电视改动仍保持未验证。该轮 Actions 运行 [36539675020](https://github.com/WangXingFan/guoapp/actions/runs/36539675020) 的 Android、Windows、iOS 两版构建与发布任务全部成功，Release `v1.0.1` 只包含 `duanjushijie-1.0.1+75` 的 3 个 APK、未签名 IPA、Windows 安装版与便携版，全剧视界版仍只留在 Actions Artifact。
 
 上一轮（1.0.0+74）只改显示名、分发包前缀、版本号与 Actions 发布范围：Dart 常量、Android 清单占位、Windows 资源与 CMake 程序名、iOS 显示名与 podspec、两版电视横幅、构建与打包脚本及其脚本测试同步更新；Android `applicationId`、iOS Bundle Identifier、应用数据目录、备份标识、通知通道和 Emby 导出标识等内部标识保持不变，以保留既有数据并支持覆盖升级。用户明确要求不在本机下载或编译任何东西，因此本机没有运行 Python、Flutter、平台构建或脚本测试，只做文本与资源改动；两版横幅由本机 PowerShell 与 System.Drawing 依据 `assets/app_icon_master.png` 重新生成，未请求站源图片。构建、脚本测试与实际行为验证全部交给 GitHub Actions。该轮 Actions 运行 [36537175099](https://github.com/WangXingFan/guoapp/actions/runs/36537175099) 的 Android、Windows、iOS 两版构建全部成功，Release `v1.0.0` 只上传 `duanjushijie-1.0.0+74` 的 3 个 APK、未签名 IPA、Windows 安装版与便携版，全剧视界版只留在 Actions Artifact。
 
@@ -25,8 +27,8 @@ iOS 发热排查：原配置 `enableHardwareAcceleration: !Platform.isIOS` 会�
 
 | 编译方式 | 显示名 | 分发包前缀 | 示例 |
 | --- | --- | --- | --- |
-| 默认 | 短剧视界 | `duanjushijie` | `duanjushijie-1.0.1+75-arm64-v8a.apk`、`duanjushijie.exe` |
-| `--all-sources` | 全剧视界 | `quanjushijie` | `quanjushijie-1.0.1+75-arm64-v8a.apk`、`quanjushijie.exe` |
+| 默认 | 短剧视界 | `duanjushijie` | `duanjushijie-1.0.2+76-arm64-v8a.apk`、`duanjushijie.exe` |
+| `--all-sources` | 全剧视界 | `quanjushijie` | `quanjushijie-1.0.2+76-arm64-v8a.apk`、`quanjushijie.exe` |
 
 两版保留原 Android / iOS 应用标识及数据目录；Android 使用同一签名可相互覆盖升级，不能作为两个独立正式应用并排安装。Windows 沿用原内部产品标识与数据目录。切换版本保留追剧、观看记录、用户权限和下载记录；短剧视界版隐藏其他站源内容，恢复全站源版后可继续使用。备份格式也保持兼容。
 
@@ -161,7 +163,7 @@ iOS 发热排查：原配置 `enableHardwareAcceleration: !Platform.isIOS` 会�
 
 正常播放与下载**不转码、不降低清晰度**。随包的 media_kit / libmpv 在设备解码；0.2.12 将远程 MP4 与 HLS 统一接入设备内流服务，处理请求头、密钥、预取缓存及应用代理，不经远程中转。本地已下载视频继续读取设备文件。
 
-播放失败或前台连续 20 秒无进度时，优先尝试备用地址。自动画质先试同画质备用地址及兼容编码，再试较低画质；手选画质只切同画质线路。备用地址耗尽后最多重新解析一次，每轮最多自动恢复 3 次，之后提供手动重试。切线保留进度和倍速；暂停、后台不会触发卡顿切线。
+播放失败或前台连续 20 秒无进度时，优先尝试备用地址。自动画质先试同画质备用地址及兼容编码，再试较低画质；手选画质只切同画质线路。备用地址耗尽后最多重新解析一次，每轮最多自动恢复 3 次，之后提供手动重试。切线保留进度和倍速；暂停、后台不会触发卡顿切线。1.0.2+76 起，解析时首选同一条线路：控制条在清晰度右侧提供“线路 N”按钮，可查看本集可用线路列表并随时手动切换；选定后同一剧集的后续集数沿用该线路，自动连播、遥控上一集 / 下一集、滑动切集和选集菜单都不再从第一条线路重新尝试，只有该线路失效或解析结果变化时才回到默认顺序。线路列表上限与失效提示沿用原有“切换备用线路”逻辑，本集只有一条线路时不显示该按钮。
 
 ### 下一集预加载与缓冲反馈
 
@@ -678,9 +680,9 @@ SR-1、SR-2 与 SR-4 已接入源码，小型动漫 CNN 也包含在本轮；SR-
 
 | 平台 | 包与状态 |
 | --- | --- |
-| Android 8.0+ 手机 | 源码已更新到 `0.2.53+59`（未验证）；Actions APK 构建与测试待本轮运行，ARMv7 / ARM64 / x86_64 支持保留，真实安装、播放热量和帧耗仍待设备验收 |
-| Windows 10/11 x64 | `1.0.1+75` 在 1.0.0+74 的 Release 安装版 `setup.exe` 与便携版 `portable.zip` 基础上修正桌面播放器鼠标与键盘交互：悬停只在画面最下方区域显示按钮，空格暂停弹出、续播消失，左右键跳转不弹出（未验证）；便携版完整解压后运行 `duanjushijie.exe`，全站源版为 `quanjushijie.exe`，保留所有 DLL 和 `data`；Actions 构建、安装 / 升级 / 卸载与桌面运行待验收，局域网原生发现依赖 Windows 10 1903+ |
-| Android TV | 与手机共用 Android 源码并保持电视遥控布局；源码已更新到 `0.2.53+59`（未验证）；待电视 / 盒子实机验收；0.2.12 选集 / 设置及 0.2.13 同步仍待集中验证 |
+| Android 8.0+ 手机 | 源码已更新到 `1.0.2+76`（未验证）：新增播放线路按钮、线路复用与切集不弹出暂停按钮；`1.0.1+75` / `1.0.0+74` 的 APK 已由 Actions 构建并在 `v1.0.1` / `v1.0.0` Release 发布，ARMv7 / ARM64 / x86_64 支持保留，真实安装、播放热量和帧耗仍待设备验收 |
+| Windows 10/11 x64 | `1.0.2+76` 在 1.0.1+75 的 Release 安装版 `setup.exe` 与便携版 `portable.zip` 基础上加入播放线路按钮与线路复用，并让切集默认不弹出暂停按钮（未验证）；1.0.1+75 已修正桌面播放器鼠标与键盘交互：悬停只在画面最下方区域显示按钮，空格暂停弹出、续播消失，左右键跳转不弹出（已构建，`v1.0.1` Release 可下载，桌面交互仍待人工验收）；便携版完整解压后运行 `duanjushijie.exe`，全站源版为 `quanjushijie.exe`，保留所有 DLL 和 `data`；Actions 构建、安装 / 升级 / 卸载与桌面运行待验收，局域网原生发现依赖 Windows 10 1903+ |
+| Android TV | 与手机共用 Android 源码并保持电视遥控布局；源码已更新到 `1.0.2+76`（未验证），电视播放设置面板在有多条线路时显示“线路 N”按钮；待电视 / 盒子实机验收；0.2.12 选集 / 设置及 0.2.13 同步仍待集中验证 |
 | iOS 15.1+ | 源码已更新到 `0.2.53+59`，含 iOS 定制界面（未编译、未验收）；已加入工程、Go 核心链接、媒体依赖、文件管理、系统代理桥接、Bonjour / 局域网权限和构建脚本；0.2.40 起 iOS 播放页禁用 media_kit_video 硬件纹理加速以规避 libmpv OpenGL ES 渲染上下文失败直接退出；待 Xcode 构建与真机验收，没有已签名 IPA |
 
 | 历史版本 0.2.15 | 安装包 | 大小 |
@@ -712,8 +714,8 @@ Windows 下载选择：
 
 | 类型 | Release 文件名示例 | 使用方式 |
 | --- | --- | --- |
-| 安装版 | `duanjushijie-1.0.1+75-windows-x64-setup.exe` | 双击安装到当前用户目录，创建开始菜单入口，可选桌面快捷方式；支持系统卸载入口与同版后续覆盖升级 |
-| 便携版 | `duanjushijie-1.0.1+75-windows-x64-portable.zip` | 完整解压后运行 `duanjushijie.exe`，不能只取 EXE；无需安装 |
+| 安装版 | `duanjushijie-1.0.2+76-windows-x64-setup.exe` | 双击安装到当前用户目录，创建开始菜单入口，可选桌面快捷方式；支持系统卸载入口与同版后续覆盖升级 |
+| 便携版 | `duanjushijie-1.0.2+76-windows-x64-portable.zip` | 完整解压后运行 `duanjushijie.exe`，不能只取 EXE；无需安装 |
 
 全站源版把文件名前缀及程序名换为 `quanjushijie`。两种分发形式均包含 Flutter、原生核心、媒体库和 VC 运行库；应用数据仍沿用现有用户目录，便携版不把设置和下载记录改存到程序旁。两版安装目录与卸载标识分别固定，现有应用数据目录仍共享。
 

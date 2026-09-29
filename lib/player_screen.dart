@@ -98,6 +98,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   int _openedIndex = -1;
   int _generation = 0;
   int _requestedQuality = 0;
+  int _routeIndex = 0;
   bool _loading = true;
   bool _forceOnline = false;
   bool _localFailure = false;
@@ -157,6 +158,10 @@ class _PlayerScreenState extends State<PlayerScreen>
       : _requestedQuality == 0
       ? '自动'
       : '${_requestedQuality}P';
+  int get _routeCount => _plan?.local == true ? 1 : (_plan?.routeCount ?? 1);
+  int get _currentRoute =>
+      (_plan?.routeIndex ?? 0).clamp(0, _routeCount > 0 ? _routeCount - 1 : 0);
+  String get _routeLabel => '线路 ${_currentRoute + 1}';
   String get _session => _plan?.session ?? '';
   double get _currentPosition =>
       _openedIndex == _index && _player.state.position.inMilliseconds > 0
@@ -220,7 +225,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         final next = _index + direction;
         if (next < 0) return '已经是第一集';
         if (next >= widget.detail.episodes.length) return '已经是最后一集';
-        unawaited(_play(next));
+        unawaited(_play(next, showControlsOnReady: false));
         return '第 ${widget.detail.episodes[next].number} 集';
       },
     );
@@ -684,6 +689,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       widget.detail.drama,
       widget.detail.episodes[_index + 1],
       quality: _requestedQuality,
+      route: _routeIndex,
     );
   }
 
@@ -894,6 +900,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     int index, {
     double position = 0,
     PlaybackRecoveryAction? recoveryAction,
+    int? routeSelection,
     bool playWhenReady = true,
     PlaybackPlan? handoffPlan,
     bool showControlsOnReady = true,
@@ -907,18 +914,25 @@ class _PlayerScreenState extends State<PlayerScreen>
     _interactions.cancel();
     if (widget.handoff != null &&
         handoffPlan == null &&
-        recoveryAction == null) {
+        recoveryAction == null &&
+        routeSelection == null) {
       _handoffOwned = false;
       widget.handoff?.fail('接收端已更换播放内容');
     }
     if (index != _index) _forceOnline = false;
+    final canPreload =
+        recoveryAction == null &&
+        routeSelection == null &&
+        _preloadEnabled &&
+        !widget.localOnly;
     final warmed =
         handoffPlan ??
-        (recoveryAction == null && _preloadEnabled && !widget.localOnly
+        (canPreload
             ? _preloader.take(
                 widget.detail.drama,
                 widget.detail.episodes[index],
                 quality: _requestedQuality,
+                route: _routeIndex,
                 online: _forceOnline,
               )
             : null);
@@ -931,22 +945,24 @@ class _PlayerScreenState extends State<PlayerScreen>
     _pendingError = false;
     _errorTimer?.cancel();
     _health.reset();
-    if (recoveryAction == null) {
+    if (recoveryAction == null || routeSelection != null) {
       _recovery.reset();
       _playIntent = playWhenReady;
     }
     _resumePosition = position;
     _showControlsOnPlaybackReady = showControlsOnReady;
+    var loadingMessage = switch (recoveryAction) {
+      PlaybackRecoveryAction.alternative => '正在切换备用线路',
+      PlaybackRecoveryAction.refresh => '正在重新获取播放地址',
+      _ => '正在准备播放',
+    };
+    if (routeSelection != null) loadingMessage = '正在切换播放线路';
     setState(() {
       _index = index;
       _loading = true;
       _error = null;
       _localFailure = false;
-      _loadingMessage = switch (recoveryAction) {
-        PlaybackRecoveryAction.alternative => '正在切换备用线路',
-        PlaybackRecoveryAction.refresh => '正在重新获取播放地址',
-        _ => '正在准备播放',
-      };
+      _loadingMessage = loadingMessage;
     });
     LanController.current?.detachPlayback(_lanIdentity);
     _lanIdentity = Object();
@@ -966,7 +982,8 @@ class _PlayerScreenState extends State<PlayerScreen>
         await _player.stop();
         final previous = _plan;
         _plan = null;
-        if (recoveryAction == PlaybackRecoveryAction.alternative) {
+        if (recoveryAction == PlaybackRecoveryAction.alternative ||
+            routeSelection != null) {
           retained = previous;
         } else if (previous != null) {
           await widget.repository.release(previous.session);
@@ -975,17 +992,24 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (_closed || ticket != _generation) {
         return;
       }
-      prepared = retained != null
-          ? await _loader.fallback(retained!)
-          : warmed != null
-          ? await _loader.use(warmed)
-          : await _loader.load(
-              widget.detail.drama,
-              widget.detail.episodes[index],
-              quality: _requestedQuality,
-              localOnly: widget.localOnly,
-              online: _forceOnline,
-            );
+      if (retained != null) {
+        if (routeSelection != null) {
+          prepared = await _loader.selectRoute(retained!, routeSelection);
+        } else {
+          prepared = await _loader.fallback(retained!);
+        }
+      } else if (warmed != null) {
+        prepared = await _loader.use(warmed);
+      } else {
+        prepared = await _loader.load(
+          widget.detail.drama,
+          widget.detail.episodes[index],
+          quality: _requestedQuality,
+          route: routeSelection ?? _routeIndex,
+          localOnly: widget.localOnly,
+          online: _forceOnline,
+        );
+      }
       if (prepared == null) {
         return;
       }
@@ -1016,6 +1040,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           await platform.setProperty('network-timeout', '20');
         }
         _plan = plan;
+        if (plan.routeIndex > 0) _routeIndex = plan.routeIndex;
         installed = true;
         _acceptErrors = true;
         await _player.open(
@@ -1094,6 +1119,23 @@ class _PlayerScreenState extends State<PlayerScreen>
       position: position,
       playWhenReady: quality == null || _error != null || _player.state.playing,
     );
+  }
+
+  Future<void> _selectRoute(int route) async {
+    if (_closed || _plan == null || _plan!.local) return;
+    if (route < 0 || route >= _routeCount || route == _currentRoute) return;
+    final previous = _routeIndex;
+    final position = _currentPosition;
+    final playing = _playIntent && _player.state.playing;
+    setState(() => _routeIndex = route);
+    await _play(
+      _index,
+      position: position,
+      routeSelection: route,
+      playWhenReady: playing,
+    );
+    if (_closed || !mounted || _plan?.routeIndex == route) return;
+    if (_routeIndex == route) setState(() => _routeIndex = previous);
   }
 
   bool get _showFullscreen =>
@@ -1284,6 +1326,9 @@ class _PlayerScreenState extends State<PlayerScreen>
               local: _plan?.local == true,
               favorite: widget.store.isFavorite(widget.detail.drama.id),
               mobile: _mobile,
+              routeIndex: _currentRoute,
+              routeCount: _routeCount,
+              onRoute: (route) => Navigator.pop(menuContext, route),
               onEpisode: (index) => Navigator.pop(menuContext, index),
               onPreferences: _setPreferences,
               showDanmaku: widget.detail.drama.source == 'hongguo',
@@ -1301,8 +1346,11 @@ class _PlayerScreenState extends State<PlayerScreen>
           ),
         ),
       );
-      if (mounted && !_closed && index != null && index != _index) {
-        await _play(index);
+      if (!mounted || _closed || index == null) return;
+      if (section == PlayerMenuSection.route) {
+        await _selectRoute(index);
+      } else if (index != _index) {
+        await _play(index, showControlsOnReady: false);
       }
     } finally {
       if (mounted && !_closed) {
@@ -1363,7 +1411,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (mounted && !_closed) setState(() => _panelOpen = false);
     }
     if (index != null && mounted && !_closed && index != _index) {
-      await _play(index);
+      await _play(index, showControlsOnReady: false);
     }
   }
 
@@ -1396,6 +1444,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                 unawaited(_enhancement.toggleCompare());
                 Navigator.pop(menuContext);
               },
+              route: _currentRoute,
+              routeCount: _routeCount,
             ),
           ),
         ),
@@ -1404,6 +1454,10 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (mounted && !_closed) setState(() => _panelOpen = false);
     }
     if (selection == null || !mounted || _closed) return;
+    if (selection.route != null && selection.route != _currentRoute) {
+      await _selectRoute(selection.route!);
+      return;
+    }
     try {
       await _setPreferences(
         _preferences.copyWith(
@@ -1648,9 +1702,11 @@ class _PlayerScreenState extends State<PlayerScreen>
             enhancement: _enhancementForUi,
             onTogglePlayback: _togglePlayback,
             onSeek: _seek,
-            onPrevious: _index > 0 ? () => _play(_index - 1) : null,
+            onPrevious: _index > 0
+                ? () => _play(_index - 1, showControlsOnReady: false)
+                : null,
             onNext: _index + 1 < widget.detail.episodes.length
-                ? () => _play(_index + 1)
+                ? () => _play(_index + 1, showControlsOnReady: false)
                 : null,
             onEpisodes: () => _televisionEpisodes(context),
             onSettings: () => _televisionSettings(context),
@@ -1677,6 +1733,9 @@ class _PlayerScreenState extends State<PlayerScreen>
             onSeek: _seekTo,
             speed: _speed,
             qualityLabel: _qualityLabel,
+            routeLabel: _routeLabel,
+            routeCount: _routeCount,
+            onRoute: () => _openPanel(PlayerMenuSection.route),
             showDanmaku: widget.detail.drama.source == 'hongguo',
             danmakuEnabled: _danmakuEnabled,
             danmakuStatus: _danmaku.status,
@@ -1699,9 +1758,11 @@ class _PlayerScreenState extends State<PlayerScreen>
             onPictureInPicture: _canUsePictureInPicture
                 ? _enterPictureInPicture
                 : null,
-            onPrevious: _index > 0 ? () => _play(_index - 1) : null,
+            onPrevious: _index > 0
+                ? () => _play(_index - 1, showControlsOnReady: false)
+                : null,
             onNext: _index + 1 < widget.detail.episodes.length
-                ? () => _play(_index + 1)
+                ? () => _play(_index + 1, showControlsOnReady: false)
                 : null,
           );
     final layeredControls = Stack(
@@ -2083,7 +2144,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         currentIndex: _index,
         compact: compact,
         title: compact ? '剧集' : '选集',
-        onSelected: (index) => _play(index),
+        onSelected: (index) => _play(index, showControlsOnReady: false),
       ),
     );
     if (compact || onClose == null) return panel;

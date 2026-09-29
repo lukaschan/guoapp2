@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:duanju_app/core_bridge.dart';
 import 'package:duanju_app/models.dart';
 import 'package:media_kit/media_kit.dart';
 
@@ -112,20 +113,24 @@ class ScriptedPlayer extends PlatformPlayer {
 class RouteRepository extends FixtureRepository {
   int primaryCalls = 0;
   int fallbackCalls = 0;
+  int routeCalls = 0;
+  int sessions = 0;
   final requestedQualities = <int>[];
   final requestedEpisodes = <int>[];
+  final requestedRoutes = <int>[];
+  int currentRoute = 0;
   bool broken = false;
   bool deferFallback = false;
   final active = <String>{};
   Completer<PlaybackPlan>? pending;
 
   PlaybackPlan plan(bool alternate) {
-    final session = 'route-${primaryCalls + fallbackCalls}';
+    final session = 'route-${++sessions}';
     active.add(session);
     return PlaybackPlan(
       url: 'https://media.test/${broken ? 'broken' : 'working'}-$session.mp4',
       session: session,
-      routeIndex: alternate ? 1 : 0,
+      routeIndex: alternate ? 1 : currentRoute,
       routeCount: 2,
       quality: 1080,
       qualities: const [1080, 720],
@@ -137,10 +142,24 @@ class RouteRepository extends FixtureRepository {
     Drama drama,
     Episode episode, {
     int quality = 0,
+    int route = 0,
   }) async {
     primaryCalls++;
     requestedQualities.add(quality);
     requestedEpisodes.add(episode.number);
+    requestedRoutes.add(route);
+    currentRoute = route;
+    return plan(false);
+  }
+
+  @override
+  Future<PlaybackPlan> selectRoute(PlaybackPlan current, int route) async {
+    routeCalls++;
+    requestedRoutes.add(route);
+    if (broken) {
+      throw AppFailure('该播放线路不可用');
+    }
+    currentRoute = route;
     return plan(false);
   }
 

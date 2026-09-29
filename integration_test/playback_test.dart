@@ -68,8 +68,14 @@ class DeviceFixtureRepository extends AppRepository {
     Drama drama,
     Episode episode, {
     int quality = 0,
+    int route = 0,
   }) async {
-    final plan = await native.resolve(drama, episode, quality: quality);
+    final plan = await native.resolve(
+      drama,
+      episode,
+      quality: quality,
+      route: route,
+    );
     resolved.add(episode.number);
     if (episode.number == 3) {
       return PlaybackPlan(
@@ -189,6 +195,7 @@ class RecoveryFixtureRepository extends DeviceFixtureRepository {
     Drama drama,
     Episode episode, {
     int quality = 0,
+    int route = 0,
   }) {
     primaryCalls++;
     return _route(drama, episode, false);

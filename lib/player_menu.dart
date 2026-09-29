@@ -8,7 +8,7 @@ import 'playback_preferences.dart';
 import 'video_enhancement.dart';
 import 'video_enhancement_settings.dart';
 
-enum PlayerMenuSection { episodes, speed, quality, settings }
+enum PlayerMenuSection { episodes, speed, quality, route, settings }
 
 class PlayerMenu extends StatefulWidget {
   const PlayerMenu({
@@ -25,6 +25,9 @@ class PlayerMenu extends StatefulWidget {
     required this.onEpisode,
     required this.onPreferences,
     required this.onFavorite,
+    this.routeIndex = 0,
+    this.routeCount = 1,
+    this.onRoute,
     this.showDanmaku = false,
     this.danmakuStatus = '',
     this.onRetryDanmaku,
@@ -42,6 +45,9 @@ class PlayerMenu extends StatefulWidget {
   final bool local;
   final bool favorite;
   final bool mobile;
+  final int routeIndex;
+  final int routeCount;
+  final ValueChanged<int>? onRoute;
   final bool showDanmaku;
   final String danmakuStatus;
   final VoidCallback? onRetryDanmaku;
@@ -84,6 +90,7 @@ class _PlayerMenuState extends State<PlayerMenu> {
       PlayerMenuSection.episodes => '选集 · 共 ${widget.episodes.length} 集',
       PlayerMenuSection.speed => '播放倍速',
       PlayerMenuSection.quality => '清晰度',
+      PlayerMenuSection.route => '播放线路',
       PlayerMenuSection.settings => '播放设置',
     };
     return Dialog(
@@ -224,6 +231,33 @@ class _PlayerMenuState extends State<PlayerMenu> {
                 style: helperStyle,
               ),
             ),
+          const SizedBox(height: 20),
+        ],
+        if (widget.section == PlayerMenuSection.route) ...[
+          const Text('播放线路'),
+          const SizedBox(height: 8),
+          Text(
+            widget.routeCount > 1
+                ? '当前使用线路 ${widget.routeIndex + 1}，共 ${widget.routeCount} 条。切换线路后会保留当前进度，并在后续剧集继续使用该线路。'
+                : '本集只有一条可用线路，无法切换。',
+            style: helperStyle,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (var index = 0; index < widget.routeCount; index++)
+                ChoiceChip(
+                  key: ValueKey('menu-route-$index'),
+                  label: Text('线路 ${index + 1}'),
+                  selected: index == widget.routeIndex,
+                  onSelected: widget.onRoute == null
+                      ? null
+                      : (_) => widget.onRoute!(index),
+                ),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
         if ((all || widget.section == PlayerMenuSection.quality) &&

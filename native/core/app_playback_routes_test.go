@@ -161,3 +161,49 @@ func TestNativePlaybackCancellationAndCacheBound(t *testing.T) {
 		engine.nativeReleasePlayback(token)
 	}
 }
+
+func TestNativePlaybackPreferredRouteAndManualSelection(t *testing.T) {
+	for preferred, want := range map[int]int{-1: 0, 0: 0, 1: 1, 2: 2, 3: 0, 9: 0} {
+		if actual := nativePreferredRoute(preferred, 3); actual != want {
+			t.Fatalf("preferred route %d resolved to %d, want %d", preferred, actual, want)
+		}
+	}
+	engine, err := newNativeEngine(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	first := providerMedia{URL: "https://first.test/video.mp4", Referer: "https://first.test/", Quality: 1080}
+	second := providerMedia{URL: "https://second.test/video.mp4", Referer: "https://second.test/watch", Quality: 1080}
+	third := providerMedia{URL: "https://third.test/video.mp4", Referer: "https://third.test/", Quality: 720}
+	first.Variants = []providerMedia{first, second, third}
+	choice := nativePlaybackChoices(first, 0)
+	if len(choice.media) != 3 {
+		t.Fatalf("unexpected route list: %+v", choice.media)
+	}
+	choice.index = nativePreferredRoute(1, len(choice.media))
+	plan, err := engine.nativeOpenPlayback(context.Background(), choice)
+	if err != nil || plan.RouteIndex != 1 || plan.RouteCount != 3 || !strings.Contains(plan.Headers["Referer"], "second.test") {
+		t.Fatalf("preferred route playback: %+v, %v", plan, err)
+	}
+	defer engine.stream.server.Close()
+	selected, err := engine.nativeSelectRoute(context.Background(), plan.Session, 2)
+	if err != nil || selected.RouteIndex != 2 || selected.Session == plan.Session || !strings.Contains(selected.Headers["Referer"], "third.test") {
+		t.Fatalf("manual route selection: %+v, %v", selected, err)
+	}
+	engine.nativeReleasePlayback(plan.Session)
+	if _, err := engine.nativeSelectRoute(context.Background(), plan.Session, 1); err == nil {
+		t.Fatal("released session still allowed route selection")
+	}
+	if _, err := engine.nativeSelectRoute(context.Background(), selected.Session, 4); err == nil {
+		t.Fatal("out-of-range route selection was accepted")
+	}
+	if _, err := engine.nativeSelectRoute(context.Background(), selected.Session, 1); err != nil {
+		t.Fatal("valid route selection after a rejected one failed:", err)
+	}
+	for token := range engine.playbacks {
+		engine.nativeReleasePlayback(token)
+	}
+	if len(engine.playbacks) != 0 {
+		t.Fatal("route selection leaked playback choices")
+	}
+}

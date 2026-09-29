@@ -512,6 +512,7 @@ class TelevisionPlaybackSetting {
     this.danmaku,
     this.preload,
     this.enhancement,
+    this.route,
   });
   final double? speed;
   final int? quality;
@@ -519,6 +520,7 @@ class TelevisionPlaybackSetting {
   final bool? danmaku;
   final bool? preload;
   final VideoEnhancementPreferences? enhancement;
+  final int? route;
 }
 
 class TelevisionSettingsDialog extends StatelessWidget {
@@ -538,6 +540,8 @@ class TelevisionSettingsDialog extends StatelessWidget {
     this.preloadStatus = '',
     this.enhancement,
     this.onCompareEnhancement,
+    this.route = 0,
+    this.routeCount = 1,
   });
   final double speed;
   final int quality;
@@ -553,6 +557,8 @@ class TelevisionSettingsDialog extends StatelessWidget {
   final String preloadStatus;
   final VideoEnhancementController? enhancement;
   final VoidCallback? onCompareEnhancement;
+  final int route;
+  final int routeCount;
 
   @override
   Widget build(BuildContext context) => AlertDialog(
@@ -605,6 +611,27 @@ class TelevisionSettingsDialog extends StatelessWidget {
                   ),
               ],
             ),
+            if (routeCount > 1) ...[
+              const SizedBox(height: 20),
+              const Text('播放线路', style: TextStyle(fontSize: 18)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (var index = 0; index < routeCount; index++)
+                    RemoteButton(
+                      key: ValueKey('tv-route-$index'),
+                      label: '线路 ${index + 1}',
+                      selected: index == route,
+                      onPressed: () => Navigator.pop(
+                        context,
+                        TelevisionPlaybackSetting(route: index),
+                      ),
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: 20),
             if (enhancement != null)
               VideoEnhancementSettings(

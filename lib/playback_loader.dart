@@ -14,9 +14,15 @@ class PlaybackLoader {
     int quality = 0,
     bool localOnly = false,
     bool online = false,
+    int route = 0,
   }) => _load(() async {
     if (online) {
-      return repository.resolveOnline(drama, episode, quality: quality);
+      return repository.resolveOnline(
+        drama,
+        episode,
+        quality: quality,
+        route: route,
+      );
     }
     if (localOnly) {
       final plan = await repository.localPlayback(drama, episode);
@@ -25,11 +31,14 @@ class PlaybackLoader {
       }
       return plan;
     }
-    return repository.resolve(drama, episode, quality: quality);
+    return repository.resolve(drama, episode, quality: quality, route: route);
   });
 
   Future<PlaybackPlan?> fallback(PlaybackPlan current) =>
       _load(() => repository.fallback(current));
+
+  Future<PlaybackPlan?> selectRoute(PlaybackPlan current, int route) =>
+      _load(() => repository.selectRoute(current, route));
 
   Future<PlaybackPlan?> use(PlaybackPlan prepared) =>
       _load(() async => prepared);

@@ -252,11 +252,13 @@ void main() {
       final quality = tester.getRect(
         find.byKey(const ValueKey('player-quality')),
       );
+      final route = tester.getRect(find.byKey(const ValueKey('player-route')));
       final pip = tester.getRect(
         find.byKey(const ValueKey('player-picture-in-picture')),
       );
       expect(quality.left - speed.right, lessThan(8));
-      expect(pip.left - quality.right, lessThan(8));
+      expect(route.left - quality.right, lessThan(8));
+      expect(pip.left - route.right, lessThan(8));
       expect(pip.right, greaterThan(330));
       await unmount(tester, player);
     } finally {
@@ -388,4 +390,56 @@ void main() {
       }
     },
   );
+
+  testWidgets('manual route selection is reused by the next episode', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    try {
+      final repository = RouteRepository();
+      final player = ScriptedPlayer();
+      await mount(tester, repository, player, size: const Size(1280, 720));
+      expect(find.byKey(const ValueKey('player-route')), findsOneWidget);
+      expect(find.text('线路 1'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('player-route')));
+      await tester.pumpAndSettle();
+      expect(find.text('播放线路'), findsWidgets);
+      await tester.tap(find.byKey(const ValueKey('menu-route-1')));
+      await tester.pumpAndSettle();
+      expect(repository.routeCalls, 1);
+      expect(repository.requestedRoutes.last, 1);
+      expect(find.text('线路 2'), findsOneWidget);
+      expect(player.state.playing, isTrue);
+      await tester.tap(find.byTooltip('下一集'));
+      await settleOperations(tester);
+      expect(repository.requestedEpisodes.last, 2);
+      expect(repository.requestedRoutes.last, 1);
+      expect(find.text('线路 2'), findsOneWidget);
+      await unmount(tester, player);
+      expect(repository.active, isEmpty);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
+
+  testWidgets('switching episodes keeps the control overlay hidden', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    try {
+      final repository = RouteRepository();
+      final player = ScriptedPlayer();
+      await mount(tester, repository, player, size: const Size(1280, 720));
+      final controls = find.byKey(const ValueKey('player-speed'));
+      expect(controls.hitTestable(), findsOneWidget);
+      await tester.tap(find.byTooltip('下一集'));
+      await settleOperations(tester);
+      expect(repository.requestedEpisodes.last, 2);
+      expect(player.state.playing, isTrue);
+      expect(controls.hitTestable(), findsNothing);
+      await unmount(tester, player);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+  });
 }

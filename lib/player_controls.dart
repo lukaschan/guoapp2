@@ -42,6 +42,9 @@ class PlayerControls extends StatefulWidget {
     this.onRetryDanmaku,
     this.onPush,
     this.onPictureInPicture,
+    this.routeLabel = '',
+    this.routeCount = 1,
+    this.onRoute,
     this.enhancement,
   });
 
@@ -76,6 +79,9 @@ class PlayerControls extends StatefulWidget {
   final Future<void> Function()? onRetryDanmaku;
   final Future<void> Function()? onPush;
   final Future<void> Function()? onPictureInPicture;
+  final String routeLabel;
+  final int routeCount;
+  final VoidCallback? onRoute;
   final VideoEnhancementController? enhancement;
 
   @override
@@ -791,6 +797,17 @@ class _PlayerControlsState extends State<PlayerControls> {
           ),
   );
 
+  Widget? _routeTool() {
+    if (widget.onRoute == null || widget.routeCount <= 1) return null;
+    return _toolText(
+      key: const ValueKey('player-route'),
+      tooltip: '播放线路',
+      label: widget.routeLabel,
+      onPressed: widget.enabled ? widget.onRoute : null,
+      width: 64,
+    );
+  }
+
   Widget _desktopControlRow({
     required bool fullscreen,
     required bool showEpisodes,
@@ -800,6 +817,7 @@ class _PlayerControlsState extends State<PlayerControls> {
     required bool showVolume,
     required double volume,
   }) {
+    final routeTool = _routeTool();
     final tools = [
       if (showSpeedQuality) ...[
         _toolText(
@@ -816,6 +834,7 @@ class _PlayerControlsState extends State<PlayerControls> {
           onPressed: widget.enabled ? () => _panel(widget.onQuality) : null,
           width: 52,
         ),
+        if (routeTool != null) routeTool,
       ],
       if (showPush) _lanPushTool(const ValueKey('fullscreen-lan-push')),
       if (showEpisodes)
@@ -871,6 +890,7 @@ class _PlayerControlsState extends State<PlayerControls> {
   }
 
   Widget _mobileControlRow({required bool fullscreen}) {
+    final routeTool = _routeTool();
     final tools = [
       _toolText(
         key: const ValueKey('player-speed'),
@@ -886,6 +906,7 @@ class _PlayerControlsState extends State<PlayerControls> {
         onPressed: widget.enabled ? () => _panel(widget.onQuality) : null,
         width: 52,
       ),
+      if (routeTool != null) routeTool,
       if (widget.onPush != null)
         _lanPushTool(const ValueKey('fullscreen-lan-push')),
       if (fullscreen)

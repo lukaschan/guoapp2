@@ -192,7 +192,9 @@ class PlayerInteractions extends ChangeNotifier {
     _pointer = null;
     _origin = null;
     _endHold();
-    if (swipe && available()) hint(onEpisode(delta.dy < 0 ? 1 : -1));
+    if (swipe && available()) {
+      hint(onEpisode(delta.dy < 0 ? 1 : -1), revealControls: false);
+    }
   }
 
   void pointerCancel(PointerCancelEvent event) {
@@ -274,7 +276,10 @@ class PlayerInteractions extends ChangeNotifier {
     } else if (key == LogicalKeyboardKey.mediaTrackNext ||
         key == LogicalKeyboardKey.mediaTrackPrevious) {
       if (event is KeyDownEvent) {
-        hint(onEpisode(key == LogicalKeyboardKey.mediaTrackNext ? 1 : -1));
+        hint(
+          onEpisode(key == LogicalKeyboardKey.mediaTrackNext ? 1 : -1),
+          revealControls: false,
+        );
       }
     } else {
       return KeyEventResult.ignored;

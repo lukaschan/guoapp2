@@ -75,7 +75,8 @@ abstract class AppRepository {
     Drama drama,
     Episode episode, {
     int quality = 0,
-  }) => preload(drama, episode, quality: quality);
+    int route = 0,
+  }) => preload(drama, episode, quality: quality, route: route);
   Future<void> cancelHandoff() async {}
   Future<ResourceSettings> resourceSettings() async => const ResourceSettings();
   Future<ResourceSettings> saveResourceSettings(
@@ -88,6 +89,7 @@ abstract class AppRepository {
     Episode episode, {
     int quality = 0,
     bool online = false,
+    int route = 0,
   }) async => null;
   Future<void> cancelDanmaku() async {}
   Future<DanmakuPage> danmaku(
@@ -168,7 +170,8 @@ abstract class AppRepository {
     Drama drama,
     Episode episode, {
     int quality = 0,
-  }) => resolve(drama, episode, quality: quality);
+    int route = 0,
+  }) => resolve(drama, episode, quality: quality, route: route);
   Future<void> initialize();
   Future<CatalogPage> catalog(
     String source, {
@@ -180,8 +183,15 @@ abstract class AppRepository {
   Future<CatalogPage> cached(String source, {String category = ''});
   Future<String> cover(Drama drama, {bool force = false});
   Future<DramaDetail> detail(Drama drama);
-  Future<PlaybackPlan> resolve(Drama drama, Episode episode, {int quality = 0});
+  Future<PlaybackPlan> resolve(
+    Drama drama,
+    Episode episode, {
+    int quality = 0,
+    int route = 0,
+  });
   Future<PlaybackPlan> fallback(PlaybackPlan current);
+  Future<PlaybackPlan> selectRoute(PlaybackPlan current, int route) =>
+      throw AppFailure('当前环境不支持切换播放线路');
   Future<void> cancelPlayback();
   Future<void> release(String session);
 }
@@ -206,6 +216,7 @@ class NativeRepository extends AppRepository {
     Drama drama,
     Episode episode, {
     int quality = 0,
+    int route = 0,
   }) async {
     final data = await _read('handoff', {
       'action': 'prepareHandoff',
@@ -213,6 +224,7 @@ class NativeRepository extends AppRepository {
       'chapter': episode.raw,
       'index': episode.number,
       'quality': quality,
+      'route': route,
       'force': access != null && !access!.canDownload,
     });
     return PlaybackPlan.fromJson(data);
@@ -294,6 +306,7 @@ class NativeRepository extends AppRepository {
     Episode episode, {
     int quality = 0,
     bool online = false,
+    int route = 0,
   }) async => PlaybackPlan.fromJson(
     await _read('preload', {
       'action': 'preload',
@@ -301,6 +314,7 @@ class NativeRepository extends AppRepository {
       'chapter': episode.raw,
       'index': episode.number,
       'quality': quality,
+      'route': route,
       'force': online || access?.canDownload == false,
     }),
   );
@@ -718,6 +732,7 @@ class NativeRepository extends AppRepository {
     Drama drama,
     Episode episode, {
     int quality = 0,
+    int route = 0,
   }) async => PlaybackPlan.fromJson(
     await _call({
       'action': 'resolve',
@@ -725,6 +740,7 @@ class NativeRepository extends AppRepository {
       'chapter': episode.raw,
       'index': episode.number,
       'quality': quality,
+      'route': route,
       'sequence': ++_playbackSequence,
     }),
   );
@@ -734,6 +750,16 @@ class NativeRepository extends AppRepository {
         await _call({
           'action': 'fallback',
           'session': current.session,
+          'sequence': ++_playbackSequence,
+        }),
+      );
+  @override
+  Future<PlaybackPlan> selectRoute(PlaybackPlan current, int route) async =>
+      PlaybackPlan.fromJson(
+        await _call({
+          'action': 'selectRoute',
+          'session': current.session,
+          'route': route,
           'sequence': ++_playbackSequence,
         }),
       );
