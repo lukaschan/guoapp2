@@ -197,7 +197,7 @@ void main() {
     }
   });
 
-  testWidgets('mobile taps toggle controls without changing playback', (
+  testWidgets('mobile taps toggle controls and double taps toggle playback', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
@@ -218,14 +218,24 @@ void main() {
       final tapPoint = Offset(surface.center.dx, surface.top + 12);
       expect(find.byTooltip('暂停播放'), findsOneWidget);
       await tester.tapAt(tapPoint);
-      await tester.pump();
+      await tester.pump(kDoubleTapTimeout + const Duration(milliseconds: 50));
       expect(player.state.playing, isTrue);
+      await tester.tapAt(tapPoint);
+      await tester.pump(kDoubleTapTimeout + const Duration(milliseconds: 50));
+      expect(player.state.playing, isTrue);
+
+      await tester.tapAt(tapPoint);
+      await tester.pump(kDoubleTapMinTime);
+      await tester.tapAt(tapPoint);
+      await tester.pump();
+      expect(player.state.playing, isFalse);
+
+      await tester.pump(kDoubleTapTimeout);
+      await tester.tapAt(tapPoint);
+      await tester.pump(kDoubleTapMinTime);
       await tester.tapAt(tapPoint);
       await tester.pump();
       expect(player.state.playing, isTrue);
-      await tester.tap(find.byTooltip('暂停播放'));
-      await tester.pump();
-      expect(player.state.playing, isFalse);
       await unmount(tester, player);
     } finally {
       debugDefaultTargetPlatformOverride = null;

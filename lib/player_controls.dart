@@ -243,6 +243,12 @@ class _PlayerControlsState extends State<PlayerControls> {
     _scheduleHide();
   }
 
+  void _doubleTap() {
+    if (!widget.enabled || widget.interactions.suppressTap) return;
+    widget.onFocusSurface();
+    widget.onTogglePlayback();
+  }
+
   Future<void> _panel(Future<void> Function() open) async {
     _hideTimer?.cancel();
     widget.interactions.cancel();
@@ -290,6 +296,7 @@ class _PlayerControlsState extends State<PlayerControls> {
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: _tap,
+              onDoubleTap: widget.swipeEnabled ? _doubleTap : null,
             ),
           ),
           if (!widget.swipeEnabled) _bottomRevealRegion(),
