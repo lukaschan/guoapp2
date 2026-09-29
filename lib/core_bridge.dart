@@ -900,6 +900,7 @@ class NativeRepository extends AppRepository {
     Drama drama,
     Episode episode, {
     int quality = 0,
+    int route = 0,
   }) async => PlaybackPlan.fromJson(
     await _call({
       'action': 'resolve',
@@ -907,6 +908,7 @@ class NativeRepository extends AppRepository {
       'chapter': episode.raw,
       'index': episode.number,
       'quality': quality,
+      'route': route,
       'force': true,
       'sequence': ++_playbackSequence,
     }),
