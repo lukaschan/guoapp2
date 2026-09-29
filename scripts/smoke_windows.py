@@ -19,7 +19,7 @@ def main():
     if platform.system() != 'Windows':
         raise SystemExit('此检查需要 Windows。')
     version = re.search(r'^version:\s*(\S+)', (root / 'pubspec.yaml').read_text(), re.MULTILINE).group(1)
-    package = root / 'dist' / 'windows' / f'{variant.slug}-{version}-windows-x64.zip'
+    package = root / 'dist' / 'windows' / f'{variant.slug}-{version}-windows-x64-portable.zip'
     with tempfile.TemporaryDirectory(prefix='zhenguojian-smoke-') as temporary:
         directory = Path(temporary)
         with zipfile.ZipFile(package) as archive:

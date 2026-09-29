@@ -1,8 +1,8 @@
 # 红果鉴 / 真果鉴
 
-Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**0.2.60+71（未验证开发快照）**。本轮为长按临时倍速增加右上角小标志，在不弹出提示文字、不显示控制层的前提下表明正在加速播放。保留 iOS 硬件渲染、Android 构建重试与日志保留。其余站源与电视改动仍保持未验证。
+Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**0.2.61+72（未验证开发快照）**。本轮补齐 GitHub Release 的 Windows x64 安装版与便携版，红果鉴、真果鉴均提供两种包；发布任务等待 Android、Windows、iOS 构建完成。其余站源与电视改动仍保持未验证。
 
-按用户 2026-09-21 的要求，继续暂停整体验证。本轮更新播放器交互测试与播放页测试，覆盖加速标志的显示与恢复，仅执行源码级检查；当前环境缺少 Flutter SDK，未执行 Flutter 测试、Dart 静态分析、APK 构建或设备验收，也未触发远程 Actions。历史版本的检查记录不能作为本轮新增功能的验收结论。
+按用户 2026-09-21 的要求，继续暂停整体验证。本轮在 Windows Terminal 中通过 5 项 Windows 分发脚本定向测试（合成文件、模拟 Inno 编译器），覆盖两版文件完整性、缺失运行库、缺失编译器、编译失败及无有效安装产物；Python 语法检查与 `git diff --check` 通过，记录在 `build/windows-release-check/check.log`。未执行 Flutter 完整构建、真实 Inno Setup 编译、安装 / 升级 / 卸载或设备验收，也未触发远程 Actions。历史版本的检查记录不能作为本轮新增功能的验收结论。
 
 长按倍速标志（0.2.60）：长按画面或长按键盘右方向键进入临时 2 倍速时，控制层保持隐藏，只在画面右上角显示一个带快进图标的半透明小胶囊，内容为 `2.0x`；松开恢复原倍速后淡出。标志不接收点击、不使用高对比底色，尽量不遮挡画面。实际显示位置、尺寸与可读性需安装构建后在 Android、Windows 与 Android TV 上验收。
 
@@ -670,7 +670,7 @@ SR-1、SR-2 与 SR-4 已接入源码，小型动漫 CNN 也包含在本轮；SR-
 | 平台 | 包与状态 |
 | --- | --- |
 | Android 8.0+ 手机 | 源码已更新到 `0.2.53+59`（未验证）；Actions APK 构建与测试待本轮运行，ARMv7 / ARM64 / x86_64 支持保留，真实安装、播放热量和帧耗仍待设备验收 |
-| Windows 10/11 x64 | 源码已更新到 `0.2.53+59`（未验证）；完整 ZIP 解压后运行 `hongguojian.exe`，全站源版为 `zhenguojian.exe`，保留所有 DLL 和 `data`；Actions 构建待本轮运行，局域网原生发现依赖 Windows 10 1903+，键盘焦点仍待桌面验收 |
+| Windows 10/11 x64 | `0.2.61+72` 补齐 Release 安装版 `setup.exe` 与便携版 `portable.zip`（未验证）；便携版完整解压后运行 `hongguojian.exe`，全站源版为 `zhenguojian.exe`，保留所有 DLL 和 `data`；Actions 构建、安装 / 升级 / 卸载与桌面运行待验收，局域网原生发现依赖 Windows 10 1903+ |
 | Android TV | 与手机共用 Android 源码并保持电视遥控布局；源码已更新到 `0.2.53+59`（未验证）；待电视 / 盒子实机验收；0.2.12 选集 / 设置及 0.2.13 同步仍待集中验证 |
 | iOS 15.1+ | 源码已更新到 `0.2.53+59`，含 iOS 定制界面（未编译、未验收）；已加入工程、Go 核心链接、媒体依赖、文件管理、系统代理桥接、Bonjour / 局域网权限和构建脚本；0.2.40 起 iOS 播放页禁用 media_kit_video 硬件纹理加速以规避 libmpv OpenGL ES 渲染上下文失败直接退出；待 Xcode 构建与真机验收，没有已签名 IPA |
 
@@ -689,15 +689,26 @@ SR-1、SR-2 与 SR-4 已接入源码，小型动漫 CNN 也包含在本轮；SR-
 
 将 `guoapp` 源码发布到仓库根目录，保留 `.github`、锁文件、`native` 和平台工程；不用上传 SDK、依赖目录、SO、DLL 或缓存。
 
-推送 `main` / `master` 或手动运行 **Build app packages**，会并行构建三平台两种版本。恢复 tag 不重复触发构建；PR 或手动勾选 `run_checks` 时另行运行完整检查，检查任务不阻挡平台打包。本轮将手动启用 `run_checks`；本机不执行测试、静态分析或编译，云端结果与设备验收分别记录：
+推送 `main` / `master` 或手动运行 **Build app packages**，会并行构建三平台两种版本。恢复 tag 不重复触发构建；PR 或手动勾选 `run_checks` 时另行运行完整检查，检查任务不阻挡平台打包。Windows 安装程序由 Inno Setup 6 编译，runner 缺少编译器时自动安装；云端结果与设备验收分别记录：
 
 | 红果版 Artifact | 全站源版 Artifact | 内容 |
 | --- | --- | --- |
 | `hongguojian-android` | `zhenguojian-android` | 三种架构 APK 和 SHA256 |
-| `hongguojian-windows` | `zhenguojian-windows` | 完整 ZIP 和 SHA256；显式开启完整检查后，从解压包检查原生核心、FFprobe、换封装及播放器启动 |
+| `hongguojian-windows` | `zhenguojian-windows` | `*-windows-x64-setup.exe` 安装版、`*-windows-x64-portable.zip` 便携版及两者的 SHA256；显式开启完整检查后，从便携包检查原生核心、FFprobe、换封装及播放器启动 |
 | `hongguojian-ios-unsigned` | `zhenguojian-ios-unsigned` | 标准 `Payload/*.app` 结构的未签名 IPA 和 SHA256，安装前仍需签名 |
 
-Actions 分别传入默认参数与 `--all-sources` 构建两版；显式开启完整检查后，Flutter 和 Go 回归也覆盖两种编译配置。产物保留 14 天。非 PR 运行结束后，`release` 任务会按 `pubspec.yaml` 版本把各架构 APK 与未签名 IPA 直接作为 Release 资产发布，不再二次压缩为 ZIP；Windows 仍保留完整 ZIP。Android / iOS 直接下载 `apk` / `ipa`，Windows 解压 ZIP 后运行。首次平台构建结果以实际 Actions 输出为准。
+Actions 分别传入默认参数与 `--all-sources` 构建两版；显式开启完整检查后，Flutter 和 Go 回归也覆盖两种编译配置。Artifact 保留 14 天。非 PR 运行中，`release` 任务等待 Android、Windows、iOS 全部构建成功，再按 `pubspec.yaml` 版本发布各架构 APK、未签名 IPA，以及两种版本各自的 Windows 安装程序和便携 ZIP。任一平台失败时不发布本轮 Release；实际产物以 Actions 输出为准。
+
+Windows 下载选择：
+
+| 类型 | Release 文件名示例 | 使用方式 |
+| --- | --- | --- |
+| 安装版 | `hongguojian-0.2.61+72-windows-x64-setup.exe` | 双击安装到当前用户目录，创建开始菜单入口，可选桌面快捷方式；支持系统卸载入口与同版后续覆盖升级 |
+| 便携版 | `hongguojian-0.2.61+72-windows-x64-portable.zip` | 完整解压后运行 `hongguojian.exe`，不能只取 EXE；无需安装 |
+
+全站源版把文件名前缀及程序名换为 `zhenguojian`。两种分发形式均包含 Flutter、原生核心、媒体库和 VC 运行库；应用数据仍沿用现有用户目录，便携版不把设置和下载记录改存到程序旁。两版安装目录与卸载标识分别固定，现有应用数据目录仍共享。
+
+实现依据：[GitHub，工作流任务依赖](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idneeds)、[softprops，Release 资产上传](https://github.com/softprops/action-gh-release#uploading-release-assets)、[Inno Setup，命令行编译](https://jrsoftware.org/ishelp/topic_compilercmdline.htm)与[当前用户安装权限](https://jrsoftware.org/ishelp/topic_setup_privilegesrequired.htm)。Inno Setup 行为依据其官方文档单一来源，尚未完成真实安装验收。
 
 Android 正式发布持续使用同一签名并递增构建号，在仓库 Secrets 配置：
 
@@ -746,7 +757,7 @@ Windows PowerShell：
 .\scripts\build_windows.ps1 -ChinaMirrors
 ~~~
 
-Windows 也可运行 `python scripts/build_windows.py --all-sources`；省略参数为红果版。
+Windows 也可运行 `python scripts/build_windows.py --all-sources`；省略参数为红果版。本地打包还需安装 Inno Setup 6，脚本从 `PATH` 或默认安装位置查找 `ISCC.exe`，一次生成安装 EXE 与便携 ZIP；编译器缺失或安装程序生成失败会终止打包。
 
 国内构建可使用以上镜像开关：Flutter/pub 使用 `storage.flutter-io.cn` / `pub.flutter-io.cn`，Android 的 Google、Maven Central 和 Gradle 插件依赖优先使用阿里云镜像，同时保留官方仓库。已有环境变量优先；镜像配置仅作用于本次构建，保留锁定的依赖版本与 SHA256 校验值；结束后恢复原锁文件并清理临时 Gradle 配置，不改全局代理。GitHub Actions 默认使用官方源。镜像可能有同步延迟，遇到镜像缺失或异常可去掉开关重试；此开关不替代 Flutter SDK 和 Gradle 发行包的初次安装。
 
@@ -825,7 +836,7 @@ python3 scripts/sync_source.py --check
 
 脚本将干净源码同步到同级 `../guoapp`，保留目标 `.git` 和历史，创建本地提交及带说明的恢复 tag。在 `guoapp` 内工作时跳过向自身同步。已有 tag 不覆盖或移动；同版本后续收尾省略显式 tag 时按脚本规则生成后缀，未验收版本仍须使用带 `unverified` 的名称。
 
-保留必要源码、资源、锁文件、测试、平台工程和 Actions，排除依赖、SDK、缓存、产物、签名及个人配置。收尾脚本不自动推送；本轮已获用户授权推送 GitHub 并由 Actions 打包。
+保留必要源码、资源、锁文件、测试、平台工程和 Actions，排除依赖、SDK、缓存、产物、签名及个人配置。收尾脚本不自动推送；本轮仅保存本地提交和恢复 tag，推送后由 Actions 打包。
 
 可使用 `git show <tag>:<路径>` 查看历史文件，或从恢复 tag 新建分支。安装包和个人配置不属于源码恢复点。
 

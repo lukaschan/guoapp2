@@ -148,6 +148,18 @@ jobs:
             throw 'MinGW compiler was not installed'
           }
           $compilerDirectory | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Prepare Inno Setup
+        shell: pwsh
+        run: |
+          $compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path -LiteralPath $compiler)) {
+            choco install innosetup --no-progress -y
+            if ($LASTEXITCODE -ne 0) { throw 'Inno Setup installation failed' }
+          }
+          if (-not (Test-Path -LiteralPath $compiler)) {
+            throw 'Inno Setup compiler was not installed'
+          }
+          Split-Path -Parent $compiler | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - run: python scripts/build_windows.py ${{ matrix.arguments }}
       - if: github.event_name == 'pull_request' || inputs.run_checks == true
         run: choco install ffmpeg --no-progress -y
@@ -194,7 +206,7 @@ jobs:
           retention-days: 14
 
   release:
-    needs: [android, ios]
+    needs: [android, windows, ios]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -220,4 +232,6 @@ jobs:
           files: |
             release/**/*.apk
             release/**/*.ipa
+            release/**/*-windows-x64-portable.zip
+            release/**/*-windows-x64-setup.exe
           fail_on_unmatched_files: true
