@@ -1,8 +1,10 @@
 # 短剧视界 / 全剧视界
 
-Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**1.0.0+74（未验证开发快照）**。本轮按用户要求统一改名：默认版显示名为“短剧视界”，`--all-sources` 全站源版为“全剧视界”，分发文件名前缀同步改为 `duanjushijie` / `quanjushijie`，版本号进入 1.0；GitHub Release 只发布短剧视界版安装包，全剧视界版只在 Actions Artifact 下载；Android Actions 不再保留构建日志上传。发布任务等待 Android、Windows、iOS 构建完成，其余站源与电视改动仍保持未验证。
+Flutter 多端独立短剧应用，原名“短剧库 APP”。站源请求、解析、下载和播放均在设备上完成，不依赖旧项目或自建服务。当前源码版本：**1.0.1+75（未验证开发快照）**。1.0.0 起默认版显示名为“短剧视界”、`--all-sources` 全站源版为“全剧视界”，分发文件名前缀为 `duanjushijie` / `quanjushijie`；GitHub Release 只发布短剧视界版安装包，全剧视界版只在 Actions Artifact 下载；Android Actions 不再保留构建日志上传。本轮（1.0.1+75）按用户反馈修正 Windows 桌面播放器交互：鼠标在画面中移动不再弹出控制按钮，只有单击画面才切换显示 / 隐藏；鼠标移到画面最下方一条 72 像素高的区域仍会显示按钮，移到其他区域不会；按空格暂停仍弹出按钮，再按空格继续播放时按钮立即消失；左右方向键加减进度只显示跳转提示，不再弹出控制按钮。静默几秒后自动隐藏按钮的逻辑保留。发布任务等待 Android、Windows、iOS 构建完成，其余站源与电视改动仍保持未验证。
 
-本轮（1.0.0+74）只改显示名、分发包前缀、版本号与 Actions 发布范围：Dart 常量、Android 清单占位、Windows 资源与 CMake 程序名、iOS 显示名与 podspec、两版电视横幅、构建与打包脚本及其脚本测试同步更新；Android `applicationId`、iOS Bundle Identifier、应用数据目录、备份标识、通知通道和 Emby 导出标识等内部标识保持不变，以保留既有数据并支持覆盖升级。用户明确要求不在本机下载或编译任何东西，因此本机没有运行 Python、Flutter、平台构建或脚本测试，只做文本与资源改动；两版横幅由本机 PowerShell 与 System.Drawing 依据 `assets/app_icon_master.png` 重新生成，未请求站源图片。构建、脚本测试与实际行为验证全部交给 GitHub Actions，运行记录见下文。按用户 2026-09-21 的要求，继续暂停本机整体验证。本轮在 Windows Terminal 中通过 5 项 Windows 分发脚本定向测试（合成文件、模拟 Inno 编译器），覆盖两版文件完整性、缺失运行库、缺失编译器、编译失败及无有效安装产物；Python 语法检查与 `git diff --check` 通过，记录在 `build/windows-release-check/check.log`。未执行 Flutter 完整构建、真实 Inno Setup 编译、安装 / 升级 / 卸载或设备验收，也未触发远程 Actions。历史版本的检查记录不能作为本轮新增功能的验收结论。
+上一轮（1.0.0+74）只改显示名、分发包前缀、版本号与 Actions 发布范围：Dart 常量、Android 清单占位、Windows 资源与 CMake 程序名、iOS 显示名与 podspec、两版电视横幅、构建与打包脚本及其脚本测试同步更新；Android `applicationId`、iOS Bundle Identifier、应用数据目录、备份标识、通知通道和 Emby 导出标识等内部标识保持不变，以保留既有数据并支持覆盖升级。用户明确要求不在本机下载或编译任何东西，因此本机没有运行 Python、Flutter、平台构建或脚本测试，只做文本与资源改动；两版横幅由本机 PowerShell 与 System.Drawing 依据 `assets/app_icon_master.png` 重新生成，未请求站源图片。构建、脚本测试与实际行为验证全部交给 GitHub Actions。该轮 Actions 运行 [36537175099](https://github.com/WangXingFan/guoapp/actions/runs/36537175099) 的 Android、Windows、iOS 两版构建全部成功，Release `v1.0.0` 只上传 `duanjushijie-1.0.0+74` 的 3 个 APK、未签名 IPA、Windows 安装版与便携版，全剧视界版只留在 Actions Artifact。
+
+本轮（1.0.1+75）按用户反馈调整 Windows 桌面播放器交互，改动集中在 `lib/player_controls.dart` 与 `lib/player_interactions.dart`：控制层不再整体监听鼠标移入；单击画面是显示 / 隐藏按钮的唯一开关，另外只保留画面最下方 72 像素高的 `_bottomRevealRegion` 悬停区可以显示按钮，使用 `MouseRegion(opaque: false, hitTestBehavior: HitTestBehavior.translucent)` 保证不遮挡单击和滑动；按空格暂停时按钮出现，再按空格继续播放时按钮立即消失；左右方向键加减进度的提示改为不弹出按钮，跳转文字提示仍照常显示；播放中静默数秒后自动隐藏按钮的原有逻辑保留。暂停 / 续播判断只在真实暂停（非缓冲等待）后生效，切集与首次进入仍按原来的显示规则；电视遥控路径的 `lib/television_controls.dart` 未改动。针对性 Dart 用例新增于 `test/player_interactions_test.dart`（跳转提示不再触发弹出、音量提示仍触发）与 `test/player_screen_test.dart`（鼠标在画面中部悬停不弹出、悬停最下方区域弹出、单击切换、空格暂停弹出 / 续播消失、左右键跳转不弹出）。本机没有 Python、Flutter 与 Go，未在本机执行这些用例、静态分析或平台构建，验证交给本轮 GitHub Actions 运行。
 
 长按倍速标志（0.2.60）：长按画面或长按键盘右方向键进入临时 2 倍速时，控制层保持隐藏，只在画面右上角显示一个带快进图标的半透明小胶囊，内容为 `2.0x`；松开恢复原倍速后淡出。标志不接收点击、不使用高对比底色，尽量不遮挡画面。实际显示位置、尺寸与可读性需安装构建后在 Android、Windows 与 Android TV 上验收。
 
@@ -23,8 +25,8 @@ iOS 发热排查：原配置 `enableHardwareAcceleration: !Platform.isIOS` 会�
 
 | 编译方式 | 显示名 | 分发包前缀 | 示例 |
 | --- | --- | --- | --- |
-| 默认 | 短剧视界 | `duanjushijie` | `duanjushijie-1.0.0+74-arm64-v8a.apk`、`duanjushijie.exe` |
-| `--all-sources` | 全剧视界 | `quanjushijie` | `quanjushijie-1.0.0+74-arm64-v8a.apk`、`quanjushijie.exe` |
+| 默认 | 短剧视界 | `duanjushijie` | `duanjushijie-1.0.1+75-arm64-v8a.apk`、`duanjushijie.exe` |
+| `--all-sources` | 全剧视界 | `quanjushijie` | `quanjushijie-1.0.1+75-arm64-v8a.apk`、`quanjushijie.exe` |
 
 两版保留原 Android / iOS 应用标识及数据目录；Android 使用同一签名可相互覆盖升级，不能作为两个独立正式应用并排安装。Windows 沿用原内部产品标识与数据目录。切换版本保留追剧、观看记录、用户权限和下载记录；短剧视界版隐藏其他站源内容，恢复全站源版后可继续使用。备份格式也保持兼容。
 
@@ -677,7 +679,7 @@ SR-1、SR-2 与 SR-4 已接入源码，小型动漫 CNN 也包含在本轮；SR-
 | 平台 | 包与状态 |
 | --- | --- |
 | Android 8.0+ 手机 | 源码已更新到 `0.2.53+59`（未验证）；Actions APK 构建与测试待本轮运行，ARMv7 / ARM64 / x86_64 支持保留，真实安装、播放热量和帧耗仍待设备验收 |
-| Windows 10/11 x64 | `1.0.0+74` 补齐 Release 安装版 `setup.exe` 与便携版 `portable.zip`（未验证）；便携版完整解压后运行 `duanjushijie.exe`，全站源版为 `quanjushijie.exe`，保留所有 DLL 和 `data`；Actions 构建、安装 / 升级 / 卸载与桌面运行待验收，局域网原生发现依赖 Windows 10 1903+ |
+| Windows 10/11 x64 | `1.0.1+75` 在 1.0.0+74 的 Release 安装版 `setup.exe` 与便携版 `portable.zip` 基础上修正桌面播放器鼠标与键盘交互：悬停只在画面最下方区域显示按钮，空格暂停弹出、续播消失，左右键跳转不弹出（未验证）；便携版完整解压后运行 `duanjushijie.exe`，全站源版为 `quanjushijie.exe`，保留所有 DLL 和 `data`；Actions 构建、安装 / 升级 / 卸载与桌面运行待验收，局域网原生发现依赖 Windows 10 1903+ |
 | Android TV | 与手机共用 Android 源码并保持电视遥控布局；源码已更新到 `0.2.53+59`（未验证）；待电视 / 盒子实机验收；0.2.12 选集 / 设置及 0.2.13 同步仍待集中验证 |
 | iOS 15.1+ | 源码已更新到 `0.2.53+59`，含 iOS 定制界面（未编译、未验收）；已加入工程、Go 核心链接、媒体依赖、文件管理、系统代理桥接、Bonjour / 局域网权限和构建脚本；0.2.40 起 iOS 播放页禁用 media_kit_video 硬件纹理加速以规避 libmpv OpenGL ES 渲染上下文失败直接退出；待 Xcode 构建与真机验收，没有已签名 IPA |
 
@@ -710,8 +712,8 @@ Windows 下载选择：
 
 | 类型 | Release 文件名示例 | 使用方式 |
 | --- | --- | --- |
-| 安装版 | `duanjushijie-1.0.0+74-windows-x64-setup.exe` | 双击安装到当前用户目录，创建开始菜单入口，可选桌面快捷方式；支持系统卸载入口与同版后续覆盖升级 |
-| 便携版 | `duanjushijie-1.0.0+74-windows-x64-portable.zip` | 完整解压后运行 `duanjushijie.exe`，不能只取 EXE；无需安装 |
+| 安装版 | `duanjushijie-1.0.1+75-windows-x64-setup.exe` | 双击安装到当前用户目录，创建开始菜单入口，可选桌面快捷方式；支持系统卸载入口与同版后续覆盖升级 |
+| 便携版 | `duanjushijie-1.0.1+75-windows-x64-portable.zip` | 完整解压后运行 `duanjushijie.exe`，不能只取 EXE；无需安装 |
 
 全站源版把文件名前缀及程序名换为 `quanjushijie`。两种分发形式均包含 Flutter、原生核心、媒体库和 VC 运行库；应用数据仍沿用现有用户目录，便携版不把设置和下载记录改存到程序旁。两版安装目录与卸载标识分别固定，现有应用数据目录仍共享。
 

@@ -3,6 +3,7 @@ import 'package:duanju_app/models.dart';
 import 'package:duanju_app/player_screen.dart';
 import 'package:duanju_app/app_layout.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:media_kit/media_kit.dart';
@@ -325,4 +326,66 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     }
   });
+
+  testWidgets(
+    'desktop hover and seek keep controls hidden while taps and space toggle them',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      try {
+        final repository = RouteRepository();
+        final player = ScriptedPlayer();
+        await mount(tester, repository, player, size: const Size(1280, 720));
+        final controls = find.byKey(const ValueKey('player-speed'));
+        expect(controls.hitTestable(), findsOneWidget);
+        final surface = tester.getRect(
+          find.byKey(const ValueKey('player-gesture-surface')),
+        );
+        final tapPoint = Offset(surface.center.dx, surface.top + 12);
+        await tester.pump(const Duration(seconds: 5));
+        expect(controls.hitTestable(), findsNothing);
+
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        await mouse.addPointer(location: tapPoint);
+        await mouse.moveTo(
+          Offset(surface.center.dx, surface.center.dy),
+        );
+        await tester.pump();
+        expect(controls.hitTestable(), findsNothing);
+
+        await mouse.moveTo(Offset(surface.center.dx, surface.bottom - 8));
+        await tester.pump();
+        expect(controls.hitTestable(), findsOneWidget);
+
+        await tester.tapAt(tapPoint);
+        await tester.pump();
+        expect(controls.hitTestable(), findsNothing);
+        await tester.tapAt(tapPoint);
+        await tester.pump();
+        expect(controls.hitTestable(), findsOneWidget);
+
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.space);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.space);
+        await tester.pump();
+        expect(player.state.playing, isFalse);
+        expect(controls.hitTestable(), findsOneWidget);
+
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.space);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.space);
+        await tester.pump();
+        expect(player.state.playing, isTrue);
+        expect(controls.hitTestable(), findsNothing);
+
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowLeft);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowLeft);
+        await tester.pump();
+        expect(find.textContaining('后退至'), findsOneWidget);
+        expect(controls.hitTestable(), findsNothing);
+
+        await mouse.removePointer();
+        await unmount(tester, player);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    },
+  );
 }

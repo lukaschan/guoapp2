@@ -51,16 +51,23 @@ class PlayerInteractions extends ChangeNotifier {
   bool _disposed = false;
   double _unmutedVolume = 100;
   String _feedback = '';
+  bool _feedbackRevealsControls = false;
   DateTime _ignoreTapUntil = DateTime(2000);
 
   String get feedback => _feedback;
+  bool get feedbackRevealsControls => _feedbackRevealsControls;
   bool get boosting => _boosting;
   bool get suppressTap => DateTime.now().isBefore(_ignoreTapUntil);
   Future<void> get pendingRates => _rates;
 
-  void hint(String message, {bool persistent = false}) {
+  void hint(
+    String message, {
+    bool persistent = false,
+    bool revealControls = true,
+  }) {
     if (_disposed) return;
     _hintTimer?.cancel();
+    _feedbackRevealsControls = revealControls;
     if (_feedback != message) {
       _feedback = message;
       notifyListeners();
@@ -201,7 +208,10 @@ class PlayerInteractions extends ChangeNotifier {
     final target = (player.state.position.inMilliseconds + seconds * 1000)
         .clamp(0, player.state.duration.inMilliseconds);
     unawaited((onSeek ?? player.seek)(Duration(milliseconds: target)));
-    hint('${seconds > 0 ? '快进至' : '后退至'} ${formatPosition(target / 1000)}');
+    hint(
+      '${seconds > 0 ? '快进至' : '后退至'} ${formatPosition(target / 1000)}',
+      revealControls: false,
+    );
   }
 
   void changeVolume(double delta) {

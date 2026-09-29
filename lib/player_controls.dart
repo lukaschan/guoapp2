@@ -89,6 +89,7 @@ class _PlayerControlsState extends State<PlayerControls> {
   bool _visible = true;
   bool _suppressAutoPlaybackStart = false;
   bool _lastPlaying = false;
+  bool _pausedBeforeResume = false;
   double? _seekValue;
 
   bool get _controlsVisible =>
@@ -122,9 +123,15 @@ class _PlayerControlsState extends State<PlayerControls> {
         if (!mounted || !widget.enabled) return;
         setState(() {});
         if (!playing) {
+          if (wasPlaying && !widget.player.state.buffering) {
+            _pausedBeforeResume = true;
+          }
           _show();
         } else if (!wasPlaying) {
-          if (_suppressAutoPlaybackStart) {
+          if (_pausedBeforeResume) {
+            _pausedBeforeResume = false;
+            _hide();
+          } else if (_suppressAutoPlaybackStart) {
             _suppressAutoPlaybackStart = false;
             _scheduleHide();
           } else {
@@ -153,6 +160,7 @@ class _PlayerControlsState extends State<PlayerControls> {
         _suppressAutoPlaybackStart = !widget.player.state.playing;
       } else if (!widget.enabled && oldWidget.enabled) {
         _suppressAutoPlaybackStart = true;
+        _pausedBeforeResume = false;
         _visible = false;
       }
       if (widget.enabled && !oldWidget.enabled) {
@@ -176,7 +184,8 @@ class _PlayerControlsState extends State<PlayerControls> {
     if (widget.interactions.boosting) {
       _hideTimer?.cancel();
       setState(() => _visible = false);
-    } else if (widget.interactions.feedback.isNotEmpty) {
+    } else if (widget.interactions.feedback.isNotEmpty &&
+        widget.interactions.feedbackRevealsControls) {
       _show();
     }
   }
@@ -217,6 +226,11 @@ class _PlayerControlsState extends State<PlayerControls> {
     _scheduleHide();
   }
 
+  void _hide() {
+    _hideTimer?.cancel();
+    if (_visible) setState(() => _visible = false);
+  }
+
   void _tap() {
     if (widget.interactions.suppressTap) return;
     widget.onFocusSurface();
@@ -249,102 +263,112 @@ class _PlayerControlsState extends State<PlayerControls> {
     final position = state.position.inMilliseconds / 1000;
     final buffered = state.buffer.inMilliseconds / 1000;
     final visible = _controlsVisible;
-    return MouseRegion(
-      onHover: (_) => _show(),
-      cursor: visible ? SystemMouseCursors.basic : SystemMouseCursors.none,
-      child: LayoutBuilder(
-        builder: (context, constraints) => Stack(
-          fit: StackFit.expand,
-          children: [
-            Listener(
-              key: const ValueKey('player-gesture-surface'),
+    return LayoutBuilder(
+      builder: (context, constraints) => Stack(
+        fit: StackFit.expand,
+        children: [
+          Listener(
+            key: const ValueKey('player-gesture-surface'),
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: (event) {
+              widget.onFocusSurface();
+              widget.interactions.pointerDown(
+                event,
+                swipeEnabled: widget.swipeEnabled,
+                height: constraints.maxHeight,
+                width: constraints.maxWidth,
+              );
+            },
+            onPointerMove: widget.interactions.pointerMove,
+            onPointerUp: widget.interactions.pointerUp,
+            onPointerCancel: widget.interactions.pointerCancel,
+            child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onPointerDown: (event) {
-                widget.onFocusSurface();
-                widget.interactions.pointerDown(
-                  event,
-                  swipeEnabled: widget.swipeEnabled,
-                  height: constraints.maxHeight,
-                  width: constraints.maxWidth,
-                );
-              },
-              onPointerMove: widget.interactions.pointerMove,
-              onPointerUp: widget.interactions.pointerUp,
-              onPointerCancel: widget.interactions.pointerCancel,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _tap,
-              ),
+              onTap: _tap,
             ),
-            if (state.buffering && widget.enabled)
-              const IgnorePointer(
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            IgnorePointer(
-              ignoring: !visible,
-              child: ExcludeFocus(
-                excluding: !visible,
-                child: AnimatedOpacity(
-                  opacity: visible ? 1 : 0,
-                  duration: const Duration(milliseconds: 180),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      const IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Color(0xAA000000),
-                                Colors.transparent,
-                                Color(0xE6000000),
-                              ],
-                              stops: [0, .45, 1],
-                            ),
+          ),
+          if (!widget.swipeEnabled) _bottomRevealRegion(),
+          if (state.buffering && widget.enabled)
+            const IgnorePointer(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          IgnorePointer(
+            ignoring: !visible,
+            child: ExcludeFocus(
+              excluding: !visible,
+              child: AnimatedOpacity(
+                opacity: visible ? 1 : 0,
+                duration: const Duration(milliseconds: 180),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    const IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0xAA000000),
+                              Colors.transparent,
+                              Color(0xE6000000),
+                            ],
+                            stops: [0, .45, 1],
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          8,
-                          _topChromeInset(),
-                          8,
-                          _bottomChromeInset(),
-                        ),
-                        child: Stack(
-                          children: [
-                            if (widget.fullscreen || widget.swipeEnabled)
-                              _topBar(),
-                            if (!state.buffering &&
-                                widget.enabled &&
-                                constraints.maxHeight >=
-                                    (widget.swipeEnabled ? 168 : 220))
-                              _centerPlayback(state.playing, showSkip: true),
-                            _sideDanmakuControl(),
-                            _bottomControls(
-                              constraints: constraints,
-                              volume: state.volume,
-                              duration: duration,
-                              position: position,
-                              buffered: buffered,
-                            ),
-                          ],
-                        ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        8,
+                        _topChromeInset(),
+                        8,
+                        _bottomChromeInset(),
                       ),
-                    ],
-                  ),
+                      child: Stack(
+                        children: [
+                          if (widget.fullscreen || widget.swipeEnabled)
+                            _topBar(),
+                          if (!state.buffering &&
+                              widget.enabled &&
+                              constraints.maxHeight >=
+                                  (widget.swipeEnabled ? 168 : 220))
+                            _centerPlayback(state.playing, showSkip: true),
+                          _sideDanmakuControl(),
+                          _bottomControls(
+                            constraints: constraints,
+                            volume: state.volume,
+                            duration: duration,
+                            position: position,
+                            buffered: buffered,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            _gestureFeedback(),
-            _boostBadge(),
-          ],
-        ),
+          ),
+          _gestureFeedback(),
+          _boostBadge(),
+        ],
       ),
     );
   }
+
+  Widget _bottomRevealRegion() => Positioned(
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 72,
+    child: MouseRegion(
+      opaque: false,
+      hitTestBehavior: HitTestBehavior.translucent,
+      onHover: (_) => _show(),
+      child: const SizedBox.expand(),
+    ),
+  );
 
   Widget _topBar() {
     final compact = widget.swipeEnabled && !widget.fullscreen;
