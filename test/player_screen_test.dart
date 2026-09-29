@@ -348,9 +348,7 @@ void main() {
 
         final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
         await mouse.addPointer(location: tapPoint);
-        await mouse.moveTo(
-          Offset(surface.center.dx, surface.center.dy),
-        );
+        await mouse.moveTo(Offset(surface.center.dx, surface.center.dy));
         await tester.pump();
         expect(controls.hitTestable(), findsNothing);
 
