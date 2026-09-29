@@ -7,7 +7,6 @@ import 'package:flutter/services.dart';
 import 'app_layout.dart';
 import 'core_bridge.dart';
 import 'download_collections.dart';
-import 'ios_dialogs.dart';
 import 'local_store.dart';
 import 'local_media_screen.dart';
 import 'models.dart';
