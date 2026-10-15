@@ -17,6 +17,8 @@ import (
 
 const hongguoAppBaseURL = "https://api5-normal-sinfonlineb.fqnovel.com"
 
+const hongguoVideoModelPath = "/novel/player/video_model/v1/"
+
 const hongguoAppUserAgent = "com.phoenix.read/73532 (Linux; U; Android 16; zh_CN; 25053RT47C; Build/BP2A.250605.031.A3; Cronet/TTNetVersion:04657795 2026-01-23 QuicVersion:c67e9834 2025-09-08)"
 
 type hongguoCatalogCursor struct {
@@ -193,7 +195,9 @@ func (downloader *Downloader) hongguoAppRequest(ctx context.Context, method, pat
 			prepared.URL.RawQuery = query.Encode()
 			if comment {
 				signHongguoCommentRequest(prepared, commentNonce, now)
-			} else {
+			} else if path != hongguoVideoModelPath {
+				// The playback model endpoint silently returns an empty HTTP 200
+				// when sent the legacy X-Gorgon signature. Keep its request unsigned.
 				signHongguoRequest(prepared, body, now)
 			}
 		})
