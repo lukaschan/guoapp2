@@ -39,10 +39,13 @@ func (d *Downloader) providerBaseURL(source string) string {
 		configured, fallback = d.cfg.YeguoURL, yeguoBaseURL
 	case sourceDSD:
 		configured, fallback = d.cfg.DSDURL, dsdBaseURL
+	case sourceSorani:
+		configured, fallback = d.cfg.SoraniURL, soraniSiteBaseURL
+	case sourceGuipian:
+		configured, fallback = d.cfg.GuipianURL, guipianSiteBaseURL
+	case sourceHanxiaoquan:
+		configured, fallback = d.cfg.HanxiaoquanURL, hanxiaoquanSiteBaseURL
 	default:
-		if spec, found := duanjuSourceSpecFor(source); found {
-			return d.duanjuBaseURL(spec.ID)
-		}
 		fallback = "https://d2pypzndaqisk.cloudfront.net"
 	}
 	return strings.TrimRight(firstNonEmpty(configured, fallback), "/")
@@ -65,21 +68,27 @@ func providerSourceForURL(raw string) string {
 		return sourceHongguo
 	case host == "huangju.net" || host == "www.huangju.net" || host == "api.huangju.net":
 		return sourceHuangju
-	case host == "ygdj7.com" || host == "www.ygdj7.com" ||
+	case host == "ygdj7.com" || host == "www.ygdj7.com" || host == "ygdj15.com" || host == "www.ygdj15.com" ||
 		host == "analyze.buxefaex.cc" || strings.HasSuffix(host, ".buxefaex.cc") ||
-		strings.HasSuffix(host, ".fzchosdi.cc") ||
+		strings.HasSuffix(host, ".fzchosdi.cc") || strings.HasSuffix(host, ".lwblvxvy.cc") ||
 		host == "delta.ygrwdsgt.cc" || host == "yeguodj.com" || host == "www.yeguodj.com":
 		return sourceYeguo
 	case host == "dsd.com.se" || host == "www.dsd.com.se":
 		return sourceDSD
+	case host == "sorani.net" || host == "www.sorani.net" || host == "api.sorani.cc" || host == "sorani.cc":
+		return sourceSorani
+	case host == "guipianwu.com" || host == "www.guipianwu.com":
+		return sourceGuipian
+	case host == "jennyhow.com" || host == "www.jennyhow.com":
+		return sourceHanxiaoquan
 	default:
-		return duanjuSourceForHost(host)
+		return ""
 	}
 }
 
 func (d *Downloader) providerURLCandidates(raw string) []string {
 	source := providerSourceForURL(raw)
-	if source == "" || source == sourceHuangju || source == sourceYeguo || isDuanjuProviderSource(source) {
+	if source == "" || source == sourceHuangju || source == sourceYeguo {
 		return []string{raw}
 	}
 	parsed, _ := url.Parse(raw)
@@ -124,8 +133,14 @@ func (d *Downloader) resolveProviderMedia(ctx context.Context, task Task) (provi
 	if chapter.Source == sourceDSD {
 		return d.resolveDSDMedia(ctx, task)
 	}
-	if isDuanjuProviderSource(chapter.Source) {
-		return d.resolveDuanjuMedia(ctx, task)
+	if chapter.Source == sourceSorani {
+		return d.resolveSoraniMedia(ctx, task)
+	}
+	if chapter.Source == sourceGuipian {
+		return d.resolveGuipianMedia(ctx, task)
+	}
+	if chapter.Source == sourceHanxiaoquan {
+		return d.resolveHanxiaoquanMedia(ctx, task)
 	}
 	if strings.HasPrefix(chapter.VideoURL, "hongguo-cenc://") {
 		return d.resolveHongguoMedia(ctx, task)
