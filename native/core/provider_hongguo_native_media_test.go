@@ -21,7 +21,7 @@ func newHongguoRequestTestDownloader(server *httptest.Server) *Downloader {
 
 func TestHongguoVideoModelRequestOmitsLegacySignature(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost || r.URL.Path != hongguoVideoModelPath {
+		if r.Method != http.MethodPost || r.URL.Path != "/novel/player/video_model/v1/" {
 			t.Errorf("unexpected playback request: %s %s", r.Method, r.URL.Path)
 		}
 		for _, name := range []string{"X-Gorgon", "X-Khronos", "X-SS-STUB", "X-SS-Req-Ticket"} {
