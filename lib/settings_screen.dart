@@ -20,7 +20,6 @@ import 'app_build.dart';
 import 'sources_screen.dart';
 import 'widgets.dart';
 import 'resource_settings_screen.dart';
-import 'lan_screen.dart';
 
 String storageSize(int bytes) {
   if (bytes < 0) return '暂不可用';
@@ -157,14 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          ListTile(
-            key: const ValueKey('lan-settings'),
-            leading: const Icon(Icons.devices_rounded),
-            title: const Text('设备互联'),
-            subtitle: const Text('局域网自动同步追剧与推送播放'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => openLanSync(context),
-          ),
+          // 设备互联入口已隐藏：上游核心 1.0.6 起不再提供 LAN 支持，待移植后再恢复。
           if (widget.repository.supportsSourceManagement)
             ListTile(
               leading: const Icon(Icons.dns_outlined),
@@ -510,14 +502,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       children: [
         _glassSection('通用', [
-          _glassRow(
-            key: const ValueKey('lan-settings'),
-            icon: LucideIcons.monitorSmartphone,
-            color: const Color(0xFF0A84FF),
-            title: '设备互联',
-            detail: '同步与推送',
-            onTap: () => openLanSync(context),
-          ),
           if (widget.repository.supportsSourceManagement)
             _glassRow(
               icon: LucideIcons.server,

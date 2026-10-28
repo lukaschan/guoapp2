@@ -20,7 +20,6 @@ import 'detail_screen.dart';
 import 'playback_launch_screen.dart';
 import 'downloads_screen.dart';
 import 'local_store.dart';
-import 'lan_screen.dart';
 import 'models.dart';
 import 'remote_widgets.dart';
 import 'widgets.dart';
@@ -911,15 +910,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _cancelSelection,
           ),
         ] else ...[
-          if (_tab == 1) ...[
-            GlassIconButton(
-              key: const ValueKey('follow-lan-sync'),
-              icon: LucideIcons.monitorSmartphone,
-              tooltip: '追剧同步',
-              onPressed: () => openLanSync(context),
-            ),
-            const SizedBox(width: 8),
-          ],
           if (catalog) ...[
             GlassButtonGroup(
               children: [
@@ -1097,13 +1087,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: const Text('取消'),
                       ),
                     ] else ...[
-                      if (_tab == 1)
-                        IconButton(
-                          key: const ValueKey('follow-lan-sync'),
-                          tooltip: '追剧同步',
-                          onPressed: () => openLanSync(context),
-                          icon: const Icon(Icons.sync_rounded),
-                        ),
                       if (_tab == 0) ...[
                         if (!_showRecommendations)
                           IconButton(
