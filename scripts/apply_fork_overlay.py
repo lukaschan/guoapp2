@@ -20,6 +20,7 @@
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
@@ -62,16 +63,28 @@ def main():
     for source in sorted((fork_dir / 'core').glob('*.go')):
         shutil.copy2(source, core / source.name)
     # 4. 打补丁（先逐个 --check，报错时指出是哪个文件）。
-    for patch in patches:
-        check = subprocess.run(
-            ['git', '-C', str(upstream), 'apply', '--check', str(patch)],
-            capture_output=True, text=True)
-        if check.returncode != 0:
-            print(check.stderr, file=sys.stderr)
-            raise SystemExit(
-                f'补丁打不上：{patch.name}，上游改了同处代码，'
-                '请人工重排该补丁后再构建（不要强行跳过）。')
-        run(['git', '-C', str(upstream), 'apply', str(patch)])
+    # 补丁文件在 Windows 检出时可能被转成 CRLF，而目标 .go 文件固定是 LF，
+    # 行尾不一致时 git apply 会直接失败；这里先统一转成 LF 再打。
+    with tempfile.TemporaryDirectory() as tmp:
+        normalized = []
+        for patch in patches:
+            data = patch.read_bytes()
+            if b'\r\n' in data:
+                target = Path(tmp) / patch.name
+                target.write_bytes(data.replace(b'\r\n', b'\n'))
+                normalized.append(target)
+            else:
+                normalized.append(patch)
+        for patch, source in zip(normalized, patches):
+            check = subprocess.run(
+                ['git', '-C', str(upstream), 'apply', '--check', str(patch)],
+                capture_output=True, text=True)
+            if check.returncode != 0:
+                print(check.stderr, file=sys.stderr)
+                raise SystemExit(
+                    f'补丁打不上：{source.name}，上游改了同处代码，'
+                    '请人工重排该补丁后再构建（不要强行跳过）。')
+            run(['git', '-C', str(upstream), 'apply', str(patch)])
     print(f'fork 覆盖层已合入：{len(patched)} 个补丁，'
           f'{len(list((fork_dir / "core").glob("*.go")))} 个新增文件。')
 
