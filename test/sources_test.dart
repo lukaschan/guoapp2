@@ -64,47 +64,39 @@ class SourceFixtureRepository extends FixtureRepository {
 
 void main() {
   test(
-    'twelve short-drama sources are registered and paged search is scoped',
+    'full-edition sources match the core set and retired sources are gone',
     () {
       const expected = {
-        'yaguo',
-        'maoguo',
-        'fanguo',
-        'guanguo',
-        'heguo',
-        'xingguo',
-        'huaguo',
-        'niuguo',
-        'wangguo',
-        'faguo',
-        'piguo',
-        'wuguo',
+        'hongguo',
+        'huangdou',
+        'huangju',
+        'yeguo',
+        'dsd',
+        'huangguo-video',
+        'huangguoai',
+        'cloudfront',
+        'sorani',
+        'guipian',
+        'hanxiaoquan',
       };
-      final actual = SourceSite.duanjuValues.map((source) => source.id).toSet();
-      expect(actual, expected);
       expect(
         SourceSite.knownValues.map((source) => source.id).toSet(),
-        containsAll(expected),
+        expected,
       );
-      for (final source in SourceSite.duanjuValues) {
-        expect(SourceSite.isKnown(source.id), isTrue);
-        expect(source.onlineSearch, isTrue);
-      }
       expect(
-        SourceSite.duanjuValues
-            .where((source) => source.pagedSearch)
-            .map((source) => source.id),
-        containsAll({
-          'yaguo',
-          'guanguo',
-          'huaguo',
-          'niuguo',
-          'wangguo',
-          'faguo',
-          'piguo',
-          'wuguo',
-        }),
+        SourceSite.allValues.map((source) => source.id).toSet(),
+        expected,
       );
+      for (final id in ['sorani', 'guipian', 'hanxiaoquan']) {
+        final source = SourceSite.byId(id);
+        expect(source.id, id);
+        expect(source.onlineSearch, isTrue);
+        expect(source.pagedSearch, isTrue);
+      }
+      for (final id in SourceSite.retiredSourceIds) {
+        expect(SourceSite.isKnown(id), isFalse);
+        expect(SourceSite.isAvailable(id), isFalse);
+      }
     },
   );
 
