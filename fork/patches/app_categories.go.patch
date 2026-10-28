@@ -1,0 +1,40 @@
+--- a/native/core/app_categories.go
++++ b/native/core/app_categories.go
+@@ -63,12 +63,9 @@
+ 		return validYeguoCategory(category)
+ 	case sourceDSD:
+ 		return webProviderNumericID.MatchString(category)
+-	case sourceSorani:
+-		return validSoraniCategory(category)
+-	case sourceGuipian:
+-		return validGuipianCategory(category)
+-	case sourceHanxiaoquan:
+-		return validHanxiaoquanCategory(category)
++	}
++	if isDuanjuProviderSource(source) {
++		return validDuanjuCategory(source, category)
+ 	}
+ 	return false
+ }
+@@ -129,13 +126,15 @@
+ 		if err == nil {
+ 			all = append(all, categories...)
+ 		}
+-	case sourceSorani:
+-		all = append(all, d.fetchSoraniCategories()...)
+-	case sourceGuipian:
+-		all = append(all, d.fetchGuipianCategories()...)
+-	case sourceHanxiaoquan:
+-		all = append(all, d.fetchHanxiaoquanCategories()...)
+ 	default:
++		if isDuanjuProviderSource(source) {
++			var categories []nativeCategory
++			categories, err = d.fetchDuanjuCategories(ctx, source)
++			if err == nil {
++				all = append(all, categories...)
++			}
++			break
++		}
+ 		return nil, errors.New("请选择有效站源")
+ 	}
+ 	if err != nil {

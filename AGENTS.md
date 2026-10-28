@@ -39,3 +39,23 @@
 不要查看、下载、分析或处理站源图片。页面可正常显示海报地址；开发验证使用合成数据或拦截图片请求。用户直接提供的界面截图可以查看。
 
 遵守先实现后集中验证的节奏；未经用户明确要求，不启动子 AGENT。
+
+## 上游核心引用（本 fork 自有约定，2026-10-28 起）
+
+Go 核心不再 vendored：`upstream/` 为 Xanerix/guoapp 的 git submodule，
+核心在 `upstream/native/`。构建脚本（`scripts/build_native.py`、
+`scripts/build_ios.py`）与 CI 的 go test 都先跑
+`scripts/apply_fork_overlay.py`，把 fork 改动合入 submodule 工作区再编译。
+
+fork 改动分两处，全在 `fork/` 里，不直接改 submodule 文件：
+- `fork/core/*.go`：fork 新增文件（短剧派发系列、弹幕 emoji 等），构建时拷入；
+- `fork/patches/*.patch`：fork 对上游文件的 6 处改动（app_runtime 的
+  selectRoute 与短剧分支等），构建时按顺序打上。
+
+补丁打不上时构建直接失败：说明上游改了同处代码，需要人工把该补丁重排
+到新版上游上再构建，不要跳过。跑完构建后 `git status` 显示 upstream/
+有修改是正常的构建态，不要在 upstream/ 里提交；下次构建会先还原再重打。
+
+同步：`.github/workflows/sync-upstream.yml` 每隔天检查上游 main，有更新时
+移动指针、验证覆盖层合入与核心编译通过，再升 pubspec 版本、补 CHANGELOG
+并推送到 main；推送触发 build.yml 构建发版。验证失败时不推送，等人工处理。

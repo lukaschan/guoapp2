@@ -3,6 +3,7 @@ import os
 import platform
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from app_build import BuildVariant, add_variant_argument
@@ -15,6 +16,9 @@ add_variant_argument(parser)
 options = parser.parse_args()
 variant = BuildVariant(options.all_sources)
 
+# 核心来自上游 submodule：先把 fork 覆盖层（新增文件 + 补丁）合入工作区。
+subprocess.run([sys.executable, str(root / 'scripts' / 'apply_fork_overlay.py')], check=True)
+
 environment = os.environ.copy()
 environment.setdefault('GOPROXY', 'https://goproxy.cn,direct')
 environment.setdefault('GOSUMDB', 'off')
@@ -26,7 +30,7 @@ bootstrap_env = environment.copy()
 bootstrap_env['GOSUMDB'] = os.environ.get('GOSUMDB', 'sum.golang.org')
 if bootstrap_env['GOSUMDB'] == 'off':
     bootstrap_env['GOSUMDB'] = 'sum.golang.org'
-toolchain_root = subprocess.check_output([go, 'env', 'GOROOT'], cwd=root / 'native',
+toolchain_root = subprocess.check_output([go, 'env', 'GOROOT'], cwd=root / 'upstream' / 'native',
     env=bootstrap_env, text=True).strip()
 go = str(Path(toolchain_root) / 'bin' / ('go.exe' if platform.system() == 'Windows' else 'go'))
 
@@ -39,7 +43,7 @@ def build(goos, architecture, compiler, output, extra=None):
     print('Building ' + str(output.relative_to(root)), flush=True)
     subprocess.run([go, 'build', '-trimpath', '-buildmode=c-shared',
                     '-ldflags=' + variant.linker_flags, '-o', str(output), './bridge'],
-                   cwd=root / 'native', env=build_env, check=True)
+                   cwd=root / 'upstream' / 'native', env=build_env, check=True)
 
 if options.platform == 'android':
     sdk = os.environ.get('ANDROID_HOME') or os.environ.get('ANDROID_SDK_ROOT')
@@ -74,4 +78,4 @@ else:
     if not compiler:
         raise SystemExit('需要安装 Xcode Command Line Tools。')
     build('darwin', 'arm64' if platform.machine() == 'arm64' else 'amd64', compiler,
-          root / 'native' / 'build' / 'darwin' / 'libduanju_core.dylib')
+          root / 'upstream' / 'native' / 'build' / 'darwin' / 'libduanju_core.dylib')

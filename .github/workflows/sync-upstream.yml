@@ -1,0 +1,100 @@
+# 每隔天检查上游核心（Xanerix/guoapp）更新：有更新时移动 submodule 指针，
+# 验证 fork 覆盖层（新增文件 + 补丁）能合入且核心可编译，再升版并推送。
+# 推送到 main 后，build.yml（push 触发）会自动构建并发布新 Release。
+# 覆盖层合入失败或编译失败时本工作流直接失败、不推送，等人工重排补丁。
+# 注意：不要在这里加 gh workflow run 触发构建，那会和 push 触发重复跑。
+
+name: 同步上游核心
+
+on:
+  schedule:
+    - cron: '17 3 */2 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+env:
+  GOPROXY: https://proxy.golang.org,direct
+  GOSUMDB: sum.golang.org
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: upstream/native/go.mod
+          cache-dependency-path: upstream/native/go.sum
+      - name: 检查上游核心更新
+        id: update
+        run: |
+          set -euo pipefail
+          git -C upstream fetch origin main
+          OLD="$(git -C upstream rev-parse HEAD)"
+          NEW="$(git -C upstream rev-parse origin/main)"
+          if [ "$OLD" = "$NEW" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "上游核心无更新，指针已是最新。"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "上游核心有更新：$OLD -> $NEW"
+            git -C upstream log --oneline "$OLD..$NEW" | head -20
+          fi
+      - name: 更新指针并验证覆盖层
+        id: verify
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git -C upstream checkout "$(git -C upstream rev-parse origin/main)"
+          python3 scripts/apply_fork_overlay.py
+          cd upstream/native && go build ./core/ && go vet ./core/
+          echo "commit=$(git -C upstream rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "subject=$(git -C upstream log -1 --format=%s)" >> "$GITHUB_OUTPUT"
+      - name: 升版并补更新日志
+        id: bump
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          python3 - <<'PYEOF'
+          import os
+          import re
+          pubspec = open('pubspec.yaml').read()
+          m = re.search(r'^version:\s*(\d+)\.(\d+)\.(\d+)\+(\d+)\s*$',
+                        pubspec, re.M)
+          assert m, 'pubspec.yaml 版本格式无法递增'
+          major, minor, patch, build = (int(x) for x in m.groups())
+          new_ver = f'{major}.{minor}.{patch + 1}+{build + 1}'
+          pubspec = pubspec[:m.start()] + f'version: {new_ver}\n' + pubspec[m.end():]
+          open('pubspec.yaml', 'w').write(pubspec)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f'version={new_ver}\n')
+          section = (f'## {new_ver}\n\n'
+                     f'- 同步上游核心到 Xanerix/guoapp '
+                     f'`{os.environ["COMMIT"]}`（{os.environ["SUBJECT"]}）。\n\n')
+          lines = open('CHANGELOG.md').read().splitlines(keepends=True)
+          idx = next((i for i, ln in enumerate(lines)
+                      if ln.startswith('## ')), len(lines))
+          lines[idx:idx] = [section]
+          open('CHANGELOG.md', 'w').write(''.join(lines))
+          print(f'pubspec 版本 -> {new_ver}，CHANGELOG 已补一节')
+          PYEOF
+        env:
+          COMMIT: ${{ steps.verify.outputs.commit }}
+          SUBJECT: ${{ steps.verify.outputs.subject }}
+      - name: 提交并推送（指针 + 版本 + 更新日志）
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git add upstream pubspec.yaml CHANGELOG.md
+          git -c user.name=github-actions -c user.email=github-actions@github.com \
+            commit -m "同步上游核心到 ${{ steps.verify.outputs.commit }}，版本升至 ${{ steps.bump.outputs.version }}"
+          git push origin HEAD:main

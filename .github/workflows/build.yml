@@ -30,11 +30,15 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: 合入 fork 覆盖层（供 go test）
+        run: python3 scripts/apply_fork_overlay.py
       - run: python3 -m unittest discover -s scripts -p 'test_*.py'
       - uses: actions/setup-go@v5
         with:
-          go-version-file: native/go.mod
-          cache-dependency-path: native/go.sum
+          go-version-file: upstream/native/go.mod
+          cache-dependency-path: upstream/native/go.sum
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.4'
@@ -47,9 +51,9 @@ jobs:
       - run: flutter test --dart-define=DISABLE_REMOTE_IMAGES=true
       - run: flutter test --dart-define=DISABLE_REMOTE_IMAGES=true --dart-define=ALL_SOURCES=true
       - run: go test -race ./...
-        working-directory: native
+        working-directory: upstream/native
       - run: go test -race -ldflags="-X duanjuapp/native/core.buildAllSources=true" ./...
-        working-directory: native
+        working-directory: upstream/native
 
   android:
     runs-on: ubuntu-latest
@@ -64,6 +68,8 @@ jobs:
             arguments: '--all-sources'
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -73,8 +79,8 @@ jobs:
           java-version: '17'
       - uses: actions/setup-go@v5
         with:
-          go-version-file: native/go.mod
-          cache-dependency-path: native/go.sum
+          go-version-file: upstream/native/go.mod
+          cache-dependency-path: upstream/native/go.sum
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.4'
@@ -114,10 +120,12 @@ jobs:
             arguments: '--all-sources'
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-go@v5
         with:
-          go-version-file: native/go.mod
-          cache-dependency-path: native/go.sum
+          go-version-file: upstream/native/go.mod
+          cache-dependency-path: upstream/native/go.sum
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -177,13 +185,15 @@ jobs:
             arguments: '--all-sources'
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - uses: actions/setup-go@v5
         with:
-          go-version-file: native/go.mod
-          cache-dependency-path: native/go.sum
+          go-version-file: upstream/native/go.mod
+          cache-dependency-path: upstream/native/go.sum
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.4'
@@ -214,6 +224,19 @@ jobs:
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: 读取本版更新日志
+        id: notes
+        run: |
+          python3 - <<'PYEOF'
+          import os
+          import re
+          text = open('CHANGELOG.md').read() if os.path.exists('CHANGELOG.md') else ''
+          ver = '${{ steps.version.outputs.version }}'
+          m = re.search(rf'^## {re.escape(ver)}\n(.*?)(?=^## |\Z)', text, re.S | re.M)
+          body = m.group(1).strip() if m else ''
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('body<<EOF\n' + body + '\nEOF\n')
+          PYEOF
       - uses: actions/download-artifact@v4
         with:
           pattern: duanjushijie-*
@@ -226,6 +249,7 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: 短剧视界 ${{ steps.version.outputs.version }}
+          body: ${{ steps.notes.outputs.body }}
           files: |
             release/**/*.apk
             release/**/*.ipa

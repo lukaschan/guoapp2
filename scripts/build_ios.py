@@ -61,6 +61,8 @@ def run(arguments, **kwargs):
 def build_core(simulator=False, variant=BuildVariant()):
     if platform.system() != 'Darwin':
         raise SystemExit('iOS 构建需要 macOS 和完整 Xcode。')
+    # 核心来自上游 submodule：先把 fork 覆盖层（新增文件 + 补丁）合入工作区。
+    subprocess.run([sys.executable, str(root / 'scripts' / 'apply_fork_overlay.py')], check=True)
     go = shutil.which('go')
     if not go:
         raise SystemExit('请安装 Go 1.24.1 或更新版本。')
@@ -79,7 +81,7 @@ def build_core(simulator=False, variant=BuildVariant()):
     for sdk, architecture, triple in slices:
         sdk_path = subprocess.check_output(['xcrun', '--sdk', sdk, '--show-sdk-path'], text=True).strip()
         compiler = subprocess.check_output(['xcrun', '--sdk', sdk, '--find', 'clang'], text=True).strip()
-        directory = root / 'native' / 'build' / 'ios' / f'{sdk}-{architecture}'
+        directory = root / 'upstream' / 'native' / 'build' / 'ios' / f'{sdk}-{architecture}'
         headers = directory / 'Headers'
         headers.mkdir(parents=True, exist_ok=True)
         output = directory / 'libDuanjuCore.a'
@@ -89,14 +91,14 @@ def build_core(simulator=False, variant=BuildVariant()):
             'CGO_CFLAGS': flags, 'CGO_LDFLAGS': flags,
         }
         run([go, 'build', '-trimpath', '-buildmode=c-archive', '-ldflags=' + variant.linker_flags,
-             '-o', str(output), './bridge'], cwd=root / 'native', env=build_env)
+             '-o', str(output), './bridge'], cwd=root / 'upstream' / 'native', env=build_env)
         shutil.copy2(output.with_suffix('.h'), headers / 'DuanjuCore.h')
         libraries.append((sdk, output, headers))
     arguments = ['xcodebuild', '-create-xcframework']
     device = libraries[0]
     arguments.extend(['-library', str(device[1]), '-headers', str(device[2])])
     if simulator:
-        universal = root / 'native' / 'build' / 'ios' / 'simulator-universal'
+        universal = root / 'upstream' / 'native' / 'build' / 'ios' / 'simulator-universal'
         universal.mkdir(parents=True, exist_ok=True)
         archive = universal / 'libDuanjuCore.a'
         run(['xcrun', 'lipo', '-create', str(libraries[1][1]), str(libraries[2][1]), '-output', str(archive)])
