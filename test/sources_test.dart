@@ -124,43 +124,31 @@ void main() {
     store.dispose();
   });
 
-  testWidgets(
-    'source check prevents duplicate submits and can stop without losing cache',
-    (tester) async {
-      SharedPreferences.setMockInitialValues({});
-      final store = LocalStore(await SharedPreferences.getInstance());
-      final repository = SourceFixtureRepository()
-        ..pending = Completer<SourceStatus>();
-      await tester.pumpWidget(
-        MaterialApp(
-          home: SourcesScreen(repository: repository, store: store),
+  testWidgets('source cards expose no unsupported job actions', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = LocalStore(await SharedPreferences.getInstance());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SourcesScreen(
+          repository: SourceFixtureRepository(),
+          store: store,
         ),
-      );
-      await tester.pumpAndSettle();
-      final check = find.byKey(const ValueKey('check-hongguo'));
-      await tester.tap(check);
-      await tester.pump();
-      await tester.tap(check);
-      expect(repository.operations, ['hongguo:check']);
-      expect(tester.widget<OutlinedButton>(check).onPressed, isNull);
-      repository.pending!.complete(
-        SourceStatus.fromJson({
-          'source': 'hongguo',
-          'count': 3,
-          'running': true,
-          'stage': '查找新剧',
-        }),
-      );
-      await tester.pump();
-      await tester.tap(find.text('停止').first);
-      await tester.pumpAndSettle();
-      expect(repository.operations, ['hongguo:check', 'hongguo:cancel']);
-      expect(find.text('已停止'), findsOneWidget);
-      expect(find.text('3 部'), findsWidgets);
-      await tester.pumpWidget(const SizedBox.shrink());
-      store.dispose();
-    },
-  );
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('更新'), findsNothing);
+    expect(find.text('检测连接与播放'), findsNothing);
+    expect(find.text('停止'), findsNothing);
+    expect(find.text('重试保存'), findsNothing);
+    expect(find.text('继续加载一页'), findsNothing);
+    expect(find.text('补齐资料'), findsNothing);
+    expect(find.text('仅检测目录'), findsNothing);
+    expect(find.byKey(const ValueKey('check-hongguo')), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    store.dispose();
+  });
 
   testWidgets(
     'source manager requests only the current user permitted compiled sources',

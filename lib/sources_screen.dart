@@ -91,7 +91,8 @@ class _SourcesScreenState extends State<SourcesScreen> {
             } catch (error) {
               if (mounted &&
                   epoch == widget.store.profileEpoch &&
-                  revision == (_revisions[source.id] ?? 0)) {
+                  revision == (_revisions[source.id] ?? 0) &&
+                  !error.toString().contains('不支持的应用操作')) {
                 setState(() => _errors[source.id] = error.toString());
               }
             }
@@ -187,7 +188,7 @@ class _SourcesScreenState extends State<SourcesScreen> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(bottom: 16),
-                    child: Text('各站源可分别检测连接与播放；离开此页后任务继续。'),
+                    child: Text('各站源仅展示状态，不提供更新或检测操作。'),
                   ),
                   if (sources.isEmpty)
                     const Padding(
@@ -210,8 +211,6 @@ class _SourcesScreenState extends State<SourcesScreen> {
     final pending = _pending.contains(source.id);
     final busy = pending || status?.running == true;
     final seconds = status?.retrySeconds ?? 0;
-    final enabled =
-        !busy && seconds == 0 && widget.repository.supportsSourceManagement;
     final error = _errors[source.id] ?? status?.error ?? '';
     final health = status?.health;
     final healthExpanded = _expandedHealth.contains(source.id);
@@ -243,48 +242,6 @@ class _SourcesScreenState extends State<SourcesScreen> {
               Text(
                 '已加载至第 ${status.page} 页${status.hasMore ? ' · 可继续加载' : ' · 当前分页已加载完'}',
               ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 10,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                OutlinedButton.icon(
-                  key: ValueKey('check-${source.id}'),
-                  onPressed: enabled ? () => _run(source, 'check') : null,
-                  icon: const Icon(Icons.network_check),
-                  label: const Text('检测连接与播放'),
-                ),
-                if (status?.running == true)
-                  TextButton(
-                    onPressed: pending ? null : () => _run(source, 'cancel'),
-                    child: const Text('停止'),
-                  ),
-                PopupMenuButton<String>(
-                  tooltip: '${source.name}更多操作',
-                  enabled: enabled,
-                  onSelected: (operation) => _run(source, operation),
-                  itemBuilder: (_) => [
-                    PopupMenuItem(
-                      value: 'more',
-                      enabled: status?.hasMore ?? true,
-                      child: const Text('继续加载一页'),
-                    ),
-                    const PopupMenuItem(value: 'metadata', child: Text('补齐资料')),
-                    if (source.id == 'huangdou')
-                      PopupMenuItem(
-                        value: 'vipMetadata',
-                        enabled: (status?.unknownVip ?? 0) > 0,
-                        child: Text('补齐 VIP 资料（${status?.unknownVip ?? 0} 部）'),
-                      ),
-                    const PopupMenuItem(
-                      value: 'checkCatalog',
-                      child: Text('仅检测目录'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
             if (busy) ...[
               const SizedBox(height: 12),
               LinearProgressIndicator(
@@ -321,23 +278,9 @@ class _SourcesScreenState extends State<SourcesScreen> {
             if (status != null && status.storageError.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      status.storageError,
-                      style: TextStyle(color: colors.error),
-                    ),
-                    TextButton.icon(
-                      key: ValueKey('save-${source.id}'),
-                      onPressed:
-                          !busy && widget.repository.supportsSourceManagement
-                          ? () => _run(source, 'retrySave')
-                          : null,
-                      icon: const Icon(Icons.save_outlined),
-                      label: const Text('重试保存'),
-                    ),
-                  ],
+                child: Text(
+                  status.storageError,
+                  style: TextStyle(color: colors.error),
                 ),
               ),
             if (health != null) ...[

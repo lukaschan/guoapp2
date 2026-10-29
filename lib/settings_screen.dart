@@ -161,7 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ListTile(
               leading: const Icon(Icons.dns_outlined),
               title: const Text('站源管理'),
-              subtitle: const Text('连接与播放检测'),
+              subtitle: const Text('查看各站源状态'),
               trailing: const Icon(Icons.chevron_right_rounded),
               onTap: () => Navigator.push(
                 context,
