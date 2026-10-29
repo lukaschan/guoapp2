@@ -125,7 +125,7 @@ void main() {
   });
 
   testWidgets(
-    'source update prevents duplicate submits and can stop without losing cache',
+    'source check prevents duplicate submits and can stop without losing cache',
     (tester) async {
       SharedPreferences.setMockInitialValues({});
       final store = LocalStore(await SharedPreferences.getInstance());
@@ -137,12 +137,12 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      final update = find.byKey(const ValueKey('update-hongguo'));
-      await tester.tap(update);
+      final check = find.byKey(const ValueKey('check-hongguo'));
+      await tester.tap(check);
       await tester.pump();
-      await tester.tap(update);
-      expect(repository.operations, ['hongguo:update']);
-      expect(tester.widget<FilledButton>(update).onPressed, isNull);
+      await tester.tap(check);
+      expect(repository.operations, ['hongguo:check']);
+      expect(tester.widget<OutlinedButton>(check).onPressed, isNull);
       repository.pending!.complete(
         SourceStatus.fromJson({
           'source': 'hongguo',
@@ -154,7 +154,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.text('停止').first);
       await tester.pumpAndSettle();
-      expect(repository.operations, ['hongguo:update', 'hongguo:cancel']);
+      expect(repository.operations, ['hongguo:check', 'hongguo:cancel']);
       expect(find.text('已停止'), findsOneWidget);
       expect(find.text('3 部'), findsWidgets);
       await tester.pumpWidget(const SizedBox.shrink());

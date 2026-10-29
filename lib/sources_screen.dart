@@ -187,9 +187,7 @@ class _SourcesScreenState extends State<SourcesScreen> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      '各站源可分别更新和检测。更新会查找新剧、继续加载一页历史内容，并分批补齐资料；离开此页后任务继续。',
-                    ),
+                    child: Text('各站源可分别检测连接与播放；离开此页后任务继续。'),
                   ),
                   if (sources.isEmpty)
                     const Padding(
@@ -197,28 +195,7 @@ class _SourcesScreenState extends State<SourcesScreen> {
                       child: Text('当前用户没有可用站源'),
                     ),
                   for (final group in SourceGroup.fromSources(sources))
-                    if (group.id == 'huangguo')
-                      Card(
-                        clipBehavior: Clip.antiAlias,
-                        child: ExpansionTile(
-                          key: const PageStorageKey('source-group-huangguo'),
-                          initiallyExpanded: group.sources.any(
-                            (source) => source.id == widget.initialSource,
-                          ),
-                          leading: const Icon(Icons.hub_outlined),
-                          title: const Text('黄果'),
-                          subtitle: Text(
-                            '${group.sources.length} 个入口 · ${group.sources.fold<int>(0, (count, source) => count + (_statuses[source.id]?.count ?? 0))} 部',
-                          ),
-                          childrenPadding: const EdgeInsets.all(8),
-                          children: [
-                            for (final source in group.sources)
-                              _sourceCard(source),
-                          ],
-                        ),
-                      )
-                    else
-                      for (final source in group.sources) _sourceCard(source),
+                    for (final source in group.sources) _sourceCard(source),
                 ],
               ),
             ),
@@ -272,12 +249,6 @@ class _SourcesScreenState extends State<SourcesScreen> {
               runSpacing: 8,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                FilledButton.icon(
-                  key: ValueKey('update-${source.id}'),
-                  onPressed: enabled ? () => _run(source, 'update') : null,
-                  icon: const Icon(Icons.sync_rounded),
-                  label: const Text('更新'),
-                ),
                 OutlinedButton.icon(
                   key: ValueKey('check-${source.id}'),
                   onPressed: enabled ? () => _run(source, 'check') : null,
