@@ -40,6 +40,7 @@ class LocalStore extends ChangeNotifier {
   int _epoch = 0;
   int _failures = 0;
   DateTime _retryAfter = DateTime(2000);
+  Map<String, bool> _sourceSwitches = {};
 
   void _initialize() {
     try {
@@ -121,11 +122,47 @@ class LocalStore extends ChangeNotifier {
 
   bool get canDownload => !locked && (profile.admin || profile.download);
   bool allowsSource(String source) =>
-      !locked && SourceSite.isAvailable(source) && profile.allows(source);
+      !locked &&
+      SourceSite.isAvailable(source) &&
+      profile.allows(source) &&
+      sourceEnabled(source);
   List<SourceSite> get sources =>
       SourceSite.values.where((site) => allowsSource(site.id)).toList();
+  List<SourceSite> get permittedSources => [
+    for (final site in SourceSite.values)
+      if (!locked && SourceSite.isAvailable(site.id) && profile.allows(site.id))
+        site,
+  ];
+
+  bool sourceEnabled(String source) => _sourceSwitches[source] ?? true;
+
+  Future<void> setSourceEnabled(String source, bool enabled) {
+    if (!SourceSite.isAvailable(source)) {
+      return Future.error(StateError('站源无效'));
+    }
+    final epoch = _epoch;
+    return _queue(() async {
+      if (locked || epoch != _epoch) throw StateError('当前用户已变更，请重试');
+      final switches = {..._sourceSwitches, source: enabled};
+      await _commit({_key('sourceSwitches'): jsonEncode(switches)});
+      _sourceSwitches = switches;
+      _notify();
+    });
+  }
+
+  void _loadSourceSwitches() {
+    try {
+      final raw = _string(_key('sourceSwitches'));
+      _sourceSwitches = raw == null
+          ? {}
+          : Map<String, bool>.from(jsonDecode(raw) as Map);
+    } catch (_) {
+      _sourceSwitches = {};
+    }
+  }
 
   void _loadLibrary() {
+    _loadSourceSwitches();
     _lanDocumentCache = null;
     _history.clear();
     _favorites.clear();

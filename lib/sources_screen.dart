@@ -103,6 +103,14 @@ class _SourcesScreenState extends State<SourcesScreen> {
     }
   }
 
+  Future<void> _setSourceEnabled(SourceSite source, bool value) async {
+    try {
+      await widget.store.setSourceEnabled(source.id, value);
+    } catch (error) {
+      if (mounted) setState(() => _errors[source.id] = error.toString());
+    }
+  }
+
   Future<void> _run(SourceSite source, String operation) async {
     if (_pending.contains(source.id)) return;
     final epoch = widget.store.profileEpoch;
@@ -165,7 +173,7 @@ class _SourcesScreenState extends State<SourcesScreen> {
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: widget.store,
     builder: (context, _) {
-      final sources = widget.store.sources.toList()
+      final sources = widget.store.permittedSources.toList()
         ..sort((a, b) {
           final aFirst = a.id == widget.initialSource ? 0 : 1;
           final bFirst = b.id == widget.initialSource ? 0 : 1;
@@ -188,7 +196,9 @@ class _SourcesScreenState extends State<SourcesScreen> {
                 children: [
                   const Padding(
                     padding: EdgeInsets.only(bottom: 16),
-                    child: Text('各站源仅展示状态，不提供更新或检测操作。'),
+                    child: Text(
+                      '每个站源都有开关，默认全部打开；关闭的站源不在首页、搜索、追剧与下载中使用。',
+                    ),
                   ),
                   if (sources.isEmpty)
                     const Padding(
@@ -234,6 +244,11 @@ class _SourcesScreenState extends State<SourcesScreen> {
                   ),
                 ),
                 Text('${status?.count ?? 0} 部'),
+                const SizedBox(width: 8),
+                Switch(
+                  value: widget.store.sourceEnabled(source.id),
+                  onChanged: (value) => _setSourceEnabled(source, value),
+                ),
               ],
             ),
             const SizedBox(height: 8),

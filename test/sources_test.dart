@@ -150,6 +150,47 @@ void main() {
     store.dispose();
   });
 
+  testWidgets('source switches default on and hide the source when off', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final store = LocalStore(await SharedPreferences.getInstance());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SourcesScreen(
+          repository: SourceFixtureRepository(),
+          store: store,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(store.sourceEnabled('hongguo'), isTrue);
+    expect(
+      store.sources.map((site) => site.id),
+      contains('hongguo'),
+    );
+    await tester.tap(find.byType(Switch).first);
+    await tester.pumpAndSettle();
+    expect(store.sourceEnabled('hongguo'), isFalse);
+    expect(
+      store.sources.map((site) => site.id),
+      isNot(contains('hongguo')),
+    );
+    expect(
+      store.permittedSources.map((site) => site.id),
+      contains('hongguo'),
+    );
+    await tester.tap(find.byType(Switch).first);
+    await tester.pumpAndSettle();
+    expect(store.sourceEnabled('hongguo'), isTrue);
+    expect(
+      store.sources.map((site) => site.id),
+      contains('hongguo'),
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    store.dispose();
+  });
+
   testWidgets(
     'source manager requests only the current user permitted compiled sources',
     (tester) async {
