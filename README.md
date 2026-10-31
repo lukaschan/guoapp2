@@ -10,6 +10,18 @@ Flutter 多端短剧应用。站源请求、解析、播放与下载均在设备
 
 GitHub Releases 提供两版安装包：Android APK（arm64-v8a、armeabi-v7a、x86_64）、未签名 IPA、Windows 便携版与安装版。iOS 未签名 IPA 需自行签名后安装。
 
+## AltStore 订阅源
+
+iOS 可通过 AltStore、SideStore 等兼容应用订阅安装短剧视界，版本随 Release 自动更新：
+
+<p align="center">
+<a href="https://altdirect.app/?url=https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/altstore.json" target="_blank">
+<img src="https://raw.githubusercontent.com/bebound/AltGallery/master/assets/add-alt-source.png" alt="Add AltSource" width="200">
+</a>
+</p>
+
+手动添加时填订阅源地址：`https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/altstore.json`。订阅源只提供短剧视界版（与全剧视界版共用同一 bundle ID，不能共存）；全剧视界版 IPA 请到 Releases 手动下载。
+
 ## 核心与同步
 
 Go 核心引用上游 Xanerix/guoapp（`upstream/` submodule），fork 自有改动放在 `fork/`，构建时以覆盖层合入：新增文件直接拷入，改动以补丁打出，补丁打不上时构建直接失败。同步工作流每隔天检查上游，有更新时自动升版、推送并触发构建发版。

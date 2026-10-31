@@ -1,0 +1,29 @@
+{
+  "name": "guoapp2",
+  "subtitle": "短剧视界 AltStore 订阅源",
+  "description": "短剧视界（guoapp2）的 AltStore 订阅源，版本随 GitHub Release 自动更新，可用于 AltStore、SideStore 等兼容应用。本源提供短剧视界版；全剧视界版 IPA 请到 GitHub Releases 手动下载。",
+  "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
+  "website": "https://github.com/lukaschan/guoapp2",
+  "tintColor": "#DF1428",
+  "apps": [
+    {
+      "name": "短剧视界",
+      "bundleIdentifier": "com.duanju.duanjuApp",
+      "developerName": "lukaschan",
+      "subtitle": "短剧聚合浏览与播放",
+      "localizedDescription": "短剧视界：多站源短剧聚合浏览、搜索与在线播放。",
+      "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
+      "tintColor": "#DF1428",
+      "versions": [
+        {
+          "version": "1.0.14",
+          "date": "2026-10-31",
+          "localizedDescription": "- 应用图标更换为新图（红石榴加播放键），各平台图标与电视横幅已按新主图重新生成。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.14/duanjushijie-1.0.14+88-ios-unsigned.ipa",
+          "size": 33153655,
+          "minOSVersion": "15.1"
+        }
+      ]
+    }
+  ]
+}
