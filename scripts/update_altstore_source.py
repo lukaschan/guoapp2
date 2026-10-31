@@ -9,6 +9,22 @@ SOURCE_PATH = root / 'altstore.json'
 MAX_VERSIONS = 5
 TINT = '#DF1428'
 MIN_OS = '15.1'
+EDITIONS = [
+    {
+        'slug': 'duanjushijie',
+        'name': '短剧视界',
+        'bundleIdentifier': 'com.duanju.duanjuApp',
+        'subtitle': '仅红果站源',
+        'localizedDescription': '短剧视界：以红果为主的短剧聚合浏览、搜索与在线播放。',
+    },
+    {
+        'slug': 'quanjushijie',
+        'name': '全剧视界',
+        'bundleIdentifier': 'com.duanju.duanjuApp.quanjushijie',
+        'subtitle': '全站源版，共 11 个站源',
+        'localizedDescription': '全剧视界：包含全部 11 个站源的短剧聚合浏览、搜索与在线播放。',
+    },
+]
 
 
 def run(*args):
@@ -35,23 +51,23 @@ def skeleton(slug):
             '/refs/heads/main/assets/app_icon_master.png')
     return {
         'name': 'guoapp2',
-        'subtitle': '短剧视界 AltStore 订阅源',
-        'description': ('短剧视界（guoapp2）的 AltStore 订阅源，版本随 GitHub '
-                        'Release 自动更新，可用于 AltStore、SideStore 等兼容应用。'
-                        '本源提供短剧视界版；全剧视界版 IPA 请到 GitHub Releases 手动下载。'),
+        'subtitle': '短剧视界 / 全剧视界 AltStore 订阅源',
+        'description': ('短剧视界 / 全剧视界（guoapp2）的 AltStore 订阅源，版本随 '
+                        'GitHub Release 自动更新，可用于 AltStore、SideStore 等兼容应用。'
+                        '两版可同时安装（全剧视界自 1.0.15 起使用独立 bundle ID）。'),
         'iconURL': icon,
         'website': f'https://github.com/{slug}',
         'tintColor': TINT,
         'apps': [{
-            'name': '短剧视界',
-            'bundleIdentifier': 'com.duanju.duanjuApp',
+            'name': edition['name'],
+            'bundleIdentifier': edition['bundleIdentifier'],
             'developerName': 'lukaschan',
-            'subtitle': '短剧聚合浏览与播放',
-            'localizedDescription': '短剧视界：多站源短剧聚合浏览、搜索与在线播放。',
+            'subtitle': edition['subtitle'],
+            'localizedDescription': edition['localizedDescription'],
             'iconURL': icon,
             'tintColor': TINT,
             'versions': [],
-        }],
+        } for edition in EDITIONS],
     }
 
 
@@ -63,34 +79,34 @@ def main():
     slug = repo_slug()
     release = json.loads(run('gh', 'release', 'view', tag, '--repo', slug,
                              '--json', 'assets,publishedAt'))
-    ipa = next((a for a in release['assets']
-                if a['name'].startswith('duanjushijie-')
-                and a['name'].endswith('-ios-unsigned.ipa')), None)
-    if ipa is None:
-        raise SystemExit(f'{tag} 里找不到 duanjushijie 的 iOS IPA 资产')
-    entry = {
-        'version': version,
-        'date': release['publishedAt'][:10],
-        'localizedDescription': changelog_notes(version),
-        'downloadURL': (f'https://github.com/{slug}/releases/download/'
-                        f'{tag}/{ipa["name"]}'),
-        'size': ipa['size'],
-        'minOSVersion': MIN_OS,
-    }
+    existing = {}
     if SOURCE_PATH.exists():
-        source = json.loads(SOURCE_PATH.read_text())
-    else:
-        source = skeleton(slug)
-    app = next((a for a in source.get('apps', [])
-                if a.get('bundleIdentifier') == 'com.duanju.duanjuApp'), None)
-    if app is None:
-        source.setdefault('apps', []).append(skeleton(slug)['apps'][0])
-        app = source['apps'][-1]
-    versions = [entry] + [v for v in app.get('versions', [])
-                          if v.get('version') != version]
-    app['versions'] = versions[:MAX_VERSIONS]
+        old = json.loads(SOURCE_PATH.read_text())
+        for app in old.get('apps', []):
+            existing[app.get('bundleIdentifier')] = app.get('versions', [])
+    source = skeleton(slug)
+    notes = changelog_notes(version)
+    for app, edition in zip(source['apps'], EDITIONS):
+        ipa = next((a for a in release['assets']
+                    if a['name'].startswith(edition['slug'] + '-')
+                    and a['name'].endswith('-ios-unsigned.ipa')), None)
+        if ipa is None:
+            raise SystemExit(f'{tag} 里找不到 {edition["slug"]} 的 iOS IPA 资产')
+        entry = {
+            'version': version,
+            'date': release['publishedAt'][:10],
+            'localizedDescription': notes,
+            'downloadURL': (f'https://github.com/{slug}/releases/download/'
+                            f'{tag}/{ipa["name"]}'),
+            'size': ipa['size'],
+            'minOSVersion': MIN_OS,
+        }
+        versions = [entry] + [v for v in existing.get(edition['bundleIdentifier'], [])
+                              if v.get('version') != version]
+        app['versions'] = versions[:MAX_VERSIONS]
+        print(f'{edition["name"]} 已更新到 {version}（IPA {ipa["size"]} 字节）')
     SOURCE_PATH.write_text(json.dumps(source, ensure_ascii=False, indent=2) + '\n')
-    print(f'altstore.json 已更新到 {version}（{tag}，IPA {ipa["size"]} 字节）')
+    print(f'altstore.json 已按 {tag} 重新生成')
 
 
 if __name__ == '__main__':

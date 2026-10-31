@@ -54,6 +54,26 @@ class IosPackageTests(unittest.TestCase):
                     self.assertTrue(stat.S_ISLNK(link.external_attr >> 16))
                     self.assertEqual(archive.read(link), b'Fixture')
 
+    def test_unsigned_ipa_rewrites_bundle_id_when_requested(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            application = root / 'Runner.app'
+            application.mkdir()
+            (application / 'Info.plist').write_bytes(plistlib.dumps(
+                {'CFBundleExecutable': 'Runner',
+                 'CFBundleIdentifier': 'com.duanju.duanjuApp'}))
+            (application / 'Runner').write_bytes(b'synthetic executable')
+            destination = root / 'unsigned.ipa'
+            package_unsigned_ipa(application, destination,
+                                 BuildVariant(True).ios_bundle_id)
+            with zipfile.ZipFile(destination) as archive:
+                info = plistlib.loads(archive.read('Payload/Runner.app/Info.plist'))
+            self.assertEqual(info['CFBundleIdentifier'],
+                             'com.duanju.duanjuApp.quanjushijie')
+            self.assertEqual(
+                plistlib.loads((application / 'Info.plist').read_bytes())['CFBundleIdentifier'],
+                'com.duanju.duanjuApp.quanjushijie')
+
     def test_incomplete_application_is_not_packaged(self):
         with tempfile.TemporaryDirectory() as temporary:
             application = Path(temporary) / 'Runner.app'

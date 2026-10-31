@@ -60,4 +60,4 @@ fork 改动分两处，全在 `fork/` 里，不直接改 submodule 文件：
 移动指针、验证覆盖层合入与核心编译通过，再升 pubspec 版本、补 CHANGELOG
 并推送到 main，再显式派发 build.yml 构建发版（机器人推送不会自动触发工作流）。验证失败时不推送，等人工处理。
 
-AltStore 订阅源：根目录 `altstore.json` 由 build.yml 的发布 job 在每次发版后运行 `scripts/update_altstore_source.py` 自动更新（短剧视界 IPA，最多保留最近 5 个版本）并提交回 main，不要手动维护其中的版本条目。
+AltStore 订阅源：根目录 `altstore.json` 由 build.yml 的发布 job 在每次发版后运行 `scripts/update_altstore_source.py` 自动更新（短剧视界与全剧视界两版 IPA，各自最多保留最近 5 个版本；全剧视界的 bundle ID 为 com.duanju.duanjuApp.quanjushijie，由 iOS 打包时改写）并提交回 main，不要手动维护其中的版本条目。

@@ -21,7 +21,7 @@ def ios_artifact_name(variant, version, signed):
     return f'{variant.slug}-{version}-{suffix}'
 
 
-def package_unsigned_ipa(application, destination):
+def package_unsigned_ipa(application, destination, bundle_id=None):
     if not application.is_dir():
         raise ValueError('iOS 应用目录不存在')
     try:
@@ -32,6 +32,10 @@ def package_unsigned_ipa(application, destination):
     if (not isinstance(executable, str) or not executable or Path(executable).name != executable
             or not (application / executable).is_file()):
         raise ValueError('iOS 应用缺少有效主程序')
+    if bundle_id and info.get('CFBundleIdentifier') != bundle_id:
+        info['CFBundleIdentifier'] = bundle_id
+        (application / 'Info.plist').write_bytes(
+            plistlib.dumps(info, fmt=plistlib.FMT_BINARY))
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_name(destination.name + '.tmp')
     temporary.unlink(missing_ok=True)
@@ -155,7 +159,7 @@ def main():
             if symbol not in symbols:
                 raise SystemExit('iOS 包缺少 FFI 入口：' + symbol)
         destination = output / ios_artifact_name(variant, version, signed=False)
-        package_unsigned_ipa(application, destination)
+        package_unsigned_ipa(application, destination, variant.ios_bundle_id)
         artifacts.append(destination)
     if not artifacts:
         raise SystemExit('未生成 iOS 安装包。')

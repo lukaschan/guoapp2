@@ -19,6 +19,10 @@ class BuildVariant:
         return ['--all-sources'] if self.all_sources else []
 
     @property
+    def ios_bundle_id(self):
+        return 'com.duanju.duanjuApp.quanjushijie' if self.all_sources else 'com.duanju.duanjuApp'
+
+    @property
     def flutter_arguments(self):
         return ['--dart-define=ALL_SOURCES=' + str(self.all_sources).lower()]
 

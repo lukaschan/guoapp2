@@ -12,7 +12,7 @@ GitHub Releases 提供两版安装包：Android APK（arm64-v8a、armeabi-v7a、
 
 ## AltStore 订阅源
 
-iOS 可通过 AltStore、SideStore 等兼容应用订阅安装短剧视界，版本随 Release 自动更新：
+iOS 可通过 AltStore、SideStore 等兼容应用订阅安装，短剧视界与全剧视界两版都在源里，版本随 Release 自动更新：
 
 <p align="center">
 <a href="https://altdirect.app/?url=https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/altstore.json" target="_blank">
@@ -20,7 +20,7 @@ iOS 可通过 AltStore、SideStore 等兼容应用订阅安装短剧视界，版
 </a>
 </p>
 
-手动添加时填订阅源地址：`https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/altstore.json`。订阅源只提供短剧视界版（与全剧视界版共用同一 bundle ID，不能共存）；全剧视界版 IPA 请到 Releases 手动下载。
+手动添加时填订阅源地址：`https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/altstore.json`。全剧视界自 1.0.15 起使用独立 bundle ID，可与短剧视界同时安装；此前装过全剧视界 IPA 的需重新安装，数据不互通。
 
 ## 核心与同步
 
