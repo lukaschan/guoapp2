@@ -50,7 +50,7 @@ def skeleton(slug):
     icon = (f'https://raw.githubusercontent.com/{slug}'
             '/refs/heads/main/assets/app_icon_master.png')
     return {
-        'name': 'guoapp2',
+        'name': '短剧视界',
         'subtitle': '短剧视界 / 全剧视界 AltStore 订阅源',
         'description': ('短剧视界 / 全剧视界（guoapp2）的 AltStore 订阅源，版本随 '
                         'GitHub Release 自动更新，可用于 AltStore、SideStore 等兼容应用。'
