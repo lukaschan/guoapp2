@@ -11,7 +11,7 @@
 +			t.Fatalf("preferred route %d resolved to %d, want %d", preferred, actual, want)
 +		}
 +	}
-+	engine, err := newNativeEngine(t.TempDir())
++	engine, err := newNativeEngine(t.TempDir(), "")
 +	if err != nil {
 +		t.Fatal(err)
 +	}

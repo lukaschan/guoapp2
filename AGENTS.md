@@ -58,4 +58,4 @@ fork 改动分两处，全在 `fork/` 里，不直接改 submodule 文件：
 
 同步：`.github/workflows/sync-upstream.yml` 每隔天检查上游 main，有更新时
 移动指针、验证覆盖层合入与核心编译通过，再升 pubspec 版本、补 CHANGELOG
-并推送到 main；推送触发 build.yml 构建发版。验证失败时不推送，等人工处理。
+并推送到 main，再显式派发 build.yml 构建发版（机器人推送不会自动触发工作流）。验证失败时不推送，等人工处理。

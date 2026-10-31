@@ -1,8 +1,8 @@
 # 每隔天检查上游核心（Xanerix/guoapp）更新：有更新时移动 submodule 指针，
 # 验证 fork 覆盖层（新增文件 + 补丁）能合入且核心可编译，再升版并推送。
-# 推送到 main 后，build.yml（push 触发）会自动构建并发布新 Release。
+# 推送到 main 后，再显式派发 build.yml 构建并发布新 Release（机器人用
+# GITHUB_TOKEN 的推送不会触发其他工作流，必须派发）。
 # 覆盖层合入失败或编译失败时本工作流直接失败、不推送，等人工重排补丁。
-# 注意：不要在这里加 gh workflow run 触发构建，那会和 push 触发重复跑。
 
 name: 同步上游核心
 
@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: sync-upstream
@@ -56,7 +57,7 @@ jobs:
           set -euo pipefail
           git -C upstream checkout "$(git -C upstream rev-parse origin/main)"
           python3 scripts/apply_fork_overlay.py
-          cd upstream/native && go build ./core/ && go vet ./core/
+          (cd upstream/native && go build ./core/ && go vet ./core/)
           echo "commit=$(git -C upstream rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
           echo "subject=$(git -C upstream log -1 --format=%s)" >> "$GITHUB_OUTPUT"
       - name: 升版并补更新日志
@@ -98,3 +99,8 @@ jobs:
           git -c user.name=github-actions -c user.email=github-actions@github.com \
             commit -m "同步上游核心到 ${{ steps.verify.outputs.commit }}，版本升至 ${{ steps.bump.outputs.version }}"
           git push origin HEAD:main
+      - name: 派发构建发版
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build.yml --ref main
