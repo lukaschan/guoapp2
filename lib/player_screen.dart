@@ -988,6 +988,9 @@ class _PlayerScreenState extends State<PlayerScreen>
         }
         final platform = _player.platform;
         if (platform is NativePlayer) {
+          if (Platform.isWindows) {
+            await platform.setProperty('hwdec', 'd3d11va-copy');
+          }
           await platform.setProperty(
             'demuxer-lavf-o',
             [

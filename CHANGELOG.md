@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.16+90
+
+- 修复 Windows 播放部分剧集画面出现绿边：硬解改用 d3d11va-copy（移植上游 6f5f670 的修法）。注：Windows 画质增强要求直通硬解 d3d11va，此改动后画质增强在 Windows 上将判定为不可用。
+
 ## 1.0.15+89
 
 - iOS 全剧视界版改用独立 bundle ID（com.duanju.duanjuApp.quanjushijie），可与短剧视界同时安装；此前装过全剧视界 IPA 的需重新安装，数据不互通。AltStore 订阅源现同时提供短剧视界与全剧视界两版。
