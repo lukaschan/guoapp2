@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.18",
+          "date": "2026-11-07",
+          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2194056`（fix: 野果站点改版后改为从脚本中识别当前线路下的 /api.php 接口；线路换为 attract/as/anyway.vgbyziuz.cc，原 analyze.buxefaex.cc 保留为最后的备用（1.0.4+104））。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.18/duanjushijie-1.0.18+92-ios-unsigned.ipa",
+          "size": 33214717,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.17",
           "date": "2026-11-05",
           "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `d81b904`（docs: 1.0.3+103 已全部验收，移除包名改动的开发快照标记）。",
@@ -58,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.18",
+          "date": "2026-11-07",
+          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2194056`（fix: 野果站点改版后改为从脚本中识别当前线路下的 /api.php 接口；线路换为 attract/as/anyway.vgbyziuz.cc，原 analyze.buxefaex.cc 保留为最后的备用（1.0.4+104））。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.18/quanjushijie-1.0.18+92-ios-unsigned.ipa",
+          "size": 33216510,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.17",
           "date": "2026-11-05",
