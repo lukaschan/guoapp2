@@ -20,6 +20,7 @@ import 'follow_state.dart';
 import 'local_store.dart';
 import 'models.dart';
 import 'playback_loader.dart';
+import 'sorani_account_view.dart';
 import 'playback_preloader.dart';
 import 'playback_recovery.dart';
 import 'playback_preferences.dart';
@@ -101,6 +102,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _loading = true;
   bool _forceOnline = false;
   bool _localFailure = false;
+  bool _loginRequired = false;
   bool _fullscreen = false;
   bool _pageFullscreen = false;
   bool _windowFullscreen = false;
@@ -782,6 +784,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         setState(() {
           _loading = false;
           _localFailure = current.local;
+          _loginRequired = false;
           _error = current.local
               ? widget.allowOnlineFallback
                     ? '本地视频读取失败，请重试或重新下载；也可以手动改为在线播放。'
@@ -926,6 +929,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _loading = true;
       _error = null;
       _localFailure = false;
+      _loginRequired = false;
       _loadingMessage = loadingMessage;
     });
     LanController.current?.detachPlayback(_lanIdentity);
@@ -1052,6 +1056,8 @@ class _PlayerScreenState extends State<PlayerScreen>
               _localFailure =
                   (error is AppFailure && error.code == 'local_media') ||
                   (widget.localOnly && !_forceOnline);
+              _loginRequired =
+                  error is AppFailure && error.code == 'source_login';
               _error = error is AppFailure ? error.message : '无法播放这一集，请重试或换一集。';
               widget.handoff?.fail(_error!);
             });
@@ -1068,6 +1074,12 @@ class _PlayerScreenState extends State<PlayerScreen>
         await widget.repository.release(retained!.session);
       }
     }
+  }
+
+  Future<void> _openSoraniLogin() async {
+    final account = await showSoraniLogin(context, widget.repository);
+    if (!mounted || _closed) return;
+    if (account?.loggedIn ?? false) await _retry();
   }
 
   Future<void> _switchOnline() async {
@@ -1787,9 +1799,17 @@ class _PlayerScreenState extends State<PlayerScreen>
                   child: StatusPanel(
                     title: '暂时无法播放',
                     message: _error!,
-                    onRetry: () => _retry(),
-                    action: _localFailure ? '重试本地播放' : '重试播放',
-                    secondaryAction: _localFailure && widget.allowOnlineFallback
+                    onRetry: _loginRequired
+                        ? () => _openSoraniLogin()
+                        : () => _retry(),
+                    action: _loginRequired
+                        ? '去登录'
+                        : _localFailure
+                        ? '重试本地播放'
+                        : '重试播放',
+                    secondaryAction: _loginRequired
+                        ? null
+                        : _localFailure && widget.allowOnlineFallback
                         ? TextButton.icon(
                             onPressed: _switchOnline,
                             icon: const Icon(Icons.cloud_outlined),

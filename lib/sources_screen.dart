@@ -7,6 +7,7 @@ import 'core_bridge.dart';
 import 'local_store.dart';
 import 'models.dart';
 import 'remote_widgets.dart';
+import 'sorani_account_view.dart';
 import 'source_status.dart';
 
 String sourceTimestamp(DateTime? value) {
@@ -200,6 +201,11 @@ class _SourcesScreenState extends State<SourcesScreen> {
                       '每个站源都有开关，默认全部打开；关闭的站源不在首页、搜索、追剧与下载中使用。',
                     ),
                   ),
+                  if (sources.any((source) => source.id == 'sorani'))
+                    SoraniAccountTile(
+                      repository: widget.repository,
+                      admin: widget.store.profile.admin,
+                    ),
                   if (sources.isEmpty)
                     const Padding(
                       padding: EdgeInsets.all(24),

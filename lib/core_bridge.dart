@@ -19,6 +19,7 @@ import 'cover_decoder.dart';
 import 'catalog_updates.dart';
 import 'download_collections.dart';
 import 'resource_settings.dart';
+import 'sorani_account.dart';
 
 typedef _NativeRequest = Pointer<Utf8> Function(Pointer<Utf8>);
 typedef _DartRequest = Pointer<Utf8> Function(Pointer<Utf8>);
@@ -126,6 +127,16 @@ abstract class AppRepository {
   }) async => throw AppFailure('当前环境不支持站源管理');
   Future<SourceStatus> cancelSourceJob(String source) async =>
       throw AppFailure('当前环境不支持站源管理');
+  Future<SoraniAccount> soraniAccount() async => const SoraniAccount();
+  Future<SoraniCaptcha> soraniCaptcha() async =>
+      throw AppFailure('当前版本不支持登录青空次元');
+  Future<SoraniAccount> soraniLogin({
+    required String identifier,
+    required String password,
+    required String captchaId,
+    required SoraniCaptchaTrack track,
+  }) async => throw AppFailure('当前版本不支持登录青空次元');
+  Future<SoraniAccount> soraniLogout() async => const SoraniAccount();
   Future<List<String>> suggestions(String query) async => const [];
   Future<Map<String, dynamic>> storage() async => {};
   Future<String> downloadDirectory() async =>
@@ -444,6 +455,54 @@ class NativeRepository extends AppRepository {
       SourceStatus.fromJson(
         await _call({'action': 'cancelSourceJob', 'source': source}),
       );
+
+  void _soraniPermission() {
+    if (access != null && (access!.locked || !access!.profile.admin)) {
+      throw AppFailure('仅管理员可登录或退出青空次元账号');
+    }
+  }
+
+  @override
+  Future<SoraniAccount> soraniAccount() async =>
+      SoraniAccount.fromJson(await _call({'action': 'soraniAccount'}));
+
+  @override
+  Future<SoraniCaptcha> soraniCaptcha() async {
+    _soraniPermission();
+    return SoraniCaptcha.fromJson(
+      await _call({'action': 'soraniAccount', 'command': 'captcha'}),
+    );
+  }
+
+  @override
+  Future<SoraniAccount> soraniLogin({
+    required String identifier,
+    required String password,
+    required String captchaId,
+    required SoraniCaptchaTrack track,
+  }) async {
+    _soraniPermission();
+    return SoraniAccount.fromJson(
+      await _call({
+        'action': 'soraniAccount',
+        'command': 'login',
+        'account': {
+          'identifier': identifier,
+          'password': password,
+          'captchaId': captchaId,
+          'track': track.toJson(),
+        },
+      }),
+    );
+  }
+
+  @override
+  Future<SoraniAccount> soraniLogout() async {
+    _soraniPermission();
+    return SoraniAccount.fromJson(
+      await _call({'action': 'soraniAccount', 'command': 'logout'}),
+    );
+  }
 
   void _authorize(String source, {bool download = false}) {
     if (!SourceSite.isAvailable(source)) {
