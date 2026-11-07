@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.18+92
+
+- 同步上游核心到 Xanerix/guoapp `2194056`（fix: 野果站点改版后改为从脚本中识别当前线路下的 /api.php 接口；线路换为 attract/as/anyway.vgbyziuz.cc，原 analyze.buxefaex.cc 保留为最后的备用（1.0.4+104））。
+
 ## 1.0.17+91
 
 - 同步上游核心到 Xanerix/guoapp `d81b904`（docs: 1.0.3+103 已全部验收，移除包名改动的开发快照标记）。
