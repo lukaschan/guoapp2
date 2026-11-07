@@ -88,7 +88,9 @@ class _HomeScreenState extends State<HomeScreen> {
       _sourceGroups
           .where((group) => group.id == (_allSources ? 'all' : _source.groupId))
           .firstOrNull ??
-      SourceGroup(_source.groupId, _source.groupName, [_source]);
+      (_sourceGroups.isEmpty
+          ? SourceGroup(_source.groupId, _source.groupName, [_source])
+          : _sourceGroups.first);
   bool get _onlineSearch => _group.sources.any((source) => source.onlineSearch);
   bool get _searchSuggestions =>
       _group.sources.any((source) => source.searchSuggestions);
@@ -228,6 +230,22 @@ class _HomeScreenState extends State<HomeScreen> {
     } finally {
       _refreshingUpdatedCache = false;
     }
+  }
+
+  /// 站源管理里开关变化后，当前选中项可能已失效：组还在但选中的源被关，
+  /// 就切到该组第一个可用源；组整个没了，就落到第一个可用组。
+  void _syncSelectionWithStore() {
+    if (!mounted) return;
+    final groups = _sourceGroups;
+    if (groups.isEmpty) return;
+    final selectedId = _allSources ? 'all' : _source.groupId;
+    for (final group in groups) {
+      if (group.id != selectedId) continue;
+      if (_allSources || group.sources.contains(_source)) return;
+      _changeSource(group.sources.first);
+      return;
+    }
+    _changeGroup(groups.first);
   }
 
   void _changeGroup(SourceGroup group) {
@@ -402,6 +420,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _scroll.addListener(_onCatalogScroll);
     _source = SourceSite.byId(widget.store.source);
     _allSources = widget.store.catalogView.allSources;
+    widget.store.addListener(_syncSelectionWithStore);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncSelectionWithStore();
+    });
     _browser = CatalogBrowser(widget.repository);
     _updater = LibraryUpdater(
       widget.repository,
@@ -420,6 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    widget.store.removeListener(_syncSelectionWithStore);
     _updater.removeListener(_updateChanged);
     _updater.dispose();
     _cacheRefreshTimer?.cancel();
@@ -768,16 +791,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  bool get _catalogBusy =>
-      _loading ||
-      _loadingMore ||
-      _categoriesLoading ||
-      _group.sources.any((source) => _updater.busy(source.id));
-
   void _moreAction(String value) {
-    if (value == 'update') {
-      _refreshCatalog();
-    } else if (value == 'select') {
+    if (value == 'select') {
       setState(() => _selectionMode = true);
     } else if (value == 'sources') {
       _manageSources();
@@ -953,14 +968,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           PullDownButton(
             entries: [
-              if (catalog && !_showRecommendations)
-                PullDownEntry(
-                  label: '更新剧库',
-                  icon: LucideIcons.rotateCw,
-                  onPressed: widget.store.sources.isEmpty || updating
-                      ? null
-                      : () => _moreAction('update'),
-                ),
               if (catalog && canSelect)
                 PullDownEntry(
                   label: '多选下载',
@@ -1130,33 +1137,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           onPressed: _toggleSearch,
                         ),
                       ],
-                      if (_tab == 0 &&
-                          !_showRecommendations &&
-                          constraints.maxWidth >= 400)
-                        RefreshAction(
-                          key: const ValueKey('catalog-refresh'),
-                          loading: _catalogBusy,
-                          tooltip: '更新剧库',
-                          onPressed: widget.store.sources.isEmpty
-                              ? null
-                              : _refreshCatalog,
-                        ),
                       PopupMenuButton<String>(
                         tooltip: '更多',
                         onSelected: _moreAction,
                         itemBuilder: (_) => [
-                          if (_tab == 0 &&
-                              !_showRecommendations &&
-                              constraints.maxWidth < 400)
-                            PopupMenuItem(
-                              value: 'update',
-                              enabled:
-                                  widget.store.sources.isNotEmpty &&
-                                  !_group.sources.any(
-                                    (source) => _updater.busy(source.id),
-                                  ),
-                              child: const Text('更新剧库'),
-                            ),
                           if (widget.repository.supportsSourceManagement)
                             const PopupMenuItem(
                               value: 'sources',

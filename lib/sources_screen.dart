@@ -249,8 +249,6 @@ class _SourcesScreenState extends State<SourcesScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
-                Text('${status?.count ?? 0} 部'),
-                const SizedBox(width: 8),
                 Switch(
                   value: widget.store.sourceEnabled(source.id),
                   onChanged: (value) => _setSourceEnabled(source, value),
