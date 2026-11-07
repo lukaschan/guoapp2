@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.19",
+          "date": "2026-11-07",
+          "localizedDescription": "- 修复首页左上角站源切换与站源管理不同步：在站源管理中关掉当前选中的站源后，首页会自动切到同组第一个可用源（整组都没了则落到第一个可用组），不再停留在已关闭的站源上。\n- 首页右上角去掉「更新剧库」入口（下拉刷新保留）。\n- 站源管理：去掉每个站源开关旁边的「N 部」计数。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.19/duanjushijie-1.0.19+93-ios-unsigned.ipa",
+          "size": 33213351,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.18",
           "date": "2026-11-07",
           "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2194056`（fix: 野果站点改版后改为从脚本中识别当前线路下的 /api.php 接口；线路换为 attract/as/anyway.vgbyziuz.cc，原 analyze.buxefaex.cc 保留为最后的备用（1.0.4+104））。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.15/duanjushijie-1.0.15+89-ios-unsigned.ipa",
           "size": 33153646,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.14",
-          "date": "2026-10-31",
-          "localizedDescription": "- 应用图标更换为新图（红石榴加播放键），各平台图标与电视横幅已按新主图重新生成。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.14/duanjushijie-1.0.14+88-ios-unsigned.ipa",
-          "size": 33153655,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.19",
+          "date": "2026-11-07",
+          "localizedDescription": "- 修复首页左上角站源切换与站源管理不同步：在站源管理中关掉当前选中的站源后，首页会自动切到同组第一个可用源（整组都没了则落到第一个可用组），不再停留在已关闭的站源上。\n- 首页右上角去掉「更新剧库」入口（下拉刷新保留）。\n- 站源管理：去掉每个站源开关旁边的「N 部」计数。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.19/quanjushijie-1.0.19+93-ios-unsigned.ipa",
+          "size": 33213259,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.18",
           "date": "2026-11-07",
