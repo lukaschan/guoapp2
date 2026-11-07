@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.20",
+          "date": "2026-11-07",
+          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2e7388c`（fix: Windows 系统开启 PAC 自动代理脚本时执行脚本选择代理，不再一律报错导致无法联网）。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.20/duanjushijie-1.0.20+94-ios-unsigned.ipa",
+          "size": 33231737,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.19",
           "date": "2026-11-07",
           "localizedDescription": "- 修复首页左上角站源切换与站源管理不同步：在站源管理中关掉当前选中的站源后，首页会自动切到同组第一个可用源（整组都没了则落到第一个可用组），不再停留在已关闭的站源上。\n- 首页右上角去掉「更新剧库」入口（下拉刷新保留）。\n- 站源管理：去掉每个站源开关旁边的「N 部」计数。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.16/duanjushijie-1.0.16+90-ios-unsigned.ipa",
           "size": 33153625,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.15",
-          "date": "2026-10-31",
-          "localizedDescription": "- iOS 全剧视界版改用独立 bundle ID（com.duanju.duanjuApp.quanjushijie），可与短剧视界同时安装；此前装过全剧视界 IPA 的需重新安装，数据不互通。AltStore 订阅源现同时提供短剧视界与全剧视界两版。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.15/duanjushijie-1.0.15+89-ios-unsigned.ipa",
-          "size": 33153646,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.20",
+          "date": "2026-11-07",
+          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2e7388c`（fix: Windows 系统开启 PAC 自动代理脚本时执行脚本选择代理，不再一律报错导致无法联网）。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.20/quanjushijie-1.0.20+94-ios-unsigned.ipa",
+          "size": 33231643,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.19",
           "date": "2026-11-07",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 修复 Windows 播放部分剧集画面出现绿边：硬解改用 d3d11va-copy（移植上游 6f5f670 的修法）。注：Windows 画质增强要求直通硬解 d3d11va，此改动后画质增强在 Windows 上将判定为不可用。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.16/quanjushijie-1.0.16+90-ios-unsigned.ipa",
           "size": 33153407,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.15",
-          "date": "2026-10-31",
-          "localizedDescription": "- iOS 全剧视界版改用独立 bundle ID（com.duanju.duanjuApp.quanjushijie），可与短剧视界同时安装；此前装过全剧视界 IPA 的需重新安装，数据不互通。AltStore 订阅源现同时提供短剧视界与全剧视界两版。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.15/quanjushijie-1.0.15+89-ios-unsigned.ipa",
-          "size": 33153395,
           "minOSVersion": "15.1"
         }
       ]
