@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.21",
+          "date": "2026-11-07",
+          "localizedDescription": "- 站源清单新增「黑桃」：显示在站源管理与首页站源切换中，默认打开，支持分类与在线搜索。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.21/duanjushijie-1.0.21+95-ios-unsigned.ipa",
+          "size": 33231596,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.20",
           "date": "2026-11-07",
           "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2e7388c`（fix: Windows 系统开启 PAC 自动代理脚本时执行脚本选择代理，不再一律报错导致无法联网）。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.17/duanjushijie-1.0.17+91-ios-unsigned.ipa",
           "size": 33141542,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.16",
-          "date": "2026-11-01",
-          "localizedDescription": "- 修复 Windows 播放部分剧集画面出现绿边：硬解改用 d3d11va-copy（移植上游 6f5f670 的修法）。注：Windows 画质增强要求直通硬解 d3d11va，此改动后画质增强在 Windows 上将判定为不可用。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.16/duanjushijie-1.0.16+90-ios-unsigned.ipa",
-          "size": 33153625,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.21",
+          "date": "2026-11-07",
+          "localizedDescription": "- 站源清单新增「黑桃」：显示在站源管理与首页站源切换中，默认打开，支持分类与在线搜索。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.21/quanjushijie-1.0.21+95-ios-unsigned.ipa",
+          "size": 33231823,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.20",
           "date": "2026-11-07",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `d81b904`（docs: 1.0.3+103 已全部验收，移除包名改动的开发快照标记）。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.17/quanjushijie-1.0.17+91-ios-unsigned.ipa",
           "size": 33141308,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.16",
-          "date": "2026-11-01",
-          "localizedDescription": "- 修复 Windows 播放部分剧集画面出现绿边：硬解改用 d3d11va-copy（移植上游 6f5f670 的修法）。注：Windows 画质增强要求直通硬解 d3d11va，此改动后画质增强在 Windows 上将判定为不可用。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.16/quanjushijie-1.0.16+90-ios-unsigned.ipa",
-          "size": 33153407,
           "minOSVersion": "15.1"
         }
       ]
