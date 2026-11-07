@@ -1,8 +1,8 @@
 --- a/native/core/app_categories.go
 +++ b/native/core/app_categories.go
-@@ -76,6 +76,9 @@ func validNativeCategory(source, category string) bool {
- 	case sourceHanxiaoquan:
- 		return validHanxiaoquanCategory(category)
+@@ -78,6 +78,9 @@ func validNativeCategory(source, category string) bool {
+ 	case sourceHeitao:
+ 		return validHeitaoCategory(category)
  	}
 +	if isDuanjuProviderSource(source) {
 +		return validDuanjuCategory(source, category)
@@ -10,9 +10,9 @@
  	return false
  }
  
-@@ -154,6 +157,14 @@ func (engine *nativeEngine) nativeCategories(ctx context.Context, source string,
- 	case sourceHanxiaoquan:
- 		all = append(all, d.fetchHanxiaoquanCategories()...)
+@@ -162,6 +165,14 @@ func (engine *nativeEngine) nativeCategories(ctx context.Context, source string,
+ 			all = append(all, categories...)
+ 		}
  	default:
 +		if isDuanjuProviderSource(source) {
 +			var categories []nativeCategory
