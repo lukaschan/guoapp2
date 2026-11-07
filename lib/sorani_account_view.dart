@@ -128,7 +128,7 @@ class _SoraniLoginDialog extends StatefulWidget {
 
 class _SoraniLoginDialogState extends State<_SoraniLoginDialog> {
   final _identifier = TextEditingController();
-  final _password = <redacted>
+  final _password = TextEditingController();
   final _passwordFocus = FocusNode();
   var _verifying = false;
   var _busy = false;
@@ -175,7 +175,7 @@ class _SoraniLoginDialogState extends State<_SoraniLoginDialog> {
     try {
       final account = await widget.repository.soraniLogin(
         identifier: _identifier.text.trim(),
-        password: <redacted>
+        password: _password.text,
         captchaId: captcha.id,
         track: track,
       );
