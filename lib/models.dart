@@ -19,11 +19,9 @@ class SourceSite {
       id == 'hanxiaoquan' ||
       id == 'huangguoai';
   bool get searchSuggestions => id == 'hongguo';
-  String get groupId => switch (id) {
-    'huangguo-video' || 'huangguoai' || 'cloudfront' => 'huangguo',
-    _ => id,
-  };
-  String get groupName => groupId == 'huangguo' ? '黄果' : name;
+  // 黄果三源（视频/AI/旧版）不折叠成一组：首页切换源要能单独切到每个源。
+  String get groupId => id;
+  String get groupName => name;
   String get entryName => switch (id) {
     'huangguo-video' => '视频',
     'huangguoai' => 'AI',
