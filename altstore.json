@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.25",
+          "date": "2026-11-08",
+          "localizedDescription": "- 播放页点「出品方」入口时先暂停当前播放，再进入出品方剧作页。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.25/duanjushijie-1.0.25+99-ios-unsigned.ipa",
+          "size": 33261294,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.24",
           "date": "2026-11-08",
           "localizedDescription": "- 红果简介的出品方改为常显入口（只显示「出品方」不显示名称），点进去后才检索出品方并展示其全部剧作，打开简介不再有额外等待。\n- 站源管理：去掉每张站源卡上的「最近更新：尚无记录」与「尚未检测连接」两行占位文字（有实际检测结果时仍显示检测信息）。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.21/duanjushijie-1.0.21+95-ios-unsigned.ipa",
           "size": 33231596,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.20",
-          "date": "2026-11-07",
-          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2e7388c`（fix: Windows 系统开启 PAC 自动代理脚本时执行脚本选择代理，不再一律报错导致无法联网）。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.20/duanjushijie-1.0.20+94-ios-unsigned.ipa",
-          "size": 33231737,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.25",
+          "date": "2026-11-08",
+          "localizedDescription": "- 播放页点「出品方」入口时先暂停当前播放，再进入出品方剧作页。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.25/quanjushijie-1.0.25+99-ios-unsigned.ipa",
+          "size": 33261553,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.24",
           "date": "2026-11-08",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 站源清单新增「黑桃」：显示在站源管理与首页站源切换中，默认打开，支持分类与在线搜索。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.21/quanjushijie-1.0.21+95-ios-unsigned.ipa",
           "size": 33231823,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.20",
-          "date": "2026-11-07",
-          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2e7388c`（fix: Windows 系统开启 PAC 自动代理脚本时执行脚本选择代理，不再一律报错导致无法联网）。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.20/quanjushijie-1.0.20+94-ios-unsigned.ipa",
-          "size": 33231643,
           "minOSVersion": "15.1"
         }
       ]
