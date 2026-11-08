@@ -35,6 +35,29 @@ func (engine *nativeEngine) nativeProducerDramas(ctx context.Context, producer s
 	return map[string]any{"items": items}, nil
 }
 
+func (engine *nativeEngine) nativeProducerWorks(ctx context.Context, drama nativeDrama) (any, error) {
+	source, _, valid := splitProviderDramaID(drama.ID)
+	if !valid || source != sourceHongguo {
+		return nil, errors.New("仅红果剧集有出品方信息")
+	}
+	name := strings.TrimSpace(drama.Producer)
+	if name == "" {
+		name = engine.downloader.hongguoSearchProducer(ctx, drama.ID, drama.Title)
+	}
+	if name == "" {
+		return map[string]any{"producer": "", "items": []nativeDrama{}}, nil
+	}
+	dramas, err := engine.downloader.hongguoProducerDramas(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]nativeDrama, 0, len(dramas))
+	for _, item := range dramas {
+		items = append(items, nativeNormalize(item))
+	}
+	return map[string]any{"producer": name, "items": items}, nil
+}
+
 func (downloader *Downloader) hongguoProducerDramas(ctx context.Context, producer string) ([]Drama, error) {
 	seen := map[string]bool{}
 	dramas := []Drama{}
@@ -56,7 +79,9 @@ func (downloader *Downloader) hongguoProducerDramas(ctx context.Context, produce
 			break
 		}
 	}
-	downloader.enrichHongguoProducerDates(ctx, dramas)
+	enrichCtx, enrichCancel := context.WithTimeout(ctx, 25*time.Second)
+	downloader.enrichHongguoProducerDates(enrichCtx, dramas)
+	enrichCancel()
 	for i := range dramas {
 		if dramas[i].Heat == "" {
 			dramas[i].Heat = dramas[i].Views

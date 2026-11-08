@@ -9,11 +9,11 @@ import 'widgets.dart';
 class ProducerScreen extends StatefulWidget {
   const ProducerScreen({
     super.key,
-    required this.producer,
+    required this.drama,
     required this.repository,
     required this.store,
   });
-  final String producer;
+  final Drama drama;
   final AppRepository repository;
   final LocalStore store;
 
@@ -22,7 +22,7 @@ class ProducerScreen extends StatefulWidget {
 }
 
 class _ProducerScreenState extends State<ProducerScreen> {
-  List<Drama> _items = const [];
+  ProducerWorks? _works;
   bool _loading = true;
   bool _newest = true;
   String? _error;
@@ -39,10 +39,10 @@ class _ProducerScreenState extends State<ProducerScreen> {
       _error = null;
     });
     try {
-      final items = await widget.repository.producerDramas(widget.producer);
+      final works = await widget.repository.producerWorks(widget.drama);
       if (!mounted) return;
       setState(() {
-        _items = items;
+        _works = works;
         _loading = false;
       });
     } catch (error) {
@@ -64,7 +64,7 @@ class _ProducerScreenState extends State<ProducerScreen> {
   }
 
   List<Drama> get _sorted {
-    final items = [..._items];
+    final items = [...?_works?.items];
     if (_newest) {
       items.sort((a, b) {
         final byDate = b.onlineDate.compareTo(a.onlineDate);
@@ -96,8 +96,9 @@ class _ProducerScreenState extends State<ProducerScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final producer = _works?.producer ?? '';
     return Scaffold(
-      appBar: AppBar(title: Text(widget.producer)),
+      appBar: AppBar(title: Text(producer.isNotEmpty ? producer : '出品方')),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -106,7 +107,7 @@ class _ProducerScreenState extends State<ProducerScreen> {
             child: Row(
               children: [
                 Text(
-                  '出品方剧作',
+                  producer.isNotEmpty ? '出品方剧作' : '正在查找出品方',
                   style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
                 ),
                 const Spacer(),
@@ -150,6 +151,14 @@ class _ProducerScreenState extends State<ProducerScreen> {
             const SizedBox(height: 12),
             OutlinedButton(onPressed: _load, child: const Text('重试')),
           ],
+        ),
+      );
+    }
+    if ((_works?.producer ?? '').isEmpty) {
+      return Center(
+        child: Text(
+          '未找到该剧的出品方信息',
+          style: TextStyle(color: colors.onSurfaceVariant),
         ),
       );
     }

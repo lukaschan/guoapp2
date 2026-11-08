@@ -278,6 +278,19 @@ class DramaDetail {
   }
 }
 
+class ProducerWorks {
+  const ProducerWorks(this.producer, this.items);
+  final String producer;
+  final List<Drama> items;
+  factory ProducerWorks.fromJson(Map<String, dynamic> json) => ProducerWorks(
+    json['producer'] as String? ?? '',
+    [
+      for (final row in json['items'] as List? ?? const [])
+        Drama.fromJson(Map<String, dynamic>.from(row as Map)),
+    ],
+  );
+}
+
 class CatalogPage {
   CatalogPage(
     this.items, {

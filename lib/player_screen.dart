@@ -2036,14 +2036,14 @@ class _PlayerScreenState extends State<PlayerScreen>
           ],
           const SizedBox(height: 12),
           Text(body, style: const TextStyle(height: 1.55)),
-          if (drama.producer.isNotEmpty) ...[
+          if (drama.source == 'hongguo') ...[
             const SizedBox(height: 6),
             InkWell(
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => ProducerScreen(
-                      producer: drama.producer,
+                      drama: drama,
                       repository: widget.repository,
                       store: widget.store,
                     ),
@@ -2062,16 +2062,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         fontSize: 13,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        drama.producer,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                    const Spacer(),
                     Icon(
                       Icons.chevron_right,
                       size: 18,

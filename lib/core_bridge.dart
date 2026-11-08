@@ -138,7 +138,8 @@ abstract class AppRepository {
   }) async => throw AppFailure('当前版本不支持登录青空次元');
   Future<SoraniAccount> soraniLogout() async => const SoraniAccount();
   Future<List<String>> suggestions(String query) async => const [];
-  Future<List<Drama>> producerDramas(String producer) async => const [];
+  Future<ProducerWorks> producerWorks(Drama drama) async =>
+      const ProducerWorks('', []);
   Future<Map<String, dynamic>> storage() async => {};
   Future<String> downloadDirectory() async =>
       (await storage())['directory'] as String? ?? '';
@@ -534,16 +535,13 @@ class NativeRepository extends AppRepository {
   }
 
   @override
-  Future<List<Drama>> producerDramas(String producer) async {
+  Future<ProducerWorks> producerWorks(Drama drama) async {
     _authorize('hongguo');
-    final result = await _read('producerDramas', {
-      'action': 'producerDramas',
-      'query': producer,
+    final result = await _read('producerWorks', {
+      'action': 'producerWorks',
+      'drama': drama.toJson(),
     });
-    return [
-      for (final row in result['items'] as List? ?? const [])
-        Drama.fromJson(Map<String, dynamic>.from(row as Map)),
-    ];
+    return ProducerWorks.fromJson(result);
   }
 
   @override
@@ -612,7 +610,7 @@ class NativeRepository extends AppRepository {
       if (action == 'recommendations' ||
           action == 'cachedRecommendations' ||
           action == 'suggestions' ||
-          action == 'producerDramas' ||
+          action == 'producerWorks' ||
           action == 'danmaku') {
         _authorize('hongguo');
       }
@@ -662,6 +660,8 @@ class NativeRepository extends AppRepository {
         Duration(
           seconds: action == 'moveDownloads'
               ? 620
+              : action == 'producerWorks'
+              ? 120
               : action == 'danmaku'
               ? 15
               : action == 'preload'
@@ -696,7 +696,7 @@ class NativeRepository extends AppRepository {
             'catalog',
             'categories',
             'suggestions',
-            'producerDramas',
+            'producerWorks',
             'recommendations',
             'metadata',
             'danmaku',

@@ -896,7 +896,7 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
           ),
         ],
-        if (drama.producer.isNotEmpty) ...[
+        if (drama.source == 'hongguo') ...[
           const SizedBox(height: 4),
           InkWell(
             onTap: () => _openProducer(drama),
@@ -912,16 +912,7 @@ class _DetailScreenState extends State<DetailScreen> {
                       fontSize: 13,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      drama.producer,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  const Spacer(),
                   Icon(
                     Icons.chevron_right,
                     size: 18,
@@ -948,7 +939,7 @@ class _DetailScreenState extends State<DetailScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => ProducerScreen(
-          producer: drama.producer,
+          drama: drama,
           repository: widget.repository,
           store: widget.store,
         ),

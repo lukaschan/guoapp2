@@ -255,8 +255,6 @@ class _SourcesScreenState extends State<SourcesScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text('最近更新：${sourceTimestamp(status?.updatedAt)}'),
             if (status != null && status.count > 0)
               Text(
                 '已加载至第 ${status.page} 页${status.hasMore ? ' · 可继续加载' : ' · 当前分页已加载完'}',
@@ -397,9 +395,6 @@ class _SourcesScreenState extends State<SourcesScreen> {
                     ),
                   ),
               ],
-            ] else ...[
-              const SizedBox(height: 12),
-              const Text('尚未检测连接'),
             ],
           ],
         ),
