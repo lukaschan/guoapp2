@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.24",
+          "date": "2026-11-08",
+          "localizedDescription": "- 红果简介的出品方改为常显入口（只显示「出品方」不显示名称），点进去后才检索出品方并展示其全部剧作，打开简介不再有额外等待。\n- 站源管理：去掉每张站源卡上的「最近更新：尚无记录」与「尚未检测连接」两行占位文字（有实际检测结果时仍显示检测信息）。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.24/duanjushijie-1.0.24+98-ios-unsigned.ipa",
+          "size": 33261315,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.23",
           "date": "2026-11-08",
           "localizedDescription": "- 修复红果出品方不显示：播放页「简介」标签里补上出品方一行（点击进出品方剧作页）；同时修数据来源——从首页推荐打开的剧详情里原本拿不到出品方，现改为打开详情时按剧名补查，之后该剧在各处都会带上出品方。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.20/duanjushijie-1.0.20+94-ios-unsigned.ipa",
           "size": 33231737,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.19",
-          "date": "2026-11-07",
-          "localizedDescription": "- 修复首页左上角站源切换与站源管理不同步：在站源管理中关掉当前选中的站源后，首页会自动切到同组第一个可用源（整组都没了则落到第一个可用组），不再停留在已关闭的站源上。\n- 首页右上角去掉「更新剧库」入口（下拉刷新保留）。\n- 站源管理：去掉每个站源开关旁边的「N 部」计数。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.19/duanjushijie-1.0.19+93-ios-unsigned.ipa",
-          "size": 33213355,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.24",
+          "date": "2026-11-08",
+          "localizedDescription": "- 红果简介的出品方改为常显入口（只显示「出品方」不显示名称），点进去后才检索出品方并展示其全部剧作，打开简介不再有额外等待。\n- 站源管理：去掉每张站源卡上的「最近更新：尚无记录」与「尚未检测连接」两行占位文字（有实际检测结果时仍显示检测信息）。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.24/quanjushijie-1.0.24+98-ios-unsigned.ipa",
+          "size": 33261650,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.23",
           "date": "2026-11-08",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2e7388c`（fix: Windows 系统开启 PAC 自动代理脚本时执行脚本选择代理，不再一律报错导致无法联网）。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.20/quanjushijie-1.0.20+94-ios-unsigned.ipa",
           "size": 33231643,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.19",
-          "date": "2026-11-07",
-          "localizedDescription": "- 修复首页左上角站源切换与站源管理不同步：在站源管理中关掉当前选中的站源后，首页会自动切到同组第一个可用源（整组都没了则落到第一个可用组），不再停留在已关闭的站源上。\n- 首页右上角去掉「更新剧库」入口（下拉刷新保留）。\n- 站源管理：去掉每个站源开关旁边的「N 部」计数。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.19/quanjushijie-1.0.19+93-ios-unsigned.ipa",
-          "size": 33213255,
           "minOSVersion": "15.1"
         }
       ]
