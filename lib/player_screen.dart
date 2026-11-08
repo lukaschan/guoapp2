@@ -19,6 +19,7 @@ import 'downloads_screen.dart';
 import 'follow_state.dart';
 import 'local_store.dart';
 import 'models.dart';
+import 'producer_screen.dart';
 import 'playback_loader.dart';
 import 'sorani_account_view.dart';
 import 'playback_preloader.dart';
@@ -2035,6 +2036,52 @@ class _PlayerScreenState extends State<PlayerScreen>
           ],
           const SizedBox(height: 12),
           Text(body, style: const TextStyle(height: 1.55)),
+          if (drama.producer.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ProducerScreen(
+                      producer: drama.producer,
+                      repository: widget.repository,
+                      store: widget.store,
+                    ),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Text(
+                      '出品方',
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        drama.producer,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           if (widget.detail.warning.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(widget.detail.warning, style: TextStyle(color: colors.error)),

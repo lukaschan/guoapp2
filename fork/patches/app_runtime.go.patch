@@ -1,5 +1,5 @@
 diff --git a/native/core/app_runtime.go b/native/core/app_runtime.go
-index e3ae003..c5c737c 100644
+index e3ae003..bab3707 100644
 --- a/native/core/app_runtime.go
 +++ b/native/core/app_runtime.go
 @@ -99,6 +99,7 @@ type nativeDrama struct {
@@ -98,7 +98,17 @@ index e3ae003..c5c737c 100644
  		title, chapters, err = engine.downloader.GetHuangguoChapters(ctx, source, sourceID)
  	}
  	if err != nil {
-@@ -834,6 +866,7 @@ func (engine *nativeEngine) nativeResolve(ctx context.Context, input nativeInput
+@@ -799,6 +831,9 @@ func (engine *nativeEngine) nativeDetail(ctx context.Context, drama nativeDrama)
+ 	if source == sourceHongguo {
+ 		raw := engine.downloader.hongguoCachedDrama(Drama{ID: drama.ID, Title: drama.Title, Source: source})
+ 		drama = mergeNativeDrama(drama, nativeNormalize(raw))
++		if drama.Producer == "" {
++			drama.Producer = engine.downloader.hongguoSearchProducer(ctx, drama.ID, drama.Title)
++		}
+ 	}
+ 	if source == sourceHuangdou {
+ 		if row, err := engine.downloader.huangdouDetail(ctx, sourceID); err == nil {
+@@ -834,6 +869,7 @@ func (engine *nativeEngine) nativeResolve(ctx context.Context, input nativeInput
  		return nativePlan{}, err
  	}
  	choice := nativePlaybackChoices(media, input.Quality)

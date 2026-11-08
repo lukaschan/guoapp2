@@ -156,3 +156,24 @@ func (downloader *Downloader) enrichHongguoProducerDates(ctx context.Context, dr
 	}
 	wg.Wait()
 }
+
+// hongguoSearchProducer 按剧名走一次搜索、用剧 ID 精确命中，取该剧的
+// 出品方。详情与首页推荐载荷都没有 copyright，只能这样补；搜索结果有
+// 5 分钟缓存，重复打开不重复请求。查不到返回空，不影响详情主流程。
+func (downloader *Downloader) hongguoSearchProducer(ctx context.Context, dramaID, title string) string {
+	if strings.TrimSpace(title) == "" {
+		return ""
+	}
+	lookupCtx, cancel := context.WithTimeout(ctx, 8*time.Second)
+	defer cancel()
+	entry, err := downloader.searchHongguoDramas(lookupCtx, title)
+	if err != nil {
+		return ""
+	}
+	for _, item := range entry.Dramas {
+		if item.ID == dramaID {
+			return item.Producer
+		}
+	}
+	return ""
+}

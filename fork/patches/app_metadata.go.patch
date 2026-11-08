@@ -1,0 +1,14 @@
+diff --git a/native/core/app_metadata.go b/native/core/app_metadata.go
+index 35f353c..1c3c63d 100644
+--- a/native/core/app_metadata.go
++++ b/native/core/app_metadata.go
+@@ -67,6 +67,9 @@ func (engine *nativeEngine) nativeExtraMetadata(ctx context.Context, drama nativ
+ 	if source == sourceHongguo && drama.Score == "" {
+ 		drama.Score = nativeDramaScore(engine.downloader.hongguoSearchScore(ctx, drama.ID, drama.Title))
+ 	}
++	if source == sourceHongguo && drama.Producer == "" {
++		drama.Producer = engine.downloader.hongguoSearchProducer(ctx, drama.ID, drama.Title)
++	}
+ 	return drama, ctx.Err()
+ }
+ 
