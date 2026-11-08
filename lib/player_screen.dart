@@ -2040,6 +2040,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             const SizedBox(height: 6),
             InkWell(
               onTap: () {
+                unawaited(_player.pause());
                 Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => ProducerScreen(
