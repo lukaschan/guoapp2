@@ -15,6 +15,7 @@ import 'download_picker.dart';
 import 'downloads_screen.dart';
 import 'local_store.dart';
 import 'models.dart';
+import 'producer_screen.dart';
 import 'player_screen.dart';
 import 'remote_widgets.dart';
 import 'widgets.dart';
@@ -895,6 +896,42 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
           ),
         ],
+        if (drama.producer.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: () => _openProducer(drama),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Text(
+                    '出品方',
+                    style: TextStyle(
+                      color: colors.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      drama.producer,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
         if (_detail?.warning.isNotEmpty == true)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -904,6 +941,18 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  void _openProducer(Drama drama) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ProducerScreen(
+          producer: drama.producer,
+          repository: widget.repository,
+          store: widget.store,
+        ),
+      ),
     );
   }
 

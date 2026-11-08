@@ -138,6 +138,7 @@ abstract class AppRepository {
   }) async => throw AppFailure('当前版本不支持登录青空次元');
   Future<SoraniAccount> soraniLogout() async => const SoraniAccount();
   Future<List<String>> suggestions(String query) async => const [];
+  Future<List<Drama>> producerDramas(String producer) async => const [];
   Future<Map<String, dynamic>> storage() async => {};
   Future<String> downloadDirectory() async =>
       (await storage())['directory'] as String? ?? '';
@@ -533,6 +534,19 @@ class NativeRepository extends AppRepository {
   }
 
   @override
+  Future<List<Drama>> producerDramas(String producer) async {
+    _authorize('hongguo');
+    final result = await _read('producerDramas', {
+      'action': 'producerDramas',
+      'query': producer,
+    });
+    return [
+      for (final row in result['items'] as List? ?? const [])
+        Drama.fromJson(Map<String, dynamic>.from(row as Map)),
+    ];
+  }
+
+  @override
   Future<String> downloadDirectory() async {
     _downloadPermission();
     return (await _call({'action': 'downloadDirectory'}))['directory']
@@ -598,6 +612,7 @@ class NativeRepository extends AppRepository {
       if (action == 'recommendations' ||
           action == 'cachedRecommendations' ||
           action == 'suggestions' ||
+          action == 'producerDramas' ||
           action == 'danmaku') {
         _authorize('hongguo');
       }
@@ -681,6 +696,7 @@ class NativeRepository extends AppRepository {
             'catalog',
             'categories',
             'suggestions',
+            'producerDramas',
             'recommendations',
             'metadata',
             'danmaku',

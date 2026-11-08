@@ -135,6 +135,7 @@ class Drama {
     this.heat = '',
     this.views = '',
     this.onlineDate = '',
+    this.producer = '',
     this.tags = const [],
     this.releaseStatus = '',
   }) : vipStatus = vip;
@@ -151,6 +152,7 @@ class Drama {
   final String heat;
   final String views;
   final String onlineDate;
+  final String producer;
   final List<String> tags;
   final String releaseStatus;
   String get releaseLabel => switch (releaseStatus) {
@@ -178,6 +180,7 @@ class Drama {
     heat: json['heat']?.toString() ?? '',
     views: json['views']?.toString() ?? '',
     onlineDate: json['onlineDate'] as String? ?? '',
+    producer: json['producer'] as String? ?? '',
     tags: (json['tags'] as List? ?? const []).whereType<String>().toList(),
     releaseStatus: json['releaseStatus'] as String? ?? '',
   );
@@ -195,6 +198,7 @@ class Drama {
     'heat': heat,
     'views': views,
     'onlineDate': onlineDate,
+    'producer': producer,
     'tags': tags,
     'releaseStatus': releaseStatus,
   };
@@ -231,6 +235,7 @@ class Drama {
       heat: fresh.heat.isEmpty ? heat : fresh.heat,
       views: fresh.views.isEmpty ? views : fresh.views,
       onlineDate: fresh.onlineDate.isEmpty ? onlineDate : fresh.onlineDate,
+      producer: fresh.producer.isEmpty ? producer : fresh.producer,
       tags: fresh.tags.isEmpty ? tags : fresh.tags,
       releaseStatus:
           fresh.releaseStatus.isEmpty || fresh.releaseStatus == 'unknown'
