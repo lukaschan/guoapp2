@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.22",
+          "date": "2026-11-08",
+          "localizedDescription": "- 红果详情页新增出品方：简介区显示该剧出品方（如「瑾叶剧场」），点击进入出品方剧作页，可按「最新 / 最热」排序，点任意一部剧回到该剧详情。出品方信息来自红果列表/搜索数据，个别早期收藏的剧目需在列表里重新遇到后才会带上。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.22/duanjushijie-1.0.22+96-ios-unsigned.ipa",
+          "size": 33258660,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.21",
           "date": "2026-11-07",
           "localizedDescription": "- 站源清单新增「黑桃」：显示在站源管理与首页站源切换中，默认打开，支持分类与在线搜索。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.18/duanjushijie-1.0.18+92-ios-unsigned.ipa",
           "size": 33214717,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.17",
-          "date": "2026-11-05",
-          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `d81b904`（docs: 1.0.3+103 已全部验收，移除包名改动的开发快照标记）。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.17/duanjushijie-1.0.17+91-ios-unsigned.ipa",
-          "size": 33141542,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.22",
+          "date": "2026-11-08",
+          "localizedDescription": "- 红果详情页新增出品方：简介区显示该剧出品方（如「瑾叶剧场」），点击进入出品方剧作页，可按「最新 / 最热」排序，点任意一部剧回到该剧详情。出品方信息来自红果列表/搜索数据，个别早期收藏的剧目需在列表里重新遇到后才会带上。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.22/quanjushijie-1.0.22+96-ios-unsigned.ipa",
+          "size": 33257085,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.21",
           "date": "2026-11-07",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `2194056`（fix: 野果站点改版后改为从脚本中识别当前线路下的 /api.php 接口；线路换为 attract/as/anyway.vgbyziuz.cc，原 analyze.buxefaex.cc 保留为最后的备用（1.0.4+104））。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.18/quanjushijie-1.0.18+92-ios-unsigned.ipa",
           "size": 33216510,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.17",
-          "date": "2026-11-05",
-          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `d81b904`（docs: 1.0.3+103 已全部验收，移除包名改动的开发快照标记）。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.17/quanjushijie-1.0.17+91-ios-unsigned.ipa",
-          "size": 33141308,
           "minOSVersion": "15.1"
         }
       ]
