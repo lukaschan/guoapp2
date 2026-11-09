@@ -1,8 +1,8 @@
 diff --git a/native/core/app_runtime.go b/native/core/app_runtime.go
-index e3ae003..78be45f 100644
+index d8f63d8..ca30672 100644
 --- a/native/core/app_runtime.go
 +++ b/native/core/app_runtime.go
-@@ -99,6 +99,7 @@ type nativeDrama struct {
+@@ -106,6 +106,7 @@ type nativeDrama struct {
  	Tags           []string `json:"tags,omitempty"`
  	ReleaseStatus  string   `json:"releaseStatus,omitempty"`
  	Badge          string   `json:"badge,omitempty"`
@@ -10,7 +10,7 @@ index e3ae003..78be45f 100644
  }
  
  type nativeInput struct {
-@@ -123,6 +124,7 @@ type nativeInput struct {
+@@ -130,6 +131,7 @@ type nativeInput struct {
  	Chapter         Chapter                 `json:"chapter"`
  	Index           int                     `json:"index"`
  	Quality         int                     `json:"quality"`
@@ -18,7 +18,7 @@ index e3ae003..78be45f 100644
  	Session         string                  `json:"session"`
  	Sequence        int64                   `json:"sequence"`
  	Force           bool                    `json:"force"`
-@@ -238,7 +240,7 @@ func nativeNormalize(drama Drama) nativeDrama {
+@@ -246,7 +248,7 @@ func nativeNormalize(drama Drama) nativeDrama {
  		Description: firstNonEmpty(drama.Desc, drama.Intro), Cover: cover, Episodes: episodes,
  		Category: nativeDramaCategory(drama), VIP: drama.VIP,
  		Heat: drama.Heat, Views: drama.Views, OnlineDate: providerReleaseDate(drama.OnlineDate), Score: nativeDramaScore(drama.Score),
@@ -27,7 +27,7 @@ index e3ae003..78be45f 100644
  }
  
  func nativeDramaScore(score string) string {
-@@ -414,6 +416,10 @@ func nativeDispatch(input nativeInput) (any, error) {
+@@ -422,6 +424,10 @@ func nativeDispatch(input nativeInput) (any, error) {
  	case "suggestions":
  		items, err := engine.suggestions(ctx, input.Query)
  		return map[string]any{"items": items}, err
@@ -38,7 +38,7 @@ index e3ae003..78be45f 100644
  	case "downloadDirectory":
  		engine.downloads.mu.Lock()
  		root := engine.downloads.root
-@@ -471,6 +477,13 @@ func nativeDispatch(input nativeInput) (any, error) {
+@@ -478,6 +484,13 @@ func nativeDispatch(input nativeInput) (any, error) {
  			return engine.nativeNextPlayback(playback, input.Session)
  		}
  		return engine.nativeResolve(playback, input)
@@ -52,7 +52,7 @@ index e3ae003..78be45f 100644
  	case "cancelPlayback":
  		engine.nativeCancelPlayback(input.Sequence)
  		return true, nil
-@@ -601,6 +614,19 @@ func (engine *nativeEngine) nativeCatalog(ctx context.Context, input nativeInput
+@@ -619,6 +632,19 @@ func (engine *nativeEngine) nativeCatalog(ctx context.Context, input nativeInput
  		result.HasMore = more
  		return result, nil
  	}
@@ -72,7 +72,7 @@ index e3ae003..78be45f 100644
  	if query != "" && (source == sourceYeguo || source == sourceDSD || source == sourceJinguoDuanju || source == sourceJinguo) {
  		var items []Drama
  		var more bool
-@@ -725,11 +751,15 @@ func (engine *nativeEngine) nativeCatalog(ctx context.Context, input nativeInput
+@@ -745,11 +771,15 @@ func (engine *nativeEngine) nativeCatalog(ctx context.Context, input nativeInput
  		result.HasMore = len(items) >= 20
  	case sourceCloudFront:
  		items, result.HasMore, err = d.fetchLegacyCatalogCategoryPage(ctx, page, category)
@@ -84,14 +84,14 @@ index e3ae003..78be45f 100644
  	if err != nil && len(items) == 0 {
  		return result, err
  	}
--	if len(items) == 0 && page == 1 && source != sourceHuangju && source != sourceYeguo && source != sourceJinguoDuanju && source != sourceJinguo && source != sourceDSD && source != sourceSorani && source != sourceGuipian && source != sourceHanxiaoquan && source != sourceHeitao {
-+	if len(items) == 0 && page == 1 && source != sourceHuangju && source != sourceYeguo && source != sourceJinguoDuanju && source != sourceJinguo && source != sourceDSD && source != sourceSorani && source != sourceGuipian && source != sourceHanxiaoquan && source != sourceHeitao && !isDuanjuProviderSource(source) {
+-	if len(items) == 0 && page == 1 && source != sourceHuangju && source != sourceYeguo && source != sourceJinguoDuanju && source != sourceJinguo && source != sourceDSD && source != sourceSorani && source != sourceGuipian && source != sourceHanxiaoquan && source != sourceHeitao && source != sourceBeabox {
++	if len(items) == 0 && page == 1 && source != sourceHuangju && source != sourceYeguo && source != sourceJinguoDuanju && source != sourceJinguo && source != sourceDSD && source != sourceSorani && source != sourceGuipian && source != sourceHanxiaoquan && source != sourceHeitao && source != sourceBeabox && !isDuanjuProviderSource(source) {
  		return result, errors.New("站源暂未返回剧集，请稍后刷新")
  	}
  	if err != nil {
-@@ -782,6 +812,10 @@ func (engine *nativeEngine) nativeDetail(ctx context.Context, drama nativeDrama)
- 	case sourceHeitao:
- 		raw, chapters, err = engine.downloader.fetchHeitaoDetail(ctx, sourceID)
+@@ -804,6 +834,10 @@ func (engine *nativeEngine) nativeDetail(ctx context.Context, drama nativeDrama)
+ 	case sourceBeabox:
+ 		raw, chapters, err = engine.downloader.fetchBeaboxDetail(ctx, sourceID)
  	default:
 +		if isDuanjuProviderSource(source) {
 +			raw, chapters, err = engine.downloader.fetchDuanjuDetail(ctx, source, sourceID)
@@ -100,7 +100,7 @@ index e3ae003..78be45f 100644
  		title, chapters, err = engine.downloader.GetHuangguoChapters(ctx, source, sourceID)
  	}
  	if err != nil {
-@@ -834,6 +868,7 @@ func (engine *nativeEngine) nativeResolve(ctx context.Context, input nativeInput
+@@ -856,6 +890,7 @@ func (engine *nativeEngine) nativeResolve(ctx context.Context, input nativeInput
  		return nativePlan{}, err
  	}
  	choice := nativePlaybackChoices(media, input.Quality)
