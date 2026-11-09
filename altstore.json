@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.26",
+          "date": "2026-11-09",
+          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `fa7d948`（docs: #94 换集修复已在 Android 实机验证播放正常，更新日志注明 iPad 待验证）。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.26/duanjushijie-1.0.26+100-ios-unsigned.ipa",
+          "size": 33285690,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.25",
           "date": "2026-11-08",
           "localizedDescription": "- 播放页点「出品方」入口时先暂停当前播放，再进入出品方剧作页。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.22/duanjushijie-1.0.22+96-ios-unsigned.ipa",
           "size": 33258660,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.21",
-          "date": "2026-11-07",
-          "localizedDescription": "- 站源清单新增「黑桃」：显示在站源管理与首页站源切换中，默认打开，支持分类与在线搜索。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.21/duanjushijie-1.0.21+95-ios-unsigned.ipa",
-          "size": 33231596,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.26",
+          "date": "2026-11-09",
+          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `fa7d948`（docs: #94 换集修复已在 Android 实机验证播放正常，更新日志注明 iPad 待验证）。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.26/quanjushijie-1.0.26+100-ios-unsigned.ipa",
+          "size": 33285827,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.25",
           "date": "2026-11-08",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 红果详情页新增出品方：简介区显示该剧出品方（如「瑾叶剧场」），点击进入出品方剧作页，可按「最新 / 最热」排序，点任意一部剧回到该剧详情。出品方信息来自红果列表/搜索数据，个别早期收藏的剧目需在列表里重新遇到后才会带上。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.22/quanjushijie-1.0.22+96-ios-unsigned.ipa",
           "size": 33257085,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.21",
-          "date": "2026-11-07",
-          "localizedDescription": "- 站源清单新增「黑桃」：显示在站源管理与首页站源切换中，默认打开，支持分类与在线搜索。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.21/quanjushijie-1.0.21+95-ios-unsigned.ipa",
-          "size": 33231823,
           "minOSVersion": "15.1"
         }
       ]
