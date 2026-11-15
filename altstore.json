@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.28",
+          "date": "2026-11-15",
+          "localizedDescription": "- 新增挂起后播放自动恢复（移植自 tvOS 版 2.53 的同名修复）：App 挂起时（切后台几分钟、设备休眠）系统会回收核心本机播放服务监听的套接字，回来后所有播放地址都连不上、播什么都失败、只能重开 App。现在回到前台时核心会自动检查：监听还在就不动；没了就在原端口重新监听（播放地址与会话不变）；原端口拿不回来则丢弃旧服务、下次起播自动新建。播放中遇到这类失败时，播放器会先让核心恢复服务，确认是挂起丢服务造成的，就从刚才的位置重新起播，不再直接报「播放失败」。核心新增 reviveStream 动作与 ReviveNativeStream（fork/core/stream_revive.go，含单测 3 条）；Dart 侧回前台自动调用，并按「服务代数」识别这类失败。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.28/duanjushijie-1.0.28+102-ios-unsigned.ipa",
+          "size": 33295818,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.27",
           "date": "2026-11-15",
           "localizedDescription": "- 修复黄果 AI 源整体报错与播不了：站方已把「AI 换脸」「AI 魔改」两类内容永久下线（接口返回 410），而「全部」聚合任一分类失败就整源报错——两类已从分类中移除（App 里不再显示，属站方下线、非故障）；旧播放接口已停发地址，改走新接口 `/episodes/{集}/playback` 取 streams.main；写死的镜像域名池已全数过期，改为按 HGhubX 的方式从官方 publish.js 动态发现当前域名（缓存 30 分钟），静态池同步换成当前域名。实测：全部 48 部、AI 短剧 24 部、详情 21 集、播放地址正常返回。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.24/duanjushijie-1.0.24+98-ios-unsigned.ipa",
           "size": 33261315,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.23",
-          "date": "2026-11-08",
-          "localizedDescription": "- 修复红果出品方不显示：播放页「简介」标签里补上出品方一行（点击进出品方剧作页）；同时修数据来源——从首页推荐打开的剧详情里原本拿不到出品方，现改为打开详情时按剧名补查，之后该剧在各处都会带上出品方。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.23/duanjushijie-1.0.23+97-ios-unsigned.ipa",
-          "size": 33259974,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.28",
+          "date": "2026-11-15",
+          "localizedDescription": "- 新增挂起后播放自动恢复（移植自 tvOS 版 2.53 的同名修复）：App 挂起时（切后台几分钟、设备休眠）系统会回收核心本机播放服务监听的套接字，回来后所有播放地址都连不上、播什么都失败、只能重开 App。现在回到前台时核心会自动检查：监听还在就不动；没了就在原端口重新监听（播放地址与会话不变）；原端口拿不回来则丢弃旧服务、下次起播自动新建。播放中遇到这类失败时，播放器会先让核心恢复服务，确认是挂起丢服务造成的，就从刚才的位置重新起播，不再直接报「播放失败」。核心新增 reviveStream 动作与 ReviveNativeStream（fork/core/stream_revive.go，含单测 3 条）；Dart 侧回前台自动调用，并按「服务代数」识别这类失败。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.28/quanjushijie-1.0.28+102-ios-unsigned.ipa",
+          "size": 33295978,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.27",
           "date": "2026-11-15",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 红果简介的出品方改为常显入口（只显示「出品方」不显示名称），点进去后才检索出品方并展示其全部剧作，打开简介不再有额外等待。\n- 站源管理：去掉每张站源卡上的「最近更新：尚无记录」与「尚未检测连接」两行占位文字（有实际检测结果时仍显示检测信息）。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.24/quanjushijie-1.0.24+98-ios-unsigned.ipa",
           "size": 33261650,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.23",
-          "date": "2026-11-08",
-          "localizedDescription": "- 修复红果出品方不显示：播放页「简介」标签里补上出品方一行（点击进出品方剧作页）；同时修数据来源——从首页推荐打开的剧详情里原本拿不到出品方，现改为打开详情时按剧名补查，之后该剧在各处都会带上出品方。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.23/quanjushijie-1.0.23+97-ios-unsigned.ipa",
-          "size": 33260080,
           "minOSVersion": "15.1"
         }
       ]
