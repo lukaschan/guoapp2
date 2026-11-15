@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.27",
+          "date": "2026-11-15",
+          "localizedDescription": "- 修复黄果 AI 源整体报错与播不了：站方已把「AI 换脸」「AI 魔改」两类内容永久下线（接口返回 410），而「全部」聚合任一分类失败就整源报错——两类已从分类中移除（App 里不再显示，属站方下线、非故障）；旧播放接口已停发地址，改走新接口 `/episodes/{集}/playback` 取 streams.main；写死的镜像域名池已全数过期，改为按 HGhubX 的方式从官方 publish.js 动态发现当前域名（缓存 30 分钟），静态池同步换成当前域名。实测：全部 48 部、AI 短剧 24 部、详情 21 集、播放地址正常返回。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.27/duanjushijie-1.0.27+101-ios-unsigned.ipa",
+          "size": 33291183,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.26",
           "date": "2026-11-09",
           "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `fa7d948`（docs: #94 换集修复已在 Android 实机验证播放正常，更新日志注明 iPad 待验证）。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.23/duanjushijie-1.0.23+97-ios-unsigned.ipa",
           "size": 33259974,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.22",
-          "date": "2026-11-08",
-          "localizedDescription": "- 红果详情页新增出品方：简介区显示该剧出品方（如「瑾叶剧场」），点击进入出品方剧作页，可按「最新 / 最热」排序，点任意一部剧回到该剧详情。出品方信息来自红果列表/搜索数据，个别早期收藏的剧目需在列表里重新遇到后才会带上。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.22/duanjushijie-1.0.22+96-ios-unsigned.ipa",
-          "size": 33258660,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.27",
+          "date": "2026-11-15",
+          "localizedDescription": "- 修复黄果 AI 源整体报错与播不了：站方已把「AI 换脸」「AI 魔改」两类内容永久下线（接口返回 410），而「全部」聚合任一分类失败就整源报错——两类已从分类中移除（App 里不再显示，属站方下线、非故障）；旧播放接口已停发地址，改走新接口 `/episodes/{集}/playback` 取 streams.main；写死的镜像域名池已全数过期，改为按 HGhubX 的方式从官方 publish.js 动态发现当前域名（缓存 30 分钟），静态池同步换成当前域名。实测：全部 48 部、AI 短剧 24 部、详情 21 集、播放地址正常返回。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.27/quanjushijie-1.0.27+101-ios-unsigned.ipa",
+          "size": 33291304,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.26",
           "date": "2026-11-09",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 修复红果出品方不显示：播放页「简介」标签里补上出品方一行（点击进出品方剧作页）；同时修数据来源——从首页推荐打开的剧详情里原本拿不到出品方，现改为打开详情时按剧名补查，之后该剧在各处都会带上出品方。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.23/quanjushijie-1.0.23+97-ios-unsigned.ipa",
           "size": 33260080,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.22",
-          "date": "2026-11-08",
-          "localizedDescription": "- 红果详情页新增出品方：简介区显示该剧出品方（如「瑾叶剧场」），点击进入出品方剧作页，可按「最新 / 最热」排序，点任意一部剧回到该剧详情。出品方信息来自红果列表/搜索数据，个别早期收藏的剧目需在列表里重新遇到后才会带上。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.22/quanjushijie-1.0.22+96-ios-unsigned.ipa",
-          "size": 33257085,
           "minOSVersion": "15.1"
         }
       ]
