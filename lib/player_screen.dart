@@ -129,6 +129,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   String? _error;
   String? _saveWarning;
   PlaybackPlan? _plan;
+  int _planStreamGeneration = 0;
   double _speed = 1;
   double _aspectRatio = 9 / 16;
   double _resumePosition = 0;
@@ -761,6 +762,20 @@ class _PlayerScreenState extends State<PlayerScreen>
     _errorTimer?.cancel();
     _pendingError = false;
     final position = _currentPosition;
+    if (!current.local) {
+      try {
+        await widget.repository.reviveStream();
+      } catch (_) {}
+      if (_closed) return;
+      if (widget.repository.streamGeneration != _planStreamGeneration) {
+        await _play(
+          _index,
+          position: position,
+          recoveryAction: PlaybackRecoveryAction.refresh,
+        );
+        return;
+      }
+    }
     final action = current.local
         ? PlaybackRecoveryAction.stop
         : _recovery.next(current);
@@ -1012,6 +1027,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           await platform.setProperty('network-timeout', '20');
         }
         _plan = plan;
+        _planStreamGeneration = widget.repository.streamGeneration;
         installed = true;
         _acceptErrors = true;
         await _player.open(

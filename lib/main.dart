@@ -75,8 +75,9 @@ class _AppBootstrapState extends State<AppBootstrap>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && Platform.isAndroid) {
-      unawaited(_refreshDevice());
+    if (state == AppLifecycleState.resumed) {
+      unawaited(repository.reviveStream().catchError((Object _) => ''));
+      if (Platform.isAndroid) unawaited(_refreshDevice());
     }
     if (!Platform.isIOS) return;
     final library = MediaLibrary.current;

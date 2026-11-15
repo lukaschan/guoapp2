@@ -68,6 +68,8 @@ class AppFailure implements Exception {
 }
 
 abstract class AppRepository {
+  int get streamGeneration => 0;
+  Future<String> reviveStream() async => 'idle';
   Future<Map<String, dynamic>> lan(
     String command,
     Map<String, dynamic> payload,
@@ -213,6 +215,18 @@ class NativeRepository extends AppRepository {
   static final _coverDecoder = CoverDecoder();
   NativeRepository({this.background = false});
   final bool background;
+  int _streamGeneration = 0;
+
+  @override
+  int get streamGeneration => _streamGeneration;
+
+  @override
+  Future<String> reviveStream() async {
+    final result = await _call({'action': 'reviveStream'});
+    final status = result['status'] as String? ?? 'idle';
+    if (status == 'revived' || status == 'reset') _streamGeneration++;
+    return status;
+  }
   LocalStore? access;
   final _readOwner = DateTime.now().microsecondsSinceEpoch.toString();
   int _readSequence = 0;
@@ -593,6 +607,7 @@ class NativeRepository extends AppRepository {
             'cancelPlayback',
             'cancelRead',
             'updateSystemProxy',
+            'reviveStream',
           }.contains(action) ||
           action == 'workLease' && input['command'] == 'end' ||
           action == 'lan' &&
