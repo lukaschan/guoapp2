@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.30+104
+
+- 修复红果源无法播放（2026-11-16 起平台更换播放接口与签名，旧取流一律返回空数据）：播放改走新的批量接口 `/novel/player/multi_video_model/player/v1`（api5-normal-sinfonlinea），biz_param 对齐官方新版（device_level 1、video_platform 1024、dr_scene player），并实现新一代 V5 播放签名（X-Medusa / X-Helios / X-Khronos，含 SM3 杂凑与 Medusa 载荷加密，移植自上游 2.0.1 红果模块 1.0.4 的公开实现，与 JS 参考实现逐字节对齐测试通过）。播放专用设备档案（7.4.3.32 / PGT-AN10）与既有设备注册、轮换逻辑复用；响应解析支持 data["1004"][集] 的 video_model 与 video_list 直出两种形态。实测：取流成功返回 1080p 地址与 CENC 密钥，媒体流可正常拉取。其余站源与详情、搜索、弹幕签名不变。
+
 ## 1.0.29+103
 
 - 挂起恢复探活升级（采纳 guoapp-tvos GitHub issue #2 的建议，电视端 2.55 同步同改）：本机播放服务新增本机健康端点 `HEAD /__guoapp_health`（固定回 204，不依赖会话与片源）；ReviveNativeStream 的探活由 TCP 拨号改为 HTTP 健康检查（不走代理、不复用连接、1 秒超时）——TCP 能连上只证明端口上有东西在听，现在要回了 204 才算服务还活着，端口被别的服务占了或 HTTP 层卡死不再误判 alive。恢复策略不变：优先原端口重新监听，拿不回来才 reset。回归测试补强：健康端点无会话直回 204；「端口被别的 HTTP 服务占」改为走 ReviveNativeStream 正路断言 reset。
