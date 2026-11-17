@@ -440,4 +440,85 @@ void main() {
     );
     expect(store.playbackPreferences.danmaku, isFalse);
   });
+
+  test('shorter lifetime lets a following danmaku reuse the lane sooner', () {
+    final items = [
+      DanmakuItem(id: 'a', text: '甲', timeMs: 0),
+      DanmakuItem(id: 'b', text: '乙', timeMs: 2000),
+    ];
+    final standard = planDanmaku(
+      items,
+      width: 400,
+      rows: 4,
+      measure: (_) => 292,
+    );
+    expect(standard.map((flight) => flight.lane), [0, 1]);
+    final faster = planDanmaku(
+      items,
+      width: 400,
+      rows: 4,
+      measure: (_) => 292,
+      lifetimeMs: 4000,
+    );
+    expect(faster.map((flight) => flight.lane), [0, 0]);
+  });
+
+  test('danmaku appearance preferences round-trip, clamp and default', () {
+    const preferences = PlaybackPreferences(
+      danmakuScale: 1.5,
+      danmakuColor: 0xFFFFE066,
+      danmakuOpacity: .6,
+      danmakuBold: false,
+      danmakuStroke: 2.5,
+      danmakuShadow: 6,
+      danmakuCoverage: DanmakuCoverage.full,
+      danmakuSpeed: 1.5,
+    );
+    final restored = PlaybackPreferences.fromJson(preferences.toJson());
+    expect(restored.danmakuScale, 1.5);
+    expect(restored.danmakuColor, 0xFFFFE066);
+    expect(restored.danmakuOpacity, .6);
+    expect(restored.danmakuBold, isFalse);
+    expect(restored.danmakuStroke, 2.5);
+    expect(restored.danmakuShadow, 6);
+    expect(restored.danmakuCoverage, DanmakuCoverage.full);
+    expect(restored.danmakuSpeed, 1.5);
+
+    final clamped = PlaybackPreferences.fromJson({
+      ...const PlaybackPreferences().toJson(),
+      'danmakuScale': 3.0,
+      'danmakuColor': 0xFF000000,
+      'danmakuOpacity': 0.01,
+      'danmakuStroke': 99.0,
+      'danmakuShadow': -1.0,
+      'danmakuCoverage': 'bogus',
+      'danmakuSpeed': 0.1,
+    });
+    expect(clamped.danmakuScale, danmakuScaleMax);
+    expect(clamped.danmakuColor, 0xFFFFFFFF);
+    expect(clamped.danmakuOpacity, 0.1);
+    expect(clamped.danmakuStroke, danmakuStrokeMax);
+    expect(clamped.danmakuShadow, danmakuShadowMin);
+    expect(clamped.danmakuCoverage, DanmakuCoverage.half);
+    expect(clamped.danmakuSpeed, danmakuSpeedMin);
+
+    final legacyJson = const PlaybackPreferences().toJson()
+      ..remove('danmakuScale')
+      ..remove('danmakuColor')
+      ..remove('danmakuOpacity')
+      ..remove('danmakuBold')
+      ..remove('danmakuStroke')
+      ..remove('danmakuShadow')
+      ..remove('danmakuCoverage')
+      ..remove('danmakuSpeed');
+    final legacy = PlaybackPreferences.fromJson(legacyJson);
+    expect(legacy.danmakuScale, 1);
+    expect(legacy.danmakuColor, 0xFFFFFFFF);
+    expect(legacy.danmakuOpacity, 1);
+    expect(legacy.danmakuBold, isTrue);
+    expect(legacy.danmakuStroke, 0);
+    expect(legacy.danmakuShadow, 3);
+    expect(legacy.danmakuCoverage, DanmakuCoverage.half);
+    expect(legacy.danmakuSpeed, 1);
+  });
 }

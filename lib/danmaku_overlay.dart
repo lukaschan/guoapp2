@@ -4,6 +4,45 @@ import 'package:flutter/material.dart';
 
 import 'danmaku_controller.dart';
 import 'danmaku_models.dart';
+import 'danmaku_style.dart';
+
+const danmakuMaxRows = 64;
+
+TextStyle danmakuTextStyle({
+  required double fontSize,
+  required DanmakuStyle style,
+  bool stroke = false,
+}) {
+  final weight = style.bold ? FontWeight.w700 : FontWeight.w500;
+  final alpha = style.opacity;
+  if (stroke) {
+    return TextStyle(
+      fontSize: fontSize,
+      height: 1.2,
+      fontWeight: weight,
+      foreground: Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = style.stroke
+        ..strokeJoin = StrokeJoin.round
+        ..color = Colors.black.withValues(alpha: alpha),
+    );
+  }
+  return TextStyle(
+    fontSize: fontSize,
+    height: 1.2,
+    fontWeight: weight,
+    color: style.color.withValues(alpha: alpha),
+    shadows: style.hasShadow
+        ? [
+            Shadow(
+              color: Colors.black.withValues(alpha: .72 * alpha),
+              blurRadius: style.shadow,
+              offset: Offset(style.shadow * .3, style.shadow * .3),
+            ),
+          ]
+        : null,
+  );
+}
 
 class DanmakuFlight {
   const DanmakuFlight(this.item, this.text, this.lane, this.width);
@@ -18,9 +57,10 @@ List<DanmakuFlight> planDanmaku(
   required double width,
   required int rows,
   required double Function(String) measure,
+  int lifetimeMs = danmakuLifetimeMs,
 }) {
   if (!width.isFinite || width <= 0 || rows < 1) return const [];
-  final lanes = List<DanmakuFlight?>.filled(rows.clamp(1, 4), null);
+  final lanes = List<DanmakuFlight?>.filled(rows.clamp(1, danmakuMaxRows), null);
   final sorted = items.toList()..sort((a, b) => a.timeMs.compareTo(b.timeMs));
   final seen = <String>{};
   final flights = <DanmakuFlight>[];
@@ -33,7 +73,7 @@ List<DanmakuFlight> planDanmaku(
     }
     if (flights.reversed
             .takeWhile(
-              (flight) => item.timeMs - flight.item.timeMs < danmakuLifetimeMs,
+              (flight) => item.timeMs - flight.item.timeMs < lifetimeMs,
             )
             .length >=
         24) {
@@ -46,15 +86,10 @@ List<DanmakuFlight> planDanmaku(
     final lane = lanes.indexWhere((previous) {
       if (previous == null) return true;
       final gap = item.timeMs - previous.item.timeMs;
-      if (gap >= danmakuLifetimeMs) return true;
-      return (width + previous.width) * gap / danmakuLifetimeMs -
-                  previous.width >=
+      if (gap >= lifetimeMs) return true;
+      return (width + previous.width) * gap / lifetimeMs - previous.width >=
               24 &&
-          width -
-                  (width + size) *
-                      (danmakuLifetimeMs - gap) /
-                      danmakuLifetimeMs >=
-              24;
+          width - (width + size) * (lifetimeMs - gap) / lifetimeMs >= 24;
     });
     if (lane < 0) continue;
     final flight = DanmakuFlight(item, text, lane, size);
@@ -69,9 +104,11 @@ class DanmakuOverlay extends StatefulWidget {
     super.key,
     required this.controller,
     required this.aspectRatio,
+    this.style = const DanmakuStyle(),
   });
   final DanmakuController controller;
   final double aspectRatio;
+  final DanmakuStyle style;
 
   @override
   State<DanmakuOverlay> createState() => _DanmakuOverlayState();
@@ -103,19 +140,18 @@ class _DanmakuOverlayState extends State<DanmakuOverlay> {
             constraints.maxHeight,
             constraints.maxWidth / aspect,
           );
-          final fontSize = width < 600 ? 16.0 : 20.0;
+          final style = widget.style;
+          final fontSize = (width < 600 ? 16.0 : 20.0) * style.scale;
           final scaler = MediaQuery.textScalerOf(context);
           final rowHeight = scaler.scale(fontSize) * 1.5;
-          final rows = ((height * .55 - 8) / rowHeight).floor().clamp(0, 4);
-          final style = TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-            height: 1.2,
-            shadows: const [
-              Shadow(color: Colors.black, blurRadius: 3, offset: Offset(1, 1)),
-            ],
-          );
+          final rows = ((height * style.coverage.fraction - 8) / rowHeight)
+              .floor()
+              .clamp(0, danmakuMaxRows);
+          final lifetimeMs = (danmakuLifetimeMs / style.speed).round();
+          final fillStyle = danmakuTextStyle(fontSize: fontSize, style: style);
+          final outlineStyle = style.hasStroke
+              ? danmakuTextStyle(fontSize: fontSize, style: style, stroke: true)
+              : null;
           return Center(
             child: SizedBox(
               width: width,
@@ -135,6 +171,8 @@ class _DanmakuOverlayState extends State<DanmakuOverlay> {
                       rows,
                       fontSize,
                       scaler,
+                      style,
+                      lifetimeMs,
                     );
                     if (_layout != layout) {
                       _layout = layout;
@@ -142,9 +180,10 @@ class _DanmakuOverlayState extends State<DanmakuOverlay> {
                         controller.items,
                         width: width,
                         rows: rows,
+                        lifetimeMs: lifetimeMs,
                         measure: (text) {
                           final painter = TextPainter(
-                            text: TextSpan(text: text, style: style),
+                            text: TextSpan(text: text, style: fillStyle),
                             textDirection: TextDirection.ltr,
                             textScaler: scaler,
                             maxLines: 1,
@@ -161,7 +200,7 @@ class _DanmakuOverlayState extends State<DanmakuOverlay> {
                         for (final flight in _schedule)
                           if (controller.positionMs >= flight.item.timeMs &&
                               controller.positionMs <
-                                  flight.item.timeMs + danmakuLifetimeMs)
+                                  flight.item.timeMs + lifetimeMs)
                             Positioned(
                               key: ValueKey('danmaku-item-${flight.item.id}'),
                               left: 0,
@@ -175,7 +214,9 @@ class _DanmakuOverlayState extends State<DanmakuOverlay> {
                                 moving: controller.moving,
                                 rate: controller.rate,
                                 revision: controller.motionRevision,
-                                style: style,
+                                style: fillStyle,
+                                outlineStyle: outlineStyle,
+                                lifetimeMs: lifetimeMs,
                                 scaler: scaler,
                               ),
                             ),
@@ -201,6 +242,8 @@ class _DanmakuMotion extends StatefulWidget {
     required this.rate,
     required this.revision,
     required this.style,
+    required this.outlineStyle,
+    required this.lifetimeMs,
     required this.scaler,
   });
   final DanmakuFlight flight;
@@ -210,6 +253,8 @@ class _DanmakuMotion extends StatefulWidget {
   final double rate;
   final int revision;
   final TextStyle style;
+  final TextStyle? outlineStyle;
+  final int lifetimeMs;
   final TextScaler scaler;
 
   @override
@@ -231,6 +276,7 @@ class _DanmakuMotionState extends State<_DanmakuMotion>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.revision != widget.revision ||
         oldWidget.width != widget.width ||
+        oldWidget.lifetimeMs != widget.lifetimeMs ||
         oldWidget.flight.width != widget.flight.width ||
         oldWidget.flight.item.timeMs != widget.flight.item.timeMs) {
       _sync();
@@ -241,14 +287,14 @@ class _DanmakuMotionState extends State<_DanmakuMotion>
     _motion.stop();
     final elapsed = (widget.positionMs - widget.flight.item.timeMs).clamp(
       0,
-      danmakuLifetimeMs,
+      widget.lifetimeMs,
     );
-    _motion.value = elapsed / danmakuLifetimeMs;
-    if (widget.moving && elapsed < danmakuLifetimeMs) {
+    _motion.value = elapsed / widget.lifetimeMs;
+    if (widget.moving && elapsed < widget.lifetimeMs) {
       _motion.animateTo(
         1,
         duration: Duration(
-          microseconds: ((danmakuLifetimeMs - elapsed) * 1000 / widget.rate)
+          microseconds: ((widget.lifetimeMs - elapsed) * 1000 / widget.rate)
               .round()
               .clamp(1, 86400000000),
         ),
@@ -263,18 +309,24 @@ class _DanmakuMotionState extends State<_DanmakuMotion>
     super.dispose();
   }
 
+  Widget _text(TextStyle style) => Text(
+    widget.flight.text,
+    style: style,
+    textScaler: widget.scaler,
+    textDirection: TextDirection.ltr,
+    maxLines: 1,
+    softWrap: false,
+  );
+
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
     animation: _motion,
     child: RepaintBoundary(
-      child: Text(
-        widget.flight.text,
-        style: widget.style,
-        textScaler: widget.scaler,
-        textDirection: TextDirection.ltr,
-        maxLines: 1,
-        softWrap: false,
-      ),
+      child: widget.outlineStyle == null
+          ? _text(widget.style)
+          : Stack(
+              children: [_text(widget.outlineStyle!), _text(widget.style)],
+            ),
     ),
     builder: (context, child) => Transform.translate(
       key: ValueKey('danmaku-motion-${widget.flight.item.id}'),

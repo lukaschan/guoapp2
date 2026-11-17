@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'models.dart';
+import 'danmaku_settings.dart';
 import 'episode_browser.dart';
 import 'playback_preferences.dart';
 import 'video_enhancement.dart';
@@ -294,6 +295,14 @@ class _PlayerMenuState extends State<PlayerMenu> {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('重试弹幕'),
             ),
+          if (preferences.danmaku) ...[
+            DanmakuSettings(
+              preferences: preferences,
+              busy: _busy,
+              onChanged: (next) => _run(() => widget.onPreferences(next)),
+            ),
+            const SizedBox(height: 8),
+          ],
           const SizedBox(height: 8),
         ],
         if (all) ...[

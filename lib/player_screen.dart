@@ -14,6 +14,7 @@ import 'app_theme.dart';
 import 'core_bridge.dart';
 import 'danmaku_controller.dart';
 import 'danmaku_overlay.dart';
+import 'danmaku_style.dart';
 import 'download_picker.dart';
 import 'downloads_screen.dart';
 import 'follow_state.dart';
@@ -78,6 +79,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   late final DanmakuController _danmaku;
   int _seekSequence = 0;
   bool _danmakuEnabled = true;
+  DanmakuStyle _danmakuStyle = const DanmakuStyle();
   late final PlayerInteractions _interactions;
   final _playerFocus = FocusNode(debugLabel: 'player-surface');
   final _videoPaneKey = GlobalKey();
@@ -153,6 +155,14 @@ class _PlayerScreenState extends State<PlayerScreen>
     quality: _requestedQuality,
     autoAdvance: _autoAdvance,
     danmaku: _danmakuEnabled,
+    danmakuScale: _danmakuStyle.scale,
+    danmakuColor: _danmakuStyle.color.toARGB32(),
+    danmakuOpacity: _danmakuStyle.opacity,
+    danmakuBold: _danmakuStyle.bold,
+    danmakuStroke: _danmakuStyle.stroke,
+    danmakuShadow: _danmakuStyle.shadow,
+    danmakuCoverage: _danmakuStyle.coverage,
+    danmakuSpeed: _danmakuStyle.speed,
     preload: _preloadEnabled,
     enhancement: _enhancement.preferences,
   );
@@ -182,6 +192,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _requestedQuality = preferences.quality;
     _autoAdvance = true;
     _danmakuEnabled = preferences.danmaku;
+    _danmakuStyle = DanmakuStyle.of(preferences);
     _preloadEnabled = true;
     _loader = PlaybackLoader(widget.repository);
     _preloader = PlaybackPreloader(widget.repository);
@@ -1222,6 +1233,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _requestedQuality = nextPreferences.quality;
       _autoAdvance = true;
       _danmakuEnabled = nextPreferences.danmaku;
+      _danmakuStyle = DanmakuStyle.of(nextPreferences);
       _preloadEnabled = true;
     });
     _danmaku.setEnabled(_danmakuEnabled);
@@ -1766,7 +1778,11 @@ class _PlayerScreenState extends State<PlayerScreen>
       fit: StackFit.expand,
       children: [
         if (!hideOverlayForPictureInPicture)
-          DanmakuOverlay(controller: _danmaku, aspectRatio: _aspectRatio),
+          DanmakuOverlay(
+            controller: _danmaku,
+            aspectRatio: _aspectRatio,
+            style: _danmakuStyle,
+          ),
         controls,
       ],
     );
