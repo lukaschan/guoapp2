@@ -9,6 +9,7 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'core_bridge.dart';
+import 'danmaku_settings.dart';
 import 'app_theme.dart';
 import 'background_downloads.dart';
 import 'ios_dialogs.dart';
@@ -192,6 +193,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+          SwitchListTile.adaptive(
+            key: const ValueKey('danmaku-enabled-setting'),
+            secondary: const Icon(Icons.subtitles_outlined),
+            value: widget.store.playbackPreferences.danmaku,
+            title: const Text('显示弹幕'),
+            subtitle: const Text('与播放页的弹幕开关同步'),
+            onChanged: (value) => saveUserChange(
+              context,
+              () => widget.store.setPlaybackPreferences(
+                widget.store.playbackPreferences.copyWith(danmaku: value),
+              ),
+            ),
+          ),
+          if (widget.store.playbackPreferences.danmaku)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: DanmakuSettings(
+                preferences: widget.store.playbackPreferences,
+                onChanged: (next) => saveUserChange(
+                  context,
+                  () => widget.store.setPlaybackPreferences(next),
+                ),
+              ),
+            ),
           if (widget.store.canDownload)
             ListTile(
               leading: const Icon(Icons.download_outlined),
@@ -526,6 +551,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () => _push(ProfilesScreen(store: store)),
           ),
         ]),
+        _glassSection('弹幕', [
+          _glassRow(
+            icon: LucideIcons.clapperboard,
+            color: const Color(0xFF30B0C7),
+            title: '显示弹幕',
+            trailing: _glassSwitch(
+              value: store.playbackPreferences.danmaku,
+              onChanged: (value) => saveUserChange(
+                context,
+                () => store.setPlaybackPreferences(
+                  store.playbackPreferences.copyWith(danmaku: value),
+                ),
+              ),
+            ),
+          ),
+        ]),
+        if (store.playbackPreferences.danmaku)
+          _glassSection(null, [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+              child: DanmakuSettings(
+                preferences: store.playbackPreferences,
+                onChanged: (next) => saveUserChange(
+                  context,
+                  () => store.setPlaybackPreferences(next),
+                ),
+              ),
+            ),
+          ]),
         if (store.canDownload)
           _glassSection(
             '下载',
