@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.31",
+          "date": "2026-11-18",
+          "localizedDescription": "- 新增弹幕外观设置（参考上游 guoapp 的弹幕样式体系移植）：播放菜单的「播放设置」里，弹幕开关下方新增整组外观调整——字号（60%–200%）、颜色（白/黄/青/粉/绿五色）、透明度（10%–100%）、加粗开关、描边（0–6）、阴影（0–12）、滚动速度（0.5x–2.0x）、显示区域（顶部四分之一/顶部一半/全部）。设置即时生效并按用户保存，旧版本配置自动沿用默认值。渲染按上游同款方式应用：字号缩放、填充色与透明度、黑色描边层、阴影模糊与偏移、显示区域决定弹幕行数（行数上限同步放宽）、滚动速度按比例调整每条弹幕的划过时长与轨道排布。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.31/duanjushijie-1.0.31+105-ios-unsigned.ipa",
+          "size": 33332228,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.30",
           "date": "2026-11-17",
           "localizedDescription": "- 修复红果源无法播放（2026-11-16 起平台更换播放接口与签名，旧取流一律返回空数据）：播放改走新的批量接口 `/novel/player/multi_video_model/player/v1`（api5-normal-sinfonlinea），biz_param 对齐官方新版（device_level 1、video_platform 1024、dr_scene player），并实现新一代 V5 播放签名（X-Medusa / X-Helios / X-Khronos，含 SM3 杂凑与 Medusa 载荷加密，移植自上游 2.0.1 红果模块 1.0.4 的公开实现，与 JS 参考实现逐字节对齐测试通过）。播放专用设备档案（7.4.3.32 / PGT-AN10）与既有设备注册、轮换逻辑复用；响应解析支持 data[\"1004\"][集] 的 video_model 与 video_list 直出两种形态。实测：取流成功返回 1080p 地址与 CENC 密钥，媒体流可正常拉取。其余站源与详情、搜索、弹幕签名不变。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.27/duanjushijie-1.0.27+101-ios-unsigned.ipa",
           "size": 33291183,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.26",
-          "date": "2026-11-09",
-          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `fa7d948`（docs: #94 换集修复已在 Android 实机验证播放正常，更新日志注明 iPad 待验证）。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.26/duanjushijie-1.0.26+100-ios-unsigned.ipa",
-          "size": 33285690,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.31",
+          "date": "2026-11-18",
+          "localizedDescription": "- 新增弹幕外观设置（参考上游 guoapp 的弹幕样式体系移植）：播放菜单的「播放设置」里，弹幕开关下方新增整组外观调整——字号（60%–200%）、颜色（白/黄/青/粉/绿五色）、透明度（10%–100%）、加粗开关、描边（0–6）、阴影（0–12）、滚动速度（0.5x–2.0x）、显示区域（顶部四分之一/顶部一半/全部）。设置即时生效并按用户保存，旧版本配置自动沿用默认值。渲染按上游同款方式应用：字号缩放、填充色与透明度、黑色描边层、阴影模糊与偏移、显示区域决定弹幕行数（行数上限同步放宽）、滚动速度按比例调整每条弹幕的划过时长与轨道排布。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.31/quanjushijie-1.0.31+105-ios-unsigned.ipa",
+          "size": 33332150,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.30",
           "date": "2026-11-17",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 修复黄果 AI 源整体报错与播不了：站方已把「AI 换脸」「AI 魔改」两类内容永久下线（接口返回 410），而「全部」聚合任一分类失败就整源报错——两类已从分类中移除（App 里不再显示，属站方下线、非故障）；旧播放接口已停发地址，改走新接口 `/episodes/{集}/playback` 取 streams.main；写死的镜像域名池已全数过期，改为按 HGhubX 的方式从官方 publish.js 动态发现当前域名（缓存 30 分钟），静态池同步换成当前域名。实测：全部 48 部、AI 短剧 24 部、详情 21 集、播放地址正常返回。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.27/quanjushijie-1.0.27+101-ios-unsigned.ipa",
           "size": 33291304,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.26",
-          "date": "2026-11-09",
-          "localizedDescription": "- 同步上游核心到 Xanerix/guoapp `fa7d948`（docs: #94 换集修复已在 Android 实机验证播放正常，更新日志注明 iPad 待验证）。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.26/quanjushijie-1.0.26+100-ios-unsigned.ipa",
-          "size": 33285827,
           "minOSVersion": "15.1"
         }
       ]
