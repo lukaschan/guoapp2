@@ -207,8 +207,43 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - edition: duanjushijie
+            arguments: ''
+          - edition: quanjushijie
+            arguments: '--all-sources'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: upstream/native/go.mod
+          cache-dependency-path: upstream/native/go.sum
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.4'
+          channel: stable
+          cache: true
+      - run: python3 scripts/build_macos.py ${{ matrix.arguments }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.edition }}-macos
+          path: dist/macos/*
+          if-no-files-found: error
+          retention-days: 14
+
   release:
-    needs: [android, windows, ios]
+    needs: [android, windows, ios, macos]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -253,6 +288,7 @@ jobs:
           files: |
             release/**/*.apk
             release/**/*.ipa
+            release/**/*.dmg
             release/**/*-windows-x64-portable.zip
             release/**/*-windows-x64-setup.exe
           fail_on_unmatched_files: true

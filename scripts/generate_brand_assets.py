@@ -24,6 +24,12 @@ for entry in contents['images']:
         size = round(float(entry['size'].split('x')[0]) * float(entry['scale'].rstrip('x')))
         save(icon.resize((size, size), Image.Resampling.LANCZOS),
              'ios/Runner/Assets.xcassets/AppIcon.appiconset/' + entry['filename'])
+contents = json.loads((root / 'macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json').read_text())
+for entry in contents['images']:
+    if 'filename' in entry:
+        size = round(float(entry['size'].split('x')[0]) * float(entry['scale'].rstrip('x')))
+        save(icon.resize((size, size), Image.Resampling.LANCZOS),
+             'macos/Runner/Assets.xcassets/AppIcon.appiconset/' + entry['filename'])
 save(icon.resize((256, 256), Image.Resampling.LANCZOS), 'windows/runner/resources/app_icon.ico')
 save(icon.resize((1024, 1024), Image.Resampling.LANCZOS), 'android/app/src/main/res/drawable/app_icon.png')
 for density, size in [('mdpi', 48), ('hdpi', 72), ('xhdpi', 96), ('xxhdpi', 144), ('xxxhdpi', 192)]:

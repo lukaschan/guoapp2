@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.33+107
+
+- 新增 macOS universal 版（参考上游 guoapp 的 macOS 构建移植）：短剧视界与全剧视界各一个 DMG，同一安装包同时支持 Apple 芯片与 Intel（最低 macOS 12）。核心按 arm64 + x86_64 双架构编译后合成 XCFramework 静态链接，播放走 media_kit 的 macOS mpv 库。安装包为 ad-hoc 签名、未经公证：打开 DMG 把应用拖入 Applications 后，首次打开前在终端执行 `xattr -dr com.apple.quarantine /Applications/短剧视界.app`（全剧视界同理换应用名），或在 Finder 里右键应用选「打开」。
+
 ## 1.0.32+106
 
 - 「设置与备份」新增「弹幕」分组（与上游设置页对齐）：显示弹幕开关（与播放页开关同步）+ 1.0.31 的整组外观设置（字号、颜色、透明度、加粗、描边、阴影、滚动速度、显示区域），不必进播放页也能调整；播放菜单内的入口保留不变。
