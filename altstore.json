@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.32",
+          "date": "2026-11-18",
+          "localizedDescription": "- 「设置与备份」新增「弹幕」分组（与上游设置页对齐）：显示弹幕开关（与播放页开关同步）+ 1.0.31 的整组外观设置（字号、颜色、透明度、加粗、描边、阴影、滚动速度、显示区域），不必进播放页也能调整；播放菜单内的入口保留不变。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.32/duanjushijie-1.0.32+106-ios-unsigned.ipa",
+          "size": 33331548,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.31",
           "date": "2026-11-18",
           "localizedDescription": "- 新增弹幕外观设置（参考上游 guoapp 的弹幕样式体系移植）：播放菜单的「播放设置」里，弹幕开关下方新增整组外观调整——字号（60%–200%）、颜色（白/黄/青/粉/绿五色）、透明度（10%–100%）、加粗开关、描边（0–6）、阴影（0–12）、滚动速度（0.5x–2.0x）、显示区域（顶部四分之一/顶部一半/全部）。设置即时生效并按用户保存，旧版本配置自动沿用默认值。渲染按上游同款方式应用：字号缩放、填充色与透明度、黑色描边层、阴影模糊与偏移、显示区域决定弹幕行数（行数上限同步放宽）、滚动速度按比例调整每条弹幕的划过时长与轨道排布。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.28/duanjushijie-1.0.28+102-ios-unsigned.ipa",
           "size": 33295818,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.27",
-          "date": "2026-11-15",
-          "localizedDescription": "- 修复黄果 AI 源整体报错与播不了：站方已把「AI 换脸」「AI 魔改」两类内容永久下线（接口返回 410），而「全部」聚合任一分类失败就整源报错——两类已从分类中移除（App 里不再显示，属站方下线、非故障）；旧播放接口已停发地址，改走新接口 `/episodes/{集}/playback` 取 streams.main；写死的镜像域名池已全数过期，改为按 HGhubX 的方式从官方 publish.js 动态发现当前域名（缓存 30 分钟），静态池同步换成当前域名。实测：全部 48 部、AI 短剧 24 部、详情 21 集、播放地址正常返回。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.27/duanjushijie-1.0.27+101-ios-unsigned.ipa",
-          "size": 33291183,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.32",
+          "date": "2026-11-18",
+          "localizedDescription": "- 「设置与备份」新增「弹幕」分组（与上游设置页对齐）：显示弹幕开关（与播放页开关同步）+ 1.0.31 的整组外观设置（字号、颜色、透明度、加粗、描边、阴影、滚动速度、显示区域），不必进播放页也能调整；播放菜单内的入口保留不变。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.32/quanjushijie-1.0.32+106-ios-unsigned.ipa",
+          "size": 33331440,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.31",
           "date": "2026-11-18",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 新增挂起后播放自动恢复（移植自 tvOS 版 2.53 的同名修复）：App 挂起时（切后台几分钟、设备休眠）系统会回收核心本机播放服务监听的套接字，回来后所有播放地址都连不上、播什么都失败、只能重开 App。现在回到前台时核心会自动检查：监听还在就不动；没了就在原端口重新监听（播放地址与会话不变）；原端口拿不回来则丢弃旧服务、下次起播自动新建。播放中遇到这类失败时，播放器会先让核心恢复服务，确认是挂起丢服务造成的，就从刚才的位置重新起播，不再直接报「播放失败」。核心新增 reviveStream 动作与 ReviveNativeStream（fork/core/stream_revive.go，含单测 3 条）；Dart 侧回前台自动调用，并按「服务代数」识别这类失败。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.28/quanjushijie-1.0.28+102-ios-unsigned.ipa",
           "size": 33295978,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.27",
-          "date": "2026-11-15",
-          "localizedDescription": "- 修复黄果 AI 源整体报错与播不了：站方已把「AI 换脸」「AI 魔改」两类内容永久下线（接口返回 410），而「全部」聚合任一分类失败就整源报错——两类已从分类中移除（App 里不再显示，属站方下线、非故障）；旧播放接口已停发地址，改走新接口 `/episodes/{集}/playback` 取 streams.main；写死的镜像域名池已全数过期，改为按 HGhubX 的方式从官方 publish.js 动态发现当前域名（缓存 30 分钟），静态池同步换成当前域名。实测：全部 48 部、AI 短剧 24 部、详情 21 集、播放地址正常返回。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.27/quanjushijie-1.0.27+101-ios-unsigned.ipa",
-          "size": 33291304,
           "minOSVersion": "15.1"
         }
       ]
