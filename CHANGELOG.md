@@ -1,5 +1,9 @@
 # 更新日志
 
+## 1.0.34+108
+
+- 修复红果源再次无法播放（平台废弃旧播放器接口，表现为 App 报 404、取流返回空数据）：按上游红果模块 1.0.5–1.0.7 的新协议移植——播放改以 video_tab 接口（`/reading/bookapi/video_tab/multi_video_model/v1/`，V5 签名 GET）为主、旧播放器接口为回退；客户端身份整体升到 7.4.5.32（App 查询、播放查询、设备注册与旧签名版本字段同步）；新增 H.266 专用线路的兼容回退：模型只有 bytevc2 线路时，经模型自带的备用接口按 codec_type 1/3 取兼容线路，备用地址的密封编码（SHA-512 派生密钥 + AES-CBC）已实现解码，并有与官方模块同构的合成向量测试覆盖。实测：取流成功返回 1080p 地址与 CENC 密钥，媒体流可正常拉取（HTTP 206）。
+
 ## 1.0.33+107
 
 - 新增 macOS universal 版（参考上游 guoapp 的 macOS 构建移植）：短剧视界与全剧视界各一个 DMG，同一安装包同时支持 Apple 芯片与 Intel（最低 macOS 12）。核心按 arm64 + x86_64 双架构编译后合成 XCFramework 静态链接，播放走 media_kit 的 macOS mpv 库。安装包为 ad-hoc 签名、未经公证：打开 DMG 把应用拖入 Applications 后，首次打开前在终端执行 `xattr -dr com.apple.quarantine /Applications/短剧视界.app`（全剧视界同理换应用名），或在 Finder 里右键应用选「打开」。
