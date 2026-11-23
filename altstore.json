@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.36",
+          "date": "2026-11-23",
+          "localizedDescription": "- 红果播放改走新一代播放器协议（7.3.9.32 小米机型身份 + 当前签名方言）：播放器专用设备身份注册后 7 分钟内有效、过期自动重注册，签名时间与服务器校时对齐；单集接口与批量接口双路取流，旧通道保留为兜底。修复红果源再次无法播放的问题。\n\n# 更新日志",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.36/duanjushijie-1.0.36+110-ios-unsigned.ipa",
+          "size": 33377655,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.35",
           "date": "2026-11-23",
           "localizedDescription": "- 修复红果源又无法播放（平台改为按请求身份区别对待：安卓身份的播放请求被回空响应、风控未放行，设备注册接口一度回 444）：按上游红果模块社区 1.0.8（PR #3，未被上游合入）的方案移植——新增 pc 车道：同一接口带 `device_platform=pc` 时平台下发可直接播放的 bytevc1（HEVC + CENC）线路，车道顺序为默认身份 → pc 身份 → 换辅助设备再试两条 → 重注册主设备（2 分钟内最多一次，避开注册限流）；空响应与格式异常不再直接报错、与编码不兼容一样换道重试，最终错误按真实原因区分（只有编码问题／只有拦截／两者都有）；pc 车道的扁平 video_list（codec、宽高、spade_a 直接在线路项上、无 video_meta/encrypt_info 嵌套）已适配解析；video_model 字符串以 JSON 开头时不再误作 base64 解码。新增与社区版同构的车道测试 5 条（扁平 pc 线路、空响应换 pc 车道、空响应换设备、不兼容编码换 pc 车道、全空报风控）。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.32/duanjushijie-1.0.32+106-ios-unsigned.ipa",
           "size": 33331548,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.31",
-          "date": "2026-11-18",
-          "localizedDescription": "- 新增弹幕外观设置（参考上游 guoapp 的弹幕样式体系移植）：播放菜单的「播放设置」里，弹幕开关下方新增整组外观调整——字号（60%–200%）、颜色（白/黄/青/粉/绿五色）、透明度（10%–100%）、加粗开关、描边（0–6）、阴影（0–12）、滚动速度（0.5x–2.0x）、显示区域（顶部四分之一/顶部一半/全部）。设置即时生效并按用户保存，旧版本配置自动沿用默认值。渲染按上游同款方式应用：字号缩放、填充色与透明度、黑色描边层、阴影模糊与偏移、显示区域决定弹幕行数（行数上限同步放宽）、滚动速度按比例调整每条弹幕的划过时长与轨道排布。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.31/duanjushijie-1.0.31+105-ios-unsigned.ipa",
-          "size": 33332228,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.36",
+          "date": "2026-11-23",
+          "localizedDescription": "- 红果播放改走新一代播放器协议（7.3.9.32 小米机型身份 + 当前签名方言）：播放器专用设备身份注册后 7 分钟内有效、过期自动重注册，签名时间与服务器校时对齐；单集接口与批量接口双路取流，旧通道保留为兜底。修复红果源再次无法播放的问题。\n\n# 更新日志",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.36/quanjushijie-1.0.36+110-ios-unsigned.ipa",
+          "size": 33377555,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.35",
           "date": "2026-11-23",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 「设置与备份」新增「弹幕」分组（与上游设置页对齐）：显示弹幕开关（与播放页开关同步）+ 1.0.31 的整组外观设置（字号、颜色、透明度、加粗、描边、阴影、滚动速度、显示区域），不必进播放页也能调整；播放菜单内的入口保留不变。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.32/quanjushijie-1.0.32+106-ios-unsigned.ipa",
           "size": 33331440,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.31",
-          "date": "2026-11-18",
-          "localizedDescription": "- 新增弹幕外观设置（参考上游 guoapp 的弹幕样式体系移植）：播放菜单的「播放设置」里，弹幕开关下方新增整组外观调整——字号（60%–200%）、颜色（白/黄/青/粉/绿五色）、透明度（10%–100%）、加粗开关、描边（0–6）、阴影（0–12）、滚动速度（0.5x–2.0x）、显示区域（顶部四分之一/顶部一半/全部）。设置即时生效并按用户保存，旧版本配置自动沿用默认值。渲染按上游同款方式应用：字号缩放、填充色与透明度、黑色描边层、阴影模糊与偏移、显示区域决定弹幕行数（行数上限同步放宽）、滚动速度按比例调整每条弹幕的划过时长与轨道排布。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.31/quanjushijie-1.0.31+105-ios-unsigned.ipa",
-          "size": 33332150,
           "minOSVersion": "15.1"
         }
       ]
