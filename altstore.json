@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.37",
+          "date": "2026-11-24",
+          "localizedDescription": "- 红果播放器设备注册补上签名头（X-Gorgon/X-Khronos/X-Argus），与当前可用的实现对齐：此前未签名的注册会被平台标记为低信任设备，注册能成功但播放接口返回空响应。修复 1.0.36 晚间再次无法播放的问题。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.37/duanjushijie-1.0.37+111-ios-unsigned.ipa",
+          "size": 33379311,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.36",
           "date": "2026-11-23",
           "localizedDescription": "- 红果播放改走新一代播放器协议（7.3.9.32 小米机型身份 + 当前签名方言）：播放器专用设备身份注册后 7 分钟内有效、过期自动重注册，签名时间与服务器校时对齐；单集接口与批量接口双路取流，旧通道保留为兜底。修复红果源再次无法播放的问题。\n\n# 更新日志",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.33/duanjushijie-1.0.33+107-ios-unsigned.ipa",
           "size": 33331551,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.32",
-          "date": "2026-11-18",
-          "localizedDescription": "- 「设置与备份」新增「弹幕」分组（与上游设置页对齐）：显示弹幕开关（与播放页开关同步）+ 1.0.31 的整组外观设置（字号、颜色、透明度、加粗、描边、阴影、滚动速度、显示区域），不必进播放页也能调整；播放菜单内的入口保留不变。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.32/duanjushijie-1.0.32+106-ios-unsigned.ipa",
-          "size": 33331548,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.37",
+          "date": "2026-11-24",
+          "localizedDescription": "- 红果播放器设备注册补上签名头（X-Gorgon/X-Khronos/X-Argus），与当前可用的实现对齐：此前未签名的注册会被平台标记为低信任设备，注册能成功但播放接口返回空响应。修复 1.0.36 晚间再次无法播放的问题。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.37/quanjushijie-1.0.37+111-ios-unsigned.ipa",
+          "size": 33379194,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.36",
           "date": "2026-11-23",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 新增 macOS universal 版（参考上游 guoapp 的 macOS 构建移植）：短剧视界与全剧视界各一个 DMG，同一安装包同时支持 Apple 芯片与 Intel（最低 macOS 12）。核心按 arm64 + x86_64 双架构编译后合成 XCFramework 静态链接，播放走 media_kit 的 macOS mpv 库。安装包为 ad-hoc 签名、未经公证：打开 DMG 把应用拖入 Applications 后，首次打开前在终端执行 `xattr -dr com.apple.quarantine /Applications/短剧视界.app`（全剧视界同理换应用名），或在 Finder 里右键应用选「打开」。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.33/quanjushijie-1.0.33+107-ios-unsigned.ipa",
           "size": 33331447,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.32",
-          "date": "2026-11-18",
-          "localizedDescription": "- 「设置与备份」新增「弹幕」分组（与上游设置页对齐）：显示弹幕开关（与播放页开关同步）+ 1.0.31 的整组外观设置（字号、颜色、透明度、加粗、描边、阴影、滚动速度、显示区域），不必进播放页也能调整；播放菜单内的入口保留不变。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.32/quanjushijie-1.0.32+106-ios-unsigned.ipa",
-          "size": 33331440,
           "minOSVersion": "15.1"
         }
       ]
