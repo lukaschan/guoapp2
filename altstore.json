@@ -16,6 +16,14 @@
       "tintColor": "#DF1428",
       "versions": [
         {
+          "version": "1.0.39",
+          "date": "2026-11-27",
+          "localizedDescription": "- 修复黄果 AI 源打不开：站方停用旧信封接口，改为直连 API 路径（借鉴 iDuanJu），镜像表去掉已失效的 huangguoai.ai、新增 huangguoai.io 与 adihsppe.cc 镜像。实测目录、详情、取流均通。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.39/duanjushijie-1.0.39+113-ios-unsigned.ipa",
+          "size": 33394869,
+          "minOSVersion": "15.1"
+        },
+        {
           "version": "1.0.38",
           "date": "2026-11-24",
           "localizedDescription": "- 修复红果源再次无法播放：按 GuoDuo 移植补全版 V5 签名（Medusa 设备段补全），新增 GD 取流车道（ttEncrypt 注册 + 五路取流），旧车道保留兜底。开发副本实测取流成功（1080p + CENC，媒体流 206）。",
@@ -46,14 +54,6 @@
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.35/duanjushijie-1.0.35+109-ios-unsigned.ipa",
           "size": 33343100,
           "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.34",
-          "date": "2026-11-21",
-          "localizedDescription": "- 修复红果源再次无法播放（平台废弃旧播放器接口，表现为 App 报 404、取流返回空数据）：按上游红果模块 1.0.5–1.0.7 的新协议移植——播放改以 video_tab 接口（`/reading/bookapi/video_tab/multi_video_model/v1/`，V5 签名 GET）为主、旧播放器接口为回退；客户端身份整体升到 7.4.5.32（App 查询、播放查询、设备注册与旧签名版本字段同步）；新增 H.266 专用线路的兼容回退：模型只有 bytevc2 线路时，经模型自带的备用接口按 codec_type 1/3 取兼容线路，备用地址的密封编码（SHA-512 派生密钥 + AES-CBC）已实现解码，并有与官方模块同构的合成向量测试覆盖。实测：取流成功返回 1080p 地址与 CENC 密钥，媒体流可正常拉取（HTTP 206）。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.34/duanjushijie-1.0.34+108-ios-unsigned.ipa",
-          "size": 33339573,
-          "minOSVersion": "15.1"
         }
       ]
     },
@@ -66,6 +66,14 @@
       "iconURL": "https://raw.githubusercontent.com/lukaschan/guoapp2/refs/heads/main/assets/app_icon_master.png",
       "tintColor": "#DF1428",
       "versions": [
+        {
+          "version": "1.0.39",
+          "date": "2026-11-27",
+          "localizedDescription": "- 修复黄果 AI 源打不开：站方停用旧信封接口，改为直连 API 路径（借鉴 iDuanJu），镜像表去掉已失效的 huangguoai.ai、新增 huangguoai.io 与 adihsppe.cc 镜像。实测目录、详情、取流均通。",
+          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.39/quanjushijie-1.0.39+113-ios-unsigned.ipa",
+          "size": 33394755,
+          "minOSVersion": "15.1"
+        },
         {
           "version": "1.0.38",
           "date": "2026-11-24",
@@ -96,14 +104,6 @@
           "localizedDescription": "- 修复红果源又无法播放（平台改为按请求身份区别对待：安卓身份的播放请求被回空响应、风控未放行，设备注册接口一度回 444）：按上游红果模块社区 1.0.8（PR #3，未被上游合入）的方案移植——新增 pc 车道：同一接口带 `device_platform=pc` 时平台下发可直接播放的 bytevc1（HEVC + CENC）线路，车道顺序为默认身份 → pc 身份 → 换辅助设备再试两条 → 重注册主设备（2 分钟内最多一次，避开注册限流）；空响应与格式异常不再直接报错、与编码不兼容一样换道重试，最终错误按真实原因区分（只有编码问题／只有拦截／两者都有）；pc 车道的扁平 video_list（codec、宽高、spade_a 直接在线路项上、无 video_meta/encrypt_info 嵌套）已适配解析；video_model 字符串以 JSON 开头时不再误作 base64 解码。新增与社区版同构的车道测试 5 条（扁平 pc 线路、空响应换 pc 车道、空响应换设备、不兼容编码换 pc 车道、全空报风控）。",
           "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.35/quanjushijie-1.0.35+109-ios-unsigned.ipa",
           "size": 33342975,
-          "minOSVersion": "15.1"
-        },
-        {
-          "version": "1.0.34",
-          "date": "2026-11-21",
-          "localizedDescription": "- 修复红果源再次无法播放（平台废弃旧播放器接口，表现为 App 报 404、取流返回空数据）：按上游红果模块 1.0.5–1.0.7 的新协议移植——播放改以 video_tab 接口（`/reading/bookapi/video_tab/multi_video_model/v1/`，V5 签名 GET）为主、旧播放器接口为回退；客户端身份整体升到 7.4.5.32（App 查询、播放查询、设备注册与旧签名版本字段同步）；新增 H.266 专用线路的兼容回退：模型只有 bytevc2 线路时，经模型自带的备用接口按 codec_type 1/3 取兼容线路，备用地址的密封编码（SHA-512 派生密钥 + AES-CBC）已实现解码，并有与官方模块同构的合成向量测试覆盖。实测：取流成功返回 1080p 地址与 CENC 密钥，媒体流可正常拉取（HTTP 206）。",
-          "downloadURL": "https://github.com/lukaschan/guoapp2/releases/download/v1.0.34/quanjushijie-1.0.34+108-ios-unsigned.ipa",
-          "size": 33339459,
           "minOSVersion": "15.1"
         }
       ]
